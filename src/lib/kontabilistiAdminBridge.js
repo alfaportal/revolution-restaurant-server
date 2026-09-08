@@ -284,6 +284,121 @@ async function registerKontabilistiClient(body = {}) {
   };
 }
 
+function mapKontabilistiLicenseRow(l) {
+  return {
+    id: l.id,
+    client_id: l.client_id || l.id,
+    celesi: l.license_key || l.celesi || l.id || "",
+    license_key: l.license_key || l.celesi || l.id || "",
+    hardware_id: l.hardware_id || l.device_id || "",
+    device_id: l.device_id || l.hardware_id || "",
+    statusi: l.statusi || (l.status === "active" ? "aktive" : l.status || "aktive"),
+    data_skadimit: l.data_skadimit || String(l.expires_at || "").slice(0, 10) || null,
+    product_line: "kontabilisti",
+    app_type: "kontabilisti",
+  };
+}
+
+async function updateKontabilistiClient(id, body = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Kontabilisti.");
+  const licenses = [];
+  const license_errors = [];
+  const licPatches = Array.isArray(body.licenses) && body.licenses.length
+    ? body.licenses
+    : [{ id: cid, ...body }];
+
+  for (const lp of licPatches) {
+    const lid = String(lp.id || cid).trim();
+    try {
+      const patch = {
+        emri: body.emri,
+        business_name: body.emri,
+        email: body.email,
+        telefoni: body.telefoni || body.telefon,
+        phone: body.telefoni || body.telefon,
+        adresa: body.adresa,
+      };
+      if (lp.statusi != null) patch.statusi = lp.statusi;
+      if (lp.hardware_id != null) patch.hardware_id = lp.hardware_id;
+      if (lp.device_id != null) patch.device_id = lp.device_id;
+      if (lp.celesi != null) patch.celesi = lp.celesi;
+      if (lp.data_skadimit != null) patch.data_skadimit = lp.data_skadimit;
+      const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(lid)}`, {
+        method: "PATCH",
+        body: patch,
+      });
+      licenses.push(mapKontabilistiLicenseRow(r.license || r));
+    } catch (e) {
+      license_errors.push({ id: lid, gabim: e.message || "Gabim licence" });
+    }
+  }
+
+  const detail = await getKontabilistiClientDetail(licenses[0]?.id || cid);
+  if (body.emri && detail.client) detail.client.emri = body.emri;
+  return {
+    client: detail.client,
+    licenses: licenses.length ? licenses : detail.licenses,
+    license_errors,
+    product_line: "kontabilisti",
+  };
+}
+
+async function deleteKontabilistiClient(id) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Kontabilisti.");
+  return kontabilistiRequest(`/clients/${encodeURIComponent(cid)}`, { method: "DELETE" });
+}
+
+async function deleteKontabilistiLicense(id) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës Kontabilisti.");
+  return kontabilistiRequest(`/licenses/${encodeURIComponent(lid)}`, { method: "DELETE" });
+}
+
+async function revokeKontabilistiLicense(id) {
+  const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}/revoke`, { method: "POST" });
+  return { license: mapKontabilistiLicenseRow(r.license || r), revoked: true };
+}
+
+async function reactivateKontabilistiLicense(id) {
+  const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}/reactivate`, { method: "POST" });
+  return { license: mapKontabilistiLicenseRow(r.license || r), reactivated: true };
+}
+
+async function extendKontabilistiLicense(id, months = 12) {
+  const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}/extend`, {
+    method: "POST",
+    body: { months },
+  });
+  return {
+    license: mapKontabilistiLicenseRow(r.license || r),
+    data_skadimit: r.data_skadimit || null,
+    months,
+  };
+}
+
+async function rotateKontabilistiLicenseKey(id) {
+  const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}/rotate-key`, { method: "POST" });
+  const key = r.license_key || r.celesi || r.license?.license_key || r.license?.id || "";
+  const newId = r.license?.id || id;
+  return {
+    license: mapKontabilistiLicenseRow(r.license || r),
+    license_key: key,
+    celesi: key,
+    rotated: true,
+    new_client_id: newId,
+  };
+}
+
+async function updateKontabilistiLicense(id, patch = {}) {
+  const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: patch,
+  });
+  return mapKontabilistiLicenseRow(r.license || r);
+}
+
 module.exports = {
   KONTABILISTI_SECTORS,
   getKontabilistiClientsGrouped,
@@ -291,4 +406,12 @@ module.exports = {
   getKontabilistiLicensesView,
   getKontabilistiOverview,
   registerKontabilistiClient,
+  updateKontabilistiClient,
+  updateKontabilistiLicense,
+  deleteKontabilistiClient,
+  deleteKontabilistiLicense,
+  revokeKontabilistiLicense,
+  reactivateKontabilistiLicense,
+  extendKontabilistiLicense,
+  rotateKontabilistiLicenseKey,
 };

@@ -289,6 +289,114 @@ async function revokeFiskalizimLicense(id, { status = "revoked" } = {}) {
   });
 }
 
+function mapFiskaleStatus(statusi) {
+  const s = String(statusi || "").toLowerCase();
+  if (["aktive", "active", "aktiv"].includes(s)) return "active";
+  if (["revokuar", "revoked"].includes(s)) return "revoked";
+  if (["pezulluar", "suspended"].includes(s)) return "suspended";
+  if (["skaduar", "expired"].includes(s)) return "expired";
+  return s || "active";
+}
+
+function mapFiskaleLicenseRow(l, clientId) {
+  return {
+    id: l.id,
+    client_id: l.client_id || clientId,
+    celesi: l.license_key || l.celesi || "",
+    license_key: l.license_key || l.celesi || "",
+    hardware_id: l.hardware_id || l.device_id || "",
+    statusi:
+      l.status === "active"
+        ? "aktive"
+        : l.status === "revoked"
+          ? "revokuar"
+          : l.statusi || l.status || "aktive",
+    data_skadimit: l.expires_at ? String(l.expires_at).slice(0, 10) : l.data_skadimit || null,
+    product_line: "fiskale",
+    app_type: "fiskalizim",
+  };
+}
+
+async function updateFiskalizimClient(id, body = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Fiskalizim.");
+
+  const clientPatch = {};
+  if (body.emri != null) clientPatch.emri = body.emri;
+  if (body.email != null) clientPatch.email = body.email;
+  if (body.telefoni != null || body.telefon != null) clientPatch.telefon = body.telefoni || body.telefon;
+  if (body.adresa != null) clientPatch.adresa = body.adresa;
+
+  if (Object.keys(clientPatch).length) {
+    await fiskalizimRequest(`/clients/${encodeURIComponent(cid)}`, { method: "PATCH", body: clientPatch });
+  }
+
+  const licenses = [];
+  const license_errors = [];
+  for (const lp of Array.isArray(body.licenses) ? body.licenses : []) {
+    if (!lp?.id) continue;
+    try {
+      const patch = {};
+      if (lp.statusi != null) patch.statusi = lp.statusi;
+      if (lp.hardware_id != null) patch.hardware_id = lp.hardware_id;
+      if (lp.celesi != null) patch.celesi = lp.celesi;
+      if (lp.data_skadimit != null) patch.data_skadimit = lp.data_skadimit;
+      if (!Object.keys(patch).length) continue;
+      const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(lp.id)}`, {
+        method: "PATCH",
+        body: patch,
+      });
+      licenses.push(mapFiskaleLicenseRow(r.license || r, cid));
+    } catch (e) {
+      license_errors.push({ id: lp.id, gabim: e.message || "Gabim licence" });
+    }
+  }
+
+  const detail = await getFiskalizimClientDetail(cid);
+  return {
+    client: detail.client,
+    licenses: licenses.length ? licenses : detail.licenses,
+    license_errors,
+    product_line: "fiskale",
+  };
+}
+
+async function reactivateFiskalizimLicense(id) {
+  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}/reactivate`, { method: "POST" });
+  return { license: mapFiskaleLicenseRow(r.license || r), reactivated: true };
+}
+
+async function extendFiskalizimLicense(id, months = 12) {
+  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}/extend`, {
+    method: "POST",
+    body: { months },
+  });
+  return {
+    license: mapFiskaleLicenseRow(r.license || r),
+    data_skadimit: r.data_skadimit || null,
+    months,
+  };
+}
+
+async function rotateFiskalizimLicenseKey(id) {
+  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}/rotate-key`, { method: "POST" });
+  const key = r.license_key || r.celesi || r.license?.license_key || "";
+  return {
+    license: mapFiskaleLicenseRow(r.license || r),
+    license_key: key,
+    celesi: key,
+    rotated: true,
+  };
+}
+
+async function updateFiskalizimLicense(id, patch = {}) {
+  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: patch,
+  });
+  return mapFiskaleLicenseRow(r.license || r);
+}
+
 module.exports = {
   FISKALE_SECTORS,
   getFiskalizimClientsGrouped,
@@ -296,7 +404,12 @@ module.exports = {
   getFiskalizimLicensesView,
   getFiskalizimOverview,
   registerFiskalizimClient,
+  updateFiskalizimClient,
+  updateFiskalizimLicense,
   deleteFiskalizimClient,
   deleteFiskalizimLicense,
   revokeFiskalizimLicense,
+  reactivateFiskalizimLicense,
+  extendFiskalizimLicense,
+  rotateFiskalizimLicenseKey,
 };

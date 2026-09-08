@@ -1511,6 +1511,19 @@ async function revokeLicenseRemote(licenseId, { hardwareId, reason, actor } = {}
   return { ok: true, license, hardware_id: hw || null, force_factory_reset_at: now };
 }
 
+/** Gjenero çelës të ri (random) dhe zëvendëso në DB — jo determinist nga Hardware ID. */
+async function rotateLicenseKey(id, { product_line } = {}) {
+  const key = generateLicenseKey();
+  const license = await updateLicense(id, { celesi: key, product_line });
+  return {
+    ok: true,
+    license,
+    license_key: license.celesi,
+    celesi: license.celesi,
+    rotated: true,
+  };
+}
+
 /** Riaktivizo pas çaktivizimit. */
 async function reactivateLicenseRemote(licenseId, { hardwareId, reason, actor } = {}) {
   const lic = await loadLicenseForRemoteControl(licenseId);
@@ -1839,6 +1852,7 @@ module.exports = {
   requestWipeDataForLicense,
   revokeLicenseRemote,
   reactivateLicenseRemote,
+  rotateLicenseKey,
   ackFactoryResetByKey,
   findUserByEmail,
   verifyUserPassword,

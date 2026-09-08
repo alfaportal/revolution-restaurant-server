@@ -903,10 +903,11 @@ function selectOpts(options, selected) {
     .join("");
 }
 
-function renderLicenseEditBlocks(licenses) {
+function renderLicenseEditBlocks(licenses, productLine = "kafene") {
+  const product = productLine || drawerProduct || "kafene";
   return (licenses || [])
     .map(
-      (l) => `<div class="lic-detail-row" data-lic-edit="${esc(l.id)}" style="margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)">
+      (l) => `<div class="lic-detail-row" data-lic-edit="${esc(l.id)}" data-product="${esc(l.product_line || product)}" style="margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)">
         <div class="drawer-form">
           <label>Statusi
             <select data-lic-status="${esc(l.id)}">
@@ -935,6 +936,7 @@ function renderLicenseEditBlocks(licenses) {
           </label>
         </div>
         <div class="prob-actions" style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:0.35rem">
+              <button type="button" class="btn btn-primary btn-sm" data-rotate-key="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Ndrysho kodin</button>
               <button type="button" class="btn btn-ghost btn-sm" data-drawer-extend="${esc(l.id)}" data-months="1">+1 muaj</button>
               <button type="button" class="btn btn-ghost btn-sm" data-drawer-extend="${esc(l.id)}" data-months="3">+3 muaj</button>
               <button type="button" class="btn btn-ghost btn-sm" data-drawer-extend="${esc(l.id)}" data-months="6">+6 muaj</button>
@@ -991,19 +993,69 @@ async function fetchClientDetailSmart(id, preferredProduct) {
   for (const p of ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"]) {
     if (!order.includes(p)) order.push(p);
   }
+  let lastErr = null;
   for (const product of order) {
     try {
       const d = await api(
         `/api/super/dashboard/clients/${encodeURIComponent(id)}?product=${encodeURIComponent(product)}`,
       );
       if (d?.client?.id || d?.client?.emri) {
-        return { d, product };
+        return { d, product: d.product_line || product };
       }
-    } catch {
-      /* provo produktin tjetër */
+    } catch (ex) {
+      lastErr = ex;
+      if (product === pref) lastErr = ex;
     }
   }
-  throw new Error("Klienti nuk u gjet");
+  throw lastErr || new Error("Klienti nuk u gjet");
+}
+
+async function rotateLicenseKeyUi({ licenseId, product, hwEl, keyEl, msgEl, btn }) {
+  const prod = product || drawerProduct || currentProduct || "kafene";
+  if (btn) {
+    btn.disabled = true;
+    btn.dataset.prevLabel = btn.dataset.prevLabel || btn.textContent;
+    btn.textContent = "Duke gjeneruar…";
+  }
+  try {
+    const data = await api(
+      `/api/super/dashboard/licenses/${encodeURIComponent(licenseId)}/rotate-key${productQueryString(prod)}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ product_line: prod }),
+      },
+    );
+    const key = data.license_key || data.celesi || data.license?.license_key || data.license?.celesi || "";
+    const hw =
+      data.license?.hardware_id
+      || data.license?.device_id
+      || String(hwEl?.value || "").trim();
+    if (hwEl && hw) hwEl.value = hw;
+    if (keyEl && key) {
+      keyEl.value = key;
+      keyEl.readOnly = false;
+      keyEl.focus();
+      keyEl.select();
+    }
+    if (msgEl) {
+      msgEl.classList.remove("err");
+      msgEl.textContent = "Çelësi i ri u gjenerua dhe u ruajt — kopjoje te klienti.";
+    }
+    if (btn) btn.textContent = "U gjenerua ✓";
+    const newClientId = data.new_client_id || data.license?.id;
+    if (newClientId && String(newClientId) !== String(licenseId)) {
+      await loadClients().catch(() => null);
+      await loadLicenses().catch(() => null);
+    }
+    return data;
+  } finally {
+    if (btn) {
+      setTimeout(() => {
+        btn.textContent = btn.dataset.prevLabel || "Ndrysho kodin";
+        btn.disabled = false;
+      }, 1200);
+    }
+  }
 }
 
 function renderWebLinksBlock(links = []) {
@@ -1037,11 +1089,14 @@ async function openClientDetail(id, opts = {}) {
   document.getElementById("drawer-title").textContent = `${c.icon || "🏪"} ${c.emri || "Klient"}`;
   document.getElementById("drawer-sub").textContent = "Edito klientin & licencat — Ruaj";
 
+  const isDesktopProduct = ["kontabilisti", "fiskale", "security"].includes(product);
   const sectorFields =
     product === "hotel"
       ? `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>
       <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>`
-      : `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>
+      : isDesktopProduct
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>`
+        : `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>
       <label>Veprimtaria (POS)<select id="dr-tipi">${selectOpts(DRAWER_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
@@ -1086,7 +1141,7 @@ async function openClientDetail(id, opts = {}) {
     </div>
     <div class="detail-block">
       <h4>Licenca (edito ID / çelës / status)</h4>
-      ${renderLicenseEditBlocks(licenses)}
+      ${renderLicenseEditBlocks(licenses, product)}
     </div>
   `;
   const body = document.getElementById("drawer-body");
@@ -1387,9 +1442,9 @@ function bindDrawerLicenseFix(root, clientId, productLine) {
       const licId = btn.dataset.drawerExtend;
       btn.disabled = true;
       try {
-        const r = await api(`/api/super/dashboard/licenses/${licId}/extend`, {
+        const r = await api(`/api/super/dashboard/licenses/${licId}/extend${productQueryString(product)}`, {
           method: "POST",
-          body: JSON.stringify({ months }),
+          body: JSON.stringify({ months, product_line: product }),
         });
         const newDate = r.data_skadimit || r.license?.data_skadimit;
         await afterLicenseAction(clientId, {
@@ -1460,9 +1515,12 @@ function bindDrawerLicenseFix(root, clientId, productLine) {
       const licId = btn.dataset.drawerReactivate;
       btn.disabled = true;
       try {
-        await api(`/api/super/dashboard/licenses/${licId}/reactivate`, {
+        await api(`/api/super/dashboard/licenses/${licId}/reactivate${productQueryString(product)}`, {
           method: "POST",
-          body: JSON.stringify({ hardware_id: btn.dataset.hw || undefined }),
+          body: JSON.stringify({
+            hardware_id: btn.dataset.hw || undefined,
+            product_line: product,
+          }),
         });
         await afterLicenseAction(clientId, {
           toast: "✅ Licenca u riaktivizua",
@@ -1588,11 +1646,15 @@ function bindLicenseActions(root) {
   root.querySelectorAll("[data-reactivate]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const licId = btn.dataset.reactivate;
+      const prod = btn.dataset.product || drawerProduct || currentProduct || "kafene";
       btn.disabled = true;
       try {
-        await api(`/api/super/dashboard/licenses/${licId}/reactivate`, {
+        await api(`/api/super/dashboard/licenses/${licId}/reactivate${productQueryString(prod)}`, {
           method: "POST",
-          body: JSON.stringify({ hardware_id: btn.dataset.hw || undefined }),
+          body: JSON.stringify({
+            hardware_id: btn.dataset.hw || undefined,
+            product_line: prod,
+          }),
         });
         showToast("✅ Licenca u riaktivizua");
         await Promise.all([loadLicenses(), refreshClientsAndProblems().catch(() => null)]);
@@ -1672,19 +1734,58 @@ function bindLicenseActions(root) {
       copyText(text, btn);
     });
   });
+  root.querySelectorAll("[data-rotate-key]").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.rotateKey;
+      const prod = btn.dataset.product || drawerProduct || currentProduct || "kafene";
+      const card = btn.closest("[data-license-card]") || btn.closest("[data-lic-edit]")?.parentElement || root;
+      const hwEl = root.querySelector(`[data-hw-input="${id}"]`) || root.querySelector(`[data-lic-hw="${id}"]`);
+      const keyEl = root.querySelector(`[data-key-input="${id}"]`) || root.querySelector(`[data-lic-key="${id}"]`);
+      const msgEl =
+        card?.querySelector?.(`[data-save-msg="${id}"]`)
+        || root.querySelector(`[data-save-msg="${id}"]`);
+      if (!confirm("Gjenero çelës të ri licencë?\n\nÇelësi i vjetër nuk do të funksionojë më.")) return;
+      try {
+        const data = await rotateLicenseKeyUi({
+          licenseId: id,
+          product: prod,
+          hwEl,
+          keyEl,
+          msgEl,
+          btn,
+        });
+        const newId = data.new_client_id || data.license?.id;
+        if (newId && String(newId) !== String(id) && drawerProduct) {
+          await openClientDetail(newId, { product: prod });
+        }
+        await Promise.all([loadLicenses().catch(() => null), refreshClientsAndProblems().catch(() => null)]);
+      } catch (ex) {
+        if (msgEl) {
+          msgEl.classList.add("err");
+          msgEl.textContent = ex.message || "Gjenerimi dështoi.";
+        } else {
+          alert(ex.message || "Gjenerimi dështoi.");
+        }
+        btn.disabled = false;
+        btn.textContent = btn.dataset.prevLabel || "Ndrysho kodin";
+      }
+    });
+  });
   root.querySelectorAll("[data-gen-from-hw]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.genFromHw;
-      const hwEl = root.querySelector(`[data-hw-input="${id}"]`);
-      const keyEl = root.querySelector(`[data-key-input="${id}"]`);
+      const prod = btn.dataset.product || drawerProduct || currentProduct || "kafene";
+      const hwEl = root.querySelector(`[data-hw-input="${id}"]`) || root.querySelector(`[data-lic-hw="${id}"]`);
+      const keyEl = root.querySelector(`[data-key-input="${id}"]`) || root.querySelector(`[data-lic-key="${id}"]`);
       const msgEl =
-        btn.closest("[data-license-card]")?.querySelector(`[data-save-msg="${id}"]`) ||
-        root.querySelector(`[data-save-msg="${id}"]`);
+        btn.closest("[data-license-card]")?.querySelector(`[data-save-msg="${id}"]`)
+        || root.querySelector(`[data-save-msg="${id}"]`);
       const hardwareId = String(hwEl?.value || "").trim();
       const hwHex = hardwareId.replace(/[^a-fA-F0-9]/g, "").toUpperCase();
       if (!hardwareId || hwHex.length !== 16) {
         const msg =
-          "Ngjit ID e pajisjes nga ekrani «Aktivizo» te POS (16 shenja: XXXX-XXXX-XXXX-XXXX). Pastaj shtyp përsëri Gjenero.";
+          "Ngjit ID e pajisjes nga ekrani «Aktivizo» (16 shenja: XXXX-XXXX-XXXX-XXXX). Pastaj shtyp përsëri.";
         if (msgEl) {
           msgEl.classList.add("err");
           msgEl.textContent = msg;
@@ -1698,23 +1799,32 @@ function bindLicenseActions(root) {
       const prev = btn.textContent;
       btn.textContent = "Duke gjeneruar…";
       try {
+        if (id) {
+          await rotateLicenseKeyUi({
+            licenseId: id,
+            product: prod,
+            hwEl,
+            keyEl,
+            msgEl,
+            btn,
+          });
+          if (hwEl) hwEl.value = hardwareId;
+          btn.textContent = "U gjenerua ✓";
+          return;
+        }
         const licenseType =
-          String(document.getElementById("gen-license-type")?.value || "annual").toLowerCase() ===
-          "trial"
+          String(document.getElementById("gen-license-type")?.value || "annual").toLowerCase() === "trial"
             ? "trial"
             : "annual";
-        let data;
-        try {
-          data = await api("/api/admin/licenses/generate-hardware-key", {
+        const data = await api("/api/super/generate-license-key", {
+          method: "POST",
+          body: JSON.stringify({ hardwareId, licenseType, random: true }),
+        }).catch(async () =>
+          api("/api/admin/licenses/generate-hardware-key", {
             method: "POST",
-            body: JSON.stringify({ hardwareId, licenseType }),
-          });
-        } catch {
-          data = await api("/api/super/generate-license-key", {
-            method: "POST",
-            body: JSON.stringify({ hardwareId, licenseType }),
-          });
-        }
+            body: JSON.stringify({ hardwareId, licenseType, random: true }),
+          }),
+        );
         const key = data.licenseKey || data.celesi || "";
         const hwOut = data.hardwareId || hardwareId;
         if (hwEl) hwEl.value = hwOut;
@@ -1729,13 +1839,8 @@ function bindLicenseActions(root) {
           msgEl.textContent = `Licenca u gjenerua — shtyp Ruaj`;
         }
         btn.textContent = "U gjenerua ✓";
-        setTimeout(() => {
-          btn.textContent = prev;
-          btn.disabled = false;
-        }, 1200);
       } catch (ex) {
         btn.textContent = prev;
-        btn.disabled = false;
         const err = ex.message || "Gjenerimi dështoi.";
         if (msgEl) {
           msgEl.classList.add("err");
@@ -1743,6 +1848,11 @@ function bindLicenseActions(root) {
         } else {
           alert(err);
         }
+      } finally {
+        setTimeout(() => {
+          btn.textContent = prev;
+          btn.disabled = false;
+        }, 1200);
       }
     });
   });
@@ -1750,6 +1860,12 @@ function bindLicenseActions(root) {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.saveLicense;
       const card = btn.closest("[data-license-card]") || root;
+      const prod =
+        btn.dataset.product
+        || card.dataset.product
+        || drawerProduct
+        || currentProduct
+        || "kafene";
       const hwEl = root.querySelector(`[data-hw-input="${id}"]`);
       const keyEl = root.querySelector(`[data-key-input="${id}"]`);
       const msgEl = card.querySelector(`[data-save-msg="${id}"]`) || root.querySelector(`[data-save-msg="${id}"]`);
@@ -1785,25 +1901,15 @@ function bindLicenseActions(root) {
         msgEl.classList.remove("err");
       }
       try {
-        const patch = { celesi };
-        if (hwHex.length === 16) {
-          try {
-            await api(`/api/admin/licenses/${id}`, {
-              method: "PATCH",
-              body: JSON.stringify({ celesi, hardware_id: hwRaw }),
-            });
-          } catch {
-            await api(`/api/admin/licenses/${id}`, {
-              method: "PATCH",
-              body: JSON.stringify(patch),
-            });
-          }
-        } else {
-          await api(`/api/admin/licenses/${id}`, {
-            method: "PATCH",
-            body: JSON.stringify(patch),
-          });
-        }
+        const patch = {
+          celesi,
+          product_line: prod,
+        };
+        if (hwHex.length === 16) patch.hardware_id = hwRaw;
+        await api(`/api/super/dashboard/licenses/${id}${productQueryString(prod)}`, {
+          method: "PATCH",
+          body: JSON.stringify(patch),
+        });
         btn.textContent = "U ruajt ✓";
         if (msgEl) {
           msgEl.classList.remove("err");
@@ -1894,7 +2000,7 @@ function renderLicensesList(filterText = "") {
             const active = l.statusi === "aktive";
             const hw = l.hardware_id || "";
             const key = l.license_key || "";
-            return `<div class="license-card" data-license-card="${esc(l.id)}">
+            return `<div class="license-card" data-license-card="${esc(l.id)}" data-product="${esc(l.product_line || product)}">
               <h4>${esc(l.client_name)}
                 <span class="badge ${active ? "badge-ok" : "badge-bad"}" style="margin-left:0.35rem">${esc(l.statusi)}</span>
               </h4>
@@ -1914,15 +2020,16 @@ function renderLicensesList(filterText = "") {
               <p class="lic-save-msg" data-save-msg="${esc(l.id)}"></p>
               <div class="lic-card-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
                 <button type="button" class="btn btn-ok" data-gen-id="${esc(l.id)}">Gjenero ID</button>
-                <button type="button" class="btn btn-primary" data-gen-from-hw="${esc(l.id)}">Gjenero Licencë</button>
-                <button type="button" class="btn btn-accent" data-save-license="${esc(l.id)}">Ruaj</button>
+                <button type="button" class="btn btn-primary" data-gen-from-hw="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Rifresko licencën</button>
+                <button type="button" class="btn btn-ghost" data-rotate-key="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Ndrysho kodin</button>
+                <button type="button" class="btn btn-accent" data-save-license="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Ruaj</button>
                 <button type="button" class="btn btn-ghost" data-copy-pair="${esc(l.id)}">Kopjo</button>
               </div>
               <div class="lic-card-actions" style="display:grid;grid-template-columns:1fr;gap:0.4rem;margin-top:0.55rem">
                 ${
                   ["revokuar", "pezulluar"].includes(String(l.statusi || ""))
-                    ? `<button type="button" class="btn btn-ok btn-sm" data-reactivate="${esc(l.id)}" data-hw="${esc(hw)}">Riaktivizo</button>`
-                    : `<button type="button" class="btn btn-danger btn-sm" data-revoke="${esc(l.id)}" data-hw="${esc(hw)}">Çaktivizo Menjëherë</button>`
+                    ? `<button type="button" class="btn btn-ok btn-sm" data-reactivate="${esc(l.id)}" data-hw="${esc(hw)}" data-product="${esc(l.product_line || product)}">Riaktivizo</button>`
+                    : `<button type="button" class="btn btn-danger btn-sm" data-revoke="${esc(l.id)}" data-hw="${esc(hw)}" data-product="${esc(l.product_line || product)}">Çaktivizo Menjëherë</button>`
                 }
                 <button type="button" class="btn btn-ghost btn-sm" style="border-color:#b45309;color:#b45309" data-wipe="${esc(l.id)}" data-hw="${esc(hw)}">Fshi të Dhënat</button>
                 <button type="button" class="btn btn-danger btn-sm" data-delete-license="${esc(l.id)}" data-product="${esc(l.product_line || product)}" data-key="${esc(key)}">Fshi licencën</button>
@@ -1952,13 +2059,14 @@ function renderLicensesList(filterText = "") {
           <td><span class="badge ${active ? "badge-ok" : "badge-bad"}">${esc(l.statusi)}</span></td>
           <td style="white-space:nowrap">
             <button type="button" class="btn btn-ok btn-sm" data-gen-id="${esc(l.id)}">Gjenero ID</button>
-            <button type="button" class="btn btn-primary btn-sm" data-gen-from-hw="${esc(l.id)}">Gjenero Licencë</button>
-            <button type="button" class="btn btn-accent btn-sm" data-save-license="${esc(l.id)}">Ruaj</button>
+            <button type="button" class="btn btn-primary btn-sm" data-gen-from-hw="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Rifresko</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-rotate-key="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Ndrysho kodin</button>
+            <button type="button" class="btn btn-accent btn-sm" data-save-license="${esc(l.id)}" data-product="${esc(l.product_line || product)}">Ruaj</button>
             <button type="button" class="btn btn-ghost btn-sm" data-copy-pair="${esc(l.id)}">Kopjo</button>
             ${
               ["revokuar", "pezulluar"].includes(String(l.statusi || ""))
-                ? `<button type="button" class="btn btn-ok btn-sm" data-reactivate="${esc(l.id)}" data-hw="${esc(hw)}">Riaktivizo</button>`
-                : `<button type="button" class="btn btn-danger btn-sm" data-revoke="${esc(l.id)}" data-hw="${esc(hw)}">Çaktivizo Menjëherë</button>`
+                ? `<button type="button" class="btn btn-ok btn-sm" data-reactivate="${esc(l.id)}" data-hw="${esc(hw)}" data-product="${esc(l.product_line || product)}">Riaktivizo</button>`
+                : `<button type="button" class="btn btn-danger btn-sm" data-revoke="${esc(l.id)}" data-hw="${esc(hw)}" data-product="${esc(l.product_line || product)}">Çaktivizo Menjëherë</button>`
             }
             <button type="button" class="btn btn-ghost btn-sm" style="border-color:#b45309;color:#b45309" data-wipe="${esc(l.id)}" data-hw="${esc(hw)}">Fshi të Dhënat</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-license="${esc(l.id)}" data-product="${esc(l.product_line || product)}" data-key="${esc(key)}">Fshi</button>

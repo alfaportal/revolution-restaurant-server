@@ -322,6 +322,139 @@ async function revokeSecurityLicense(id, { status = "revoked" } = {}) {
   });
 }
 
+function mapSecurityStatusToUpstream(statusi) {
+  const s = String(statusi || "").toLowerCase();
+  if (["aktive", "active", "aktiv"].includes(s)) return "active";
+  if (["revokuar", "revoked"].includes(s)) return "revoked";
+  if (["pezulluar", "suspended"].includes(s)) return "suspended";
+  if (["skaduar", "expired"].includes(s)) return "expired";
+  return s || "active";
+}
+
+function mapSecurityLicenseRow(l, clientId) {
+  return {
+    id: l.id,
+    client_id: l.client_id || clientId,
+    celesi: l.license_key || l.celesi || "",
+    license_key: l.license_key || l.celesi || "",
+    hardware_id: l.hardware_id || l.device_id || "",
+    statusi:
+      l.status === "active" || l.statusi === "aktive"
+        ? "aktive"
+        : l.status === "revoked" || l.statusi === "revokuar"
+          ? "revokuar"
+          : l.statusi || l.status || "aktive",
+    data_skadimit: l.expires_at || l.data_skadimit || null,
+    product_line: "security",
+  };
+}
+
+async function updateSecurityClient(id, body = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Security.");
+  const clientPatch = {};
+  if (body.emri != null) clientPatch.emri = body.emri;
+  if (body.email != null) clientPatch.email = body.email;
+  if (body.telefoni != null || body.telefon != null) clientPatch.telefon = body.telefoni || body.telefon;
+  if (body.adresa != null) clientPatch.adresa = body.adresa;
+  if (body.tipi || body.veprimtari) clientPatch.veprimtari = body.tipi || body.veprimtari;
+
+  let client = null;
+  if (Object.keys(clientPatch).length) {
+    const r = await securityRequest(`/clients/${encodeURIComponent(cid)}`, {
+      method: "PATCH",
+      body: clientPatch,
+    });
+    client = r.client;
+  }
+
+  const licenses = [];
+  const license_errors = [];
+  for (const lp of Array.isArray(body.licenses) ? body.licenses : []) {
+    if (!lp?.id) continue;
+    try {
+      const patch = {};
+      if (lp.statusi != null) patch.status = mapSecurityStatusToUpstream(lp.statusi);
+      if (lp.hardware_id != null) patch.hardware_id = lp.hardware_id;
+      if (lp.celesi != null) patch.license_key = lp.celesi;
+      if (lp.data_skadimit != null) patch.expires_at = lp.data_skadimit;
+      if (!Object.keys(patch).length) continue;
+      const r = await securityRequest(`/licenses/${encodeURIComponent(lp.id)}`, {
+        method: "PATCH",
+        body: patch,
+      });
+      licenses.push(mapSecurityLicenseRow(r.license || r, cid));
+    } catch (e) {
+      license_errors.push({ id: lp.id, gabim: e.message || "Gabim licence" });
+    }
+  }
+
+  if (!client) {
+    const detail = await getSecurityClientDetail(cid);
+    client = detail.client;
+  }
+  return { client, licenses, license_errors, product_line: "security" };
+}
+
+async function reactivateSecurityLicense(id) {
+  return revokeSecurityLicense(id, { status: "active" });
+}
+
+async function extendSecurityLicense(id, months = 12) {
+  const lid = String(id || "").trim();
+  const detail = await securityRequest("/licenses");
+  const licenses = Array.isArray(detail.licenses) ? detail.licenses : [];
+  const lic = licenses.find((l) => String(l.id) === lid);
+  const base =
+    lic?.expires_at && String(lic.expires_at).slice(0, 10) > new Date().toISOString().slice(0, 10)
+      ? String(lic.expires_at).slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+  const d = new Date(base);
+  d.setMonth(d.getMonth() + Math.max(1, Math.min(36, Number(months) || 12)));
+  const r = await securityRequest(`/licenses/${encodeURIComponent(lid)}`, {
+    method: "PATCH",
+    body: { expires_at: d.toISOString().slice(0, 10), status: "active" },
+  });
+  return {
+    license: mapSecurityLicenseRow(r.license || r),
+    data_skadimit: d.toISOString().slice(0, 10),
+    months,
+  };
+}
+
+async function rotateSecurityLicenseKey(id) {
+  const crypto = require("crypto");
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.randomBytes(16);
+  const part = (offset) => {
+    let s = "";
+    for (let i = 0; i < 4; i += 1) s += chars[bytes[offset + i] % chars.length];
+    return s;
+  };
+  const key = `${part(0)}-${part(4)}-${part(8)}-${part(12)}`;
+  const r = await securityRequest(`/licenses/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: { license_key: key },
+  });
+  return {
+    license: mapSecurityLicenseRow(r.license || r),
+    license_key: key,
+    celesi: key,
+    rotated: true,
+  };
+}
+
+async function updateSecurityLicense(id, patch = {}) {
+  const body = { ...patch };
+  if (patch.statusi != null) body.status = mapSecurityStatusToUpstream(patch.statusi);
+  if (patch.celesi != null) body.license_key = patch.celesi;
+  delete body.statusi;
+  delete body.celesi;
+  delete body.product_line;
+  const r = await securityRequest(`/licenses/${encodeURIComponent(id)}`, { method: "PATCH", body });
+  return mapSecurityLicenseRow(r.license || r);
+}
+
 module.exports = {
   SECURITY_SECTORS,
   getSecurityClientsGrouped,
@@ -329,7 +462,12 @@ module.exports = {
   getSecurityLicensesView,
   getSecurityOverview,
   registerSecurityClient,
+  updateSecurityClient,
+  updateSecurityLicense,
   deleteSecurityClient,
   deleteSecurityLicense,
   revokeSecurityLicense,
+  reactivateSecurityLicense,
+  extendSecurityLicense,
+  rotateSecurityLicenseKey,
 };

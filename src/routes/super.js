@@ -39,6 +39,7 @@ const {
   deleteClient,
   revokeLicenseRemote,
   reactivateLicenseRemote,
+  rotateLicenseKey,
   requestWipeDataForLicense,
 } = require("../services/licenseService");
 const {
@@ -48,6 +49,12 @@ const {
 const { addMonthsISO, todayISO } = require("../lib/licenseDates");
 const { logAdminActivity, activityFromReq } = require("../services/activityLogService");
 const { getPublicAppOrigin } = require("../lib/publicOrigin");
+
+function resolveDashboardProduct(req, fallback = "kafene") {
+  return normalizeProductLine(
+    req.body?.product_line || req.query.product || req.query.industry || fallback,
+  );
+}
 
 const router = express.Router();
 
@@ -303,6 +310,78 @@ router.patch(
       });
     }
 
+    if (product === "security") {
+      const { updateSecurityClient } = require("../lib/securityAdminBridge");
+      const result = await updateSecurityClient(id, body);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_update",
+        targetType: "client",
+        targetId: result.client?.id || id,
+        targetLabel: result.client?.emri || body.emri,
+        details: {
+          licenses_updated: (result.licenses || []).map((l) => l.id),
+          license_errors: result.license_errors || [],
+          product_line: "security",
+        },
+      }).catch(() => {});
+      return res.json({
+        ok: true,
+        client: result.client,
+        licenses: result.licenses || [],
+        license_errors: result.license_errors || [],
+        product_line: "security",
+      });
+    }
+
+    if (product === "fiskale") {
+      const { updateFiskalizimClient } = require("../lib/fiskalizimAdminBridge");
+      const result = await updateFiskalizimClient(id, body);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_update",
+        targetType: "client",
+        targetId: result.client?.id || id,
+        targetLabel: result.client?.emri || body.emri,
+        details: {
+          licenses_updated: (result.licenses || []).map((l) => l.id),
+          license_errors: result.license_errors || [],
+          product_line: "fiskale",
+        },
+      }).catch(() => {});
+      return res.json({
+        ok: true,
+        client: result.client,
+        licenses: result.licenses || [],
+        license_errors: result.license_errors || [],
+        product_line: "fiskale",
+      });
+    }
+
+    if (product === "kontabilisti") {
+      const { updateKontabilistiClient } = require("../lib/kontabilistiAdminBridge");
+      const result = await updateKontabilistiClient(id, body);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_update",
+        targetType: "client",
+        targetId: result.client?.id || id,
+        targetLabel: result.client?.emri || body.emri,
+        details: {
+          licenses_updated: (result.licenses || []).map((l) => l.id),
+          license_errors: result.license_errors || [],
+          product_line: "kontabilisti",
+        },
+      }).catch(() => {});
+      return res.json({
+        ok: true,
+        client: result.client,
+        licenses: result.licenses || [],
+        license_errors: result.license_errors || [],
+        product_line: "kontabilisti",
+      });
+    }
+
     const licPatches = Array.isArray(body.licenses) ? body.licenses : [];
 
     // Kafene / POS — ruaj klientin GJITHMONË; licencat veç e veç (një gabim licence mos e prish klientin)
@@ -411,6 +490,18 @@ router.delete(
       }).catch(() => {});
       return res.json({ ok: true, product_line: "fiskale" });
     }
+    if (product === "kontabilisti") {
+      const { deleteKontabilistiClient } = require("../lib/kontabilistiAdminBridge");
+      await deleteKontabilistiClient(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_delete",
+        targetType: "client",
+        targetId: id,
+        details: { product_line: "kontabilisti" },
+      }).catch(() => {});
+      return res.json({ ok: true, product_line: "kontabilisti" });
+    }
     await deleteClient(id);
     await logAdminActivity({
       ...activityFromReq(req),
@@ -426,7 +517,27 @@ router.delete(
 router.patch(
   "/dashboard/licenses/:id",
   asyncHandler(async (req, res) => {
-    const license = await updateLicense(req.params.id, req.body || {});
+    const product = resolveDashboardProduct(req);
+    const id = String(req.params.id || "").trim();
+    const body = req.body || {};
+
+    if (product === "security") {
+      const { updateSecurityLicense } = require("../lib/securityAdminBridge");
+      const license = await updateSecurityLicense(id, body);
+      return res.json({ ok: true, license, product_line: "security" });
+    }
+    if (product === "fiskale") {
+      const { updateFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+      const license = await updateFiskalizimLicense(id, body);
+      return res.json({ ok: true, license, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { updateKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+      const license = await updateKontabilistiLicense(id, body);
+      return res.json({ ok: true, license, product_line: "kontabilisti" });
+    }
+
+    const license = await updateLicense(id, { ...body, product_line: product });
     await logAdminActivity({
       ...activityFromReq(req),
       action: "license_update",
@@ -434,7 +545,7 @@ router.patch(
       targetId: license.id,
       targetLabel: license.celesi,
     }).catch(() => {});
-    res.json({ ok: true, license });
+    res.json({ ok: true, license, product_line: product === "kafene" ? "kafene" : product });
   }),
 );
 
@@ -758,6 +869,18 @@ router.delete(
       }).catch(() => {});
       return res.json({ ok: true, product_line: "fiskale" });
     }
+    if (product === "kontabilisti") {
+      const { deleteKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+      await deleteKontabilistiLicense(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_delete",
+        targetType: "license",
+        targetId: id,
+        details: { product_line: "kontabilisti" },
+      }).catch(() => {});
+      return res.json({ ok: true, product_line: "kontabilisti" });
+    }
     try {
       await revokeLicenseRemote(id, {
         hardwareId: req.body?.hardware_id || req.body?.hardwareId || req.query?.hardware_id,
@@ -812,12 +935,12 @@ router.post(
 router.post(
   "/dashboard/licenses/:id/revoke",
   asyncHandler(async (req, res) => {
-    const product = normalizeProductLine(
-      req.query.product || req.body?.product_line || req.query.industry || "kafene",
-    );
+    const product = resolveDashboardProduct(req);
+    const id = String(req.params.id || "").trim();
+
     if (product === "hotel") {
       const { revokeHotelLicense } = require("../lib/hotelAdminBridge");
-      const result = await revokeHotelLicense(req.params.id, {
+      const result = await revokeHotelLicense(id, {
         reason: req.body?.reason,
         hardware_id: req.body?.hardware_id || req.body?.hardwareId,
       });
@@ -825,7 +948,7 @@ router.post(
         ...activityFromReq(req),
         action: "license_revoke",
         targetType: "license",
-        targetId: req.params.id,
+        targetId: id,
         details: {
           hardware_id: req.body?.hardware_id || req.body?.hardwareId || "",
           reason: req.body?.reason || "",
@@ -834,7 +957,23 @@ router.post(
       }).catch(() => {});
       return res.json({ ok: true, ...result, product_line: "hotel" });
     }
-    const result = await revokeLicenseRemote(req.params.id, {
+    if (product === "security") {
+      const { revokeSecurityLicense } = require("../lib/securityAdminBridge");
+      const result = await revokeSecurityLicense(id, { status: "revoked" });
+      return res.json({ ok: true, ...result, product_line: "security" });
+    }
+    if (product === "fiskale") {
+      const { revokeFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+      const result = await revokeFiskalizimLicense(id, { status: "revoked" });
+      return res.json({ ok: true, ...result, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { revokeKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+      const result = await revokeKontabilistiLicense(id);
+      return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+
+    const result = await revokeLicenseRemote(id, {
       hardwareId: req.body?.hardware_id || req.body?.hardwareId,
       reason: req.body?.reason,
       actor: req.user,
@@ -855,7 +994,26 @@ router.post(
 router.post(
   "/dashboard/licenses/:id/reactivate",
   asyncHandler(async (req, res) => {
-    const result = await reactivateLicenseRemote(req.params.id, {
+    const product = resolveDashboardProduct(req);
+    const id = String(req.params.id || "").trim();
+
+    if (product === "security") {
+      const { reactivateSecurityLicense } = require("../lib/securityAdminBridge");
+      const result = await reactivateSecurityLicense(id);
+      return res.json({ ok: true, ...result, product_line: "security" });
+    }
+    if (product === "fiskale") {
+      const { reactivateFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+      const result = await reactivateFiskalizimLicense(id);
+      return res.json({ ok: true, ...result, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { reactivateKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+      const result = await reactivateKontabilistiLicense(id);
+      return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+
+    const result = await reactivateLicenseRemote(id, {
       hardwareId: req.body?.hardware_id || req.body?.hardwareId,
       reason: req.body?.reason,
       actor: req.user,
@@ -901,13 +1059,32 @@ router.post(
 router.post(
   "/dashboard/licenses/:id/extend",
   asyncHandler(async (req, res) => {
+    const product = resolveDashboardProduct(req);
+    const id = String(req.params.id || "").trim();
     const months = Math.max(1, Math.min(36, Number(req.body?.months) || 12));
+
+    if (product === "security") {
+      const { extendSecurityLicense } = require("../lib/securityAdminBridge");
+      const result = await extendSecurityLicense(id, months);
+      return res.json({ ok: true, ...result, product_line: "security" });
+    }
+    if (product === "fiskale") {
+      const { extendFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+      const result = await extendFiskalizimLicense(id, months);
+      return res.json({ ok: true, ...result, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { extendKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+      const result = await extendKontabilistiLicense(id, months);
+      return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+
     const { getSupabase } = require("../db");
     const db = getSupabase();
     const { data: lic, error } = await db
       .from("licenses")
       .select("id, celesi, data_skadimit, statusi")
-      .eq("id", req.params.id)
+      .eq("id", id)
       .maybeSingle();
     if (error || !lic) return res.status(404).json({ ok: false, gabim: "Licenca nuk u gjet." });
     const base =
@@ -915,7 +1092,7 @@ router.post(
         ? String(lic.data_skadimit)
         : todayISO();
     const data_skadimit = addMonthsISO(base, months);
-    await updateLicense(lic.id, { data_skadimit });
+    await updateLicense(lic.id, { data_skadimit, product_line: product });
     const license = await updateLicenseStatus(lic.id, "aktive");
     await logAdminActivity({
       ...activityFromReq(req),
@@ -926,6 +1103,63 @@ router.post(
       details: { months, data_skadimit },
     }).catch(() => {});
     res.json({ ok: true, license, data_skadimit, months });
+  }),
+);
+
+/** Gjenero çelës të ri (random) — zëvendëson të vjetrin në DB. */
+router.post(
+  "/dashboard/licenses/:id/rotate-key",
+  asyncHandler(async (req, res) => {
+    const product = resolveDashboardProduct(req);
+    const id = String(req.params.id || "").trim();
+
+    if (product === "security") {
+      const { rotateSecurityLicenseKey } = require("../lib/securityAdminBridge");
+      const result = await rotateSecurityLicenseKey(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: id,
+        details: { product_line: "security" },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "security" });
+    }
+    if (product === "fiskale") {
+      const { rotateFiskalizimLicenseKey } = require("../lib/fiskalizimAdminBridge");
+      const result = await rotateFiskalizimLicenseKey(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: id,
+        details: { product_line: "fiskale" },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { rotateKontabilistiLicenseKey } = require("../lib/kontabilistiAdminBridge");
+      const result = await rotateKontabilistiLicenseKey(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: result.new_client_id || id,
+        details: { product_line: "kontabilisti", previous_id: id },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+
+    const result = await rotateLicenseKey(id, { product_line: product });
+    await logAdminActivity({
+      ...activityFromReq(req),
+      action: "license_rotate_key",
+      targetType: "license",
+      targetId: result.license.id,
+      targetLabel: result.license.celesi,
+      details: { product_line: product },
+    }).catch(() => {});
+    res.json({ ...result, product_line: product });
   }),
 );
 
