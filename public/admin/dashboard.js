@@ -988,7 +988,7 @@ const DRAWER_HOTEL_TIPI_OPTS = [
 async function fetchClientDetailSmart(id, preferredProduct) {
   const pref = preferredProduct || currentProduct || "kafene";
   const order = [pref];
-  for (const p of ["kafene", "security", "hotel", "market"]) {
+  for (const p of ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"]) {
     if (!order.includes(p)) order.push(p);
   }
   for (const product of order) {
@@ -2776,7 +2776,11 @@ async function boot() {
       if (msg) msg.textContent = "Hardware ID duhet 16 hex ose bosh.";
       return;
     }
-    if (licenseKey && keyHex.length !== 16) {
+    if ((program === "kontabilisti" || program === "fiskale") && (!hardwareId || hwHex.length !== 16)) {
+      if (msg) msg.textContent = "Hardware ID (XXXX-XXXX-XXXX-XXXX) është i detyrueshëm për " + (program === "fiskale" ? "Fiskalizim" : "Kontabilisti") + ".";
+      return;
+    }
+    if (licenseKey && keyHex.length !== 16 && program !== "kontabilisti" && program !== "fiskale") {
       if (msg) msg.textContent = "Licenca duhet 16 hex ose bosh (gjenerohet automatikisht).";
       return;
     }

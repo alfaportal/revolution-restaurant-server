@@ -101,7 +101,7 @@ function ownerRoleForProgram(program) {
   return program === "security" ? "pronari" : "owner";
 }
 
-const BRIDGE_PROGRAMS = new Set(["security", "hotel", "market", "fiskale"]);
+const BRIDGE_PROGRAMS = new Set(["security", "hotel", "market", "fiskale", "kontabilisti"]);
 
 function buildOwnerLoginUrl(client, program) {
   const base = getPublicAppOrigin();
@@ -184,6 +184,13 @@ async function registerViaBridge(program, body, licenseOpts) {
     delete payload.celesi;
     delete payload.license_key;
     return registerFiskalizimClient(payload);
+  }
+  if (program === "kontabilisti") {
+    const { registerKontabilistiClient } = require("../lib/kontabilistiAdminBridge");
+    payload.app_type = "kontabilisti";
+    delete payload.celesi;
+    delete payload.license_key;
+    return registerKontabilistiClient(payload);
   }
   return null;
 }
@@ -277,11 +284,11 @@ async function registerFullDashboardClient(body, baseUrl) {
   let bridgeResult = null;
 
   try {
-    if (program === "security" || program === "hotel" || program === "market" || program === "fiskale") {
+    if (program === "security" || program === "hotel" || program === "market" || program === "fiskale" || program === "kontabilisti") {
       bridgeResult = await registerViaBridge(program, body, licenseOpts);
       client = bridgeResult.client;
       license = bridgeResult.license || null;
-      celesi = bridgeResult.license_key || bridgeResult.license?.license_key || bridgeResult.license?.celesi || celesi;
+      celesi = bridgeResult.license_key || bridgeResult.license?.license_key || bridgeResult.license?.celesi || bridgeResult.license?.id || celesi;
     } else {
       const posResult = await registerPosFamilyClient(body, program, licenseOpts);
       client = posResult.client;
@@ -301,7 +308,7 @@ async function registerFullDashboardClient(body, baseUrl) {
     if (!client?.id) throw new Error("Klienti nuk u krijua.");
 
     const ownerUrl = buildOwnerLoginUrl(client, program);
-    const expires = license?.data_skadimit || null;
+    const expires = license?.data_skadimit || license?.expires_at || bridgeResult?.expires_at || null;
 
     const result = {
       ok: true,

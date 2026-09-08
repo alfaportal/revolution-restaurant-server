@@ -709,6 +709,10 @@ async function getOverview({ product } = {}) {
     const { getFiskalizimOverview } = require("../lib/fiskalizimAdminBridge");
     return getFiskalizimOverview();
   }
+  if (p === "kontabilisti") {
+    const { getKontabilistiOverview } = require("../lib/kontabilistiAdminBridge");
+    return getKontabilistiOverview();
+  }
   return getOverviewKafene(p);
 }
 
@@ -729,6 +733,10 @@ async function getClientsGrouped({ product } = {}) {
   if (p === "fiskale") {
     const { getFiskalizimClientsGrouped } = require("../lib/fiskalizimAdminBridge");
     return getFiskalizimClientsGrouped();
+  }
+  if (p === "kontabilisti") {
+    const { getKontabilistiClientsGrouped } = require("../lib/kontabilistiAdminBridge");
+    return getKontabilistiClientsGrouped();
   }
 
   const [clientsAll, licenses, salesToday] = await Promise.all([
@@ -990,6 +998,10 @@ async function getLicensesView({ product } = {}) {
   if (p === "fiskale") {
     const { getFiskalizimLicensesView } = require("../lib/fiskalizimAdminBridge");
     return getFiskalizimLicensesView();
+  }
+  if (p === "kontabilisti") {
+    const { getKontabilistiLicensesView } = require("../lib/kontabilistiAdminBridge");
+    return getKontabilistiLicensesView();
   }
 
   const { ensureLicenseHardwareSchema } = require("../lib/ensureLicenseHardwareSchema");

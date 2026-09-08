@@ -183,6 +183,16 @@ router.get(
       const detail = await getSecurityClientDetail(req.params.id);
       return res.json({ ok: true, ...detail, product_line: "security" });
     }
+    if (product === "fiskale") {
+      const { getFiskalizimClientDetail } = require("../lib/fiskalizimAdminBridge");
+      const detail = await getFiskalizimClientDetail(req.params.id);
+      return res.json({ ok: true, ...detail, product_line: "fiskale" });
+    }
+    if (product === "kontabilisti") {
+      const { getKontabilistiClientDetail } = require("../lib/kontabilistiAdminBridge");
+      const detail = await getKontabilistiClientDetail(req.params.id);
+      return res.json({ ok: true, ...detail, product_line: "kontabilisti" });
+    }
     const detail = await getClientDetail(req.params.id);
     res.json({ ok: true, ...detail, product_line: "kafene" });
   }),
