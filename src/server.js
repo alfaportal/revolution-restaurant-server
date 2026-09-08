@@ -102,6 +102,11 @@ const FISKALIZIM_UPSTREAM = String(
 )
   .replace(/^https?:\/\//, "")
   .replace(/\/$/, "");
+const KONTABILISTI_UPSTREAM = String(
+  process.env.KONTABILISTI_UPSTREAM || "revolution-kontabilisti-production.up.railway.app",
+)
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
 
 function proxyUpstreamPath(req, product) {
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
@@ -223,10 +228,39 @@ function proxyToFiskalizim(req, res) {
   req.pipe(proxyReq);
 }
 
+function proxyToKontabilisti(req, res) {
+  let path = req.originalUrl || "/";
+  if (path.startsWith("/kontabilisti")) {
+    path = path.slice("/kontabilisti".length) || "/";
+  }
+  if (!path.startsWith("/")) path = `/${path}`;
+  const headers = { ...req.headers, host: KONTABILISTI_UPSTREAM };
+  const proxyReq = https.request(
+    {
+      hostname: KONTABILISTI_UPSTREAM,
+      port: 443,
+      path,
+      method: req.method,
+      headers,
+    },
+    (proxyRes) => {
+      res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+      proxyRes.pipe(res);
+    },
+  );
+  proxyReq.on("error", () => {
+    if (!res.headersSent) {
+      res.status(502).send("Kontabilisti upstream nuk përgjigjet");
+    }
+  });
+  req.pipe(proxyReq);
+}
+
 app.use("/security", proxyToSecurity);
 app.use("/hotel", proxyToHotel);
 app.use("/market", proxyToMarket);
 app.use("/fiskalizim", proxyToFiskalizim);
+app.use("/kontabilisti", proxyToKontabilisti);
 
 // Stripe webhook — RAW body (para express.json)
 app.post(
