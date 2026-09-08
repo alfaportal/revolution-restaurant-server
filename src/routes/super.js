@@ -389,6 +389,18 @@ router.delete(
       }).catch(() => {});
       return res.json({ ok: true, product_line: "market" });
     }
+    if (product === "fiskale") {
+      const { deleteFiskalizimClient } = require("../lib/fiskalizimAdminBridge");
+      await deleteFiskalizimClient(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_delete",
+        targetType: "client",
+        targetId: id,
+        details: { product_line: "fiskale" },
+      }).catch(() => {});
+      return res.json({ ok: true, product_line: "fiskale" });
+    }
     await deleteClient(id);
     await logAdminActivity({
       ...activityFromReq(req),
@@ -723,6 +735,18 @@ router.delete(
         details: { product_line: "market" },
       }).catch(() => {});
       return res.json({ ok: true, product_line: "market" });
+    }
+    if (product === "fiskale") {
+      const { deleteFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+      await deleteFiskalizimLicense(id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_delete",
+        targetType: "license",
+        targetId: id,
+        details: { product_line: "fiskale" },
+      }).catch(() => {});
+      return res.json({ ok: true, product_line: "fiskale" });
     }
     try {
       await revokeLicenseRemote(id, {

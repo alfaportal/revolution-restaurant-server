@@ -268,6 +268,12 @@ async function registerFiskalizimClient(body = {}) {
   };
 }
 
+async function deleteFiskalizimClient(id) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Fiskalizim.");
+  return fiskalizimRequest(`/clients/${encodeURIComponent(cid)}`, { method: "DELETE" });
+}
+
 async function deleteFiskalizimLicense(id) {
   const lid = String(id || "").trim();
   if (!lid) throw new Error("Mungon ID e licencës Fiskalizim.");
@@ -290,6 +296,7 @@ module.exports = {
   getFiskalizimLicensesView,
   getFiskalizimOverview,
   registerFiskalizimClient,
+  deleteFiskalizimClient,
   deleteFiskalizimLicense,
   revokeFiskalizimLicense,
 };
