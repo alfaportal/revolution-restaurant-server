@@ -161,6 +161,11 @@ async function registerViaBridge(program, body, licenseOpts) {
     const { registerMarketClient } = require("../lib/marketAdminBridge");
     return registerMarketClient(payload);
   }
+  if (program === "fiskale") {
+    const { registerFiskalizimClient } = require("../lib/fiskalizimAdminBridge");
+    payload.app_type = "fiskalizim";
+    return registerFiskalizimClient(payload);
+  }
   return null;
 }
 
@@ -249,7 +254,7 @@ async function registerFullDashboardClient(body, baseUrl) {
   let bridgeResult = null;
 
   try {
-    if (program === "security" || program === "hotel" || program === "market") {
+    if (program === "security" || program === "hotel" || program === "market" || program === "fiskale") {
       bridgeResult = await registerViaBridge(program, body, licenseOpts);
       client = bridgeResult.client;
       license = bridgeResult.license || null;
