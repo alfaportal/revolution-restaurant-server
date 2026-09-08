@@ -101,11 +101,28 @@ function ownerRoleForProgram(program) {
   return program === "security" ? "pronari" : "owner";
 }
 
+const BRIDGE_PROGRAMS = new Set(["security", "hotel", "market", "fiskale"]);
+
 function buildOwnerLoginUrl(client, program) {
   const base = getPublicAppOrigin();
+  if (program === "fiskale") {
+    return `${base}/fiskale`;
+  }
   const slug = client?.kitchen_slug || client?.id;
   if (!slug) return `${base}/owner/login`;
-  const pseudo = { tipi: client.tipi, product_line: program === "security" ? "security" : "kafene" };
+  const productLine =
+    program === "security"
+      ? "security"
+      : program === "hotel"
+        ? "hotel"
+        : program === "market"
+          ? "market"
+          : program === "furra"
+            ? "furra"
+            : program === "kontabilisti"
+              ? "kontabilist"
+              : "kafene";
+  const pseudo = { tipi: client.tipi, product_line: productLine };
   const urlTipi = urlTipiSegment(pseudo);
   const role = ownerRoleForProgram(program);
   return buildRoleUrl(base, urlTipi, slug, role);
@@ -164,6 +181,8 @@ async function registerViaBridge(program, body, licenseOpts) {
   if (program === "fiskale") {
     const { registerFiskalizimClient } = require("../lib/fiskalizimAdminBridge");
     payload.app_type = "fiskalizim";
+    delete payload.celesi;
+    delete payload.license_key;
     return registerFiskalizimClient(payload);
   }
   return null;
@@ -240,13 +259,17 @@ async function registerFullDashboardClient(body, baseUrl) {
   const hwHex = normalizeHardwareId(hardwareId);
   if (hwHex.length === 16) {
     hardwareId = formatGrouped16(hwHex);
-    if (!celesi) {
+    if (!celesi && !BRIDGE_PROGRAMS.has(program)) {
       const gen = generateHardwareLicenseKey(hwHex, { licenseType: "annual" });
       celesi = gen.licenseKey;
     }
   }
 
-  const licenseOpts = { muaj, celesi, hardwareId: hwHex.length === 16 ? hardwareId : "" };
+  const licenseOpts = {
+    muaj,
+    celesi: BRIDGE_PROGRAMS.has(program) ? "" : celesi,
+    hardwareId: hwHex.length === 16 ? hardwareId : "",
+  };
 
   let client = null;
   let license = null;
@@ -258,7 +281,7 @@ async function registerFullDashboardClient(body, baseUrl) {
       bridgeResult = await registerViaBridge(program, body, licenseOpts);
       client = bridgeResult.client;
       license = bridgeResult.license || null;
-      celesi = bridgeResult.license_key || bridgeResult.license?.celesi || celesi;
+      celesi = bridgeResult.license_key || bridgeResult.license?.license_key || bridgeResult.license?.celesi || celesi;
     } else {
       const posResult = await registerPosFamilyClient(body, program, licenseOpts);
       client = posResult.client;
@@ -304,6 +327,8 @@ async function registerFullDashboardClient(body, baseUrl) {
         password: ownerPassword,
         licenseKey: result.license_key,
         expiresAt: expires,
+        productLine: program,
+        hardwareId: result.hardware_id,
       }).catch((err) => {
         console.warn("[registerFullDashboardClient] welcome email:", err.message || err);
       });

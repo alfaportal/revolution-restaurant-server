@@ -694,23 +694,36 @@ async function sendOwnerWelcomeCredentialsEmail({
   password,
   licenseKey,
   expiresAt,
+  productLine,
+  hardwareId,
 }) {
+  const isFiskale = normalizeProductLineEmail(productLine) === "fiskale";
   const loginUrl = ownerUrl || `${getPublicAppOrigin()}/owner/login`;
   const urlDisplay = formatOwnerUrlDisplay(loginUrl);
   const exp = formatExpiryDateSq(expiresAt);
   const phone = resolveSupportPhone();
   const supportEmail = getSupportEmail();
-  const subject = `Aksesi juaj — ${clientName || "Revolution POS"}`;
+  const brand = isFiskale ? "Revolution Fiskalizim" : "Revolution POS";
+  const subject = isFiskale
+    ? `${brand} — ${clientName || "licencë"}`
+    : `Aksesi juaj — ${clientName || "Revolution POS"}`;
   const text = [
     ownerName ? `Përshëndetje ${ownerName},` : "Përshëndetje,",
     "",
-    clientName ? `Biznesi «${clientName}» u regjistrua në Revolution POS.` : "Llogaria juaj u krijua.",
+    isFiskale
+      ? `Biznesi «${clientName || "—"}» u regjistrua në ${brand} (desktop fiskal — JO KAFENE/POS web).`
+      : clientName
+        ? `Biznesi «${clientName}» u regjistrua në Revolution POS.`
+        : "Llogaria juaj u krijua.",
     "",
     `Emri i biznesit: ${clientName || "—"}`,
-    `URL: ${urlDisplay}`,
-    `Email: ${to}`,
-    password ? `Fjalëkalimi: ${password}` : null,
-    licenseKey ? `Çelësi i licencës: ${licenseKey}` : null,
+    isFiskale
+      ? "Instaloni Revolution Fiskalizim (.exe). Licenca aktivizohet automatikisht nga Hardware ID (3 sek) — mos futni çelës KAFENE."
+      : `URL: ${urlDisplay}`,
+    isFiskale && hardwareId ? `Hardware ID: ${hardwareId}` : null,
+    !isFiskale ? `Email: ${to}` : null,
+    !isFiskale && password ? `Fjalëkalimi: ${password}` : null,
+    licenseKey ? `Çelësi i licencës (${isFiskale ? "Fiskalizim cloud" : "POS"}): ${licenseKey}` : null,
     exp ? `Data e skadimit: ${exp}` : null,
     "",
     "Ruajeni këto të dhëna në vend të sigurt.",
@@ -722,12 +735,25 @@ async function sendOwnerWelcomeCredentialsEmail({
 
   const html = `
     <p>${ownerName ? `Përshëndetje <strong>${escapeHtmlEmail(ownerName)}</strong>,` : "Përshëndetje,"}</p>
-    ${clientName ? `<p>Biznesi <strong>${escapeHtmlEmail(clientName)}</strong> u regjistrua në Revolution POS.</p>` : ""}
+    ${
+      isFiskale
+        ? `<p>Biznesi <strong>${escapeHtmlEmail(clientName || "—")}</strong> u regjistrua në <strong>Revolution Fiskalizim</strong> (desktop — jo KAFENE).</p>
+           <p style="color:#94a3b8;font-size:13px">Instaloni app-in desktop. Pas regjistrimit të Hardware ID nga admini, licenca aktivizohet vetë (~3 sek).</p>`
+        : clientName
+          ? `<p>Biznesi <strong>${escapeHtmlEmail(clientName)}</strong> u regjistrua në Revolution POS.</p>`
+          : ""
+    }
     <table style="margin:16px 0;font-size:14px;line-height:1.6">
       <tr><td style="padding:4px 12px 4px 0;color:#64748b">Emri i biznesit</td><td><strong>${escapeHtmlEmail(clientName || "—")}</strong></td></tr>
-      <tr><td style="padding:4px 12px 4px 0;color:#64748b">URL</td><td><a href="${escapeHtmlEmail(loginUrl)}">${escapeHtmlEmail(urlDisplay)}</a></td></tr>
-      <tr><td style="padding:4px 12px 4px 0;color:#64748b">Email</td><td>${escapeHtmlEmail(to)}</td></tr>
-      ${password ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Fjalëkalimi</td><td><code>${escapeHtmlEmail(password)}</code></td></tr>` : ""}
+      ${
+        isFiskale
+          ? hardwareId
+            ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Hardware ID</td><td><code>${escapeHtmlEmail(hardwareId)}</code></td></tr>`
+            : ""
+          : `<tr><td style="padding:4px 12px 4px 0;color:#64748b">URL</td><td><a href="${escapeHtmlEmail(loginUrl)}">${escapeHtmlEmail(urlDisplay)}</a></td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#64748b">Email</td><td>${escapeHtmlEmail(to)}</td></tr>`
+      }
+      ${!isFiskale && password ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Fjalëkalimi</td><td><code>${escapeHtmlEmail(password)}</code></td></tr>` : ""}
       ${licenseKey ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Çelësi i licencës</td><td><code>${escapeHtmlEmail(licenseKey)}</code></td></tr>` : ""}
       ${exp ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Data e skadimit</td><td>${escapeHtmlEmail(exp)}</td></tr>` : ""}
     </table>
@@ -736,6 +762,12 @@ async function sendOwnerWelcomeCredentialsEmail({
   `;
 
   return deliverEmail({ to, subject, text, html });
+}
+
+function normalizeProductLineEmail(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "fiskale" || s === "fiscal" || s === "fiskal") return "fiskale";
+  return s;
 }
 
 async function sendLicenseExpiry7DayEmail({ to, clientName, expiryDate }) {

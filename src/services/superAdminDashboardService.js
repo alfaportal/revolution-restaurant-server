@@ -705,6 +705,10 @@ async function getOverview({ product } = {}) {
     const { getMarketOverview } = require("../lib/marketAdminBridge");
     return getMarketOverview();
   }
+  if (p === "fiskale") {
+    const { getFiskalizimOverview } = require("../lib/fiskalizimAdminBridge");
+    return getFiskalizimOverview();
+  }
   return getOverviewKafene(p);
 }
 
@@ -721,6 +725,10 @@ async function getClientsGrouped({ product } = {}) {
   if (p === "market") {
     const { getMarketClientsGrouped } = require("../lib/marketAdminBridge");
     return getMarketClientsGrouped();
+  }
+  if (p === "fiskale") {
+    const { getFiskalizimClientsGrouped } = require("../lib/fiskalizimAdminBridge");
+    return getFiskalizimClientsGrouped();
   }
 
   const [clientsAll, licenses, salesToday] = await Promise.all([
@@ -978,6 +986,10 @@ async function getLicensesView({ product } = {}) {
   if (p === "market") {
     const { getMarketLicensesView } = require("../lib/marketAdminBridge");
     return getMarketLicensesView();
+  }
+  if (p === "fiskale") {
+    const { getFiskalizimLicensesView } = require("../lib/fiskalizimAdminBridge");
+    return getFiskalizimLicensesView();
   }
 
   const { ensureLicenseHardwareSchema } = require("../lib/ensureLicenseHardwareSchema");
