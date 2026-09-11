@@ -6,13 +6,14 @@
     }
 
     const legacyFirst = parts[0];
-    if (legacyFirst === "waiter" && parts[1]) {
+    /* Legacy /waiter/:slug, /kitchen/:slug, /bar/:slug — vetëm 2 segmente (jo /bar/:slug/menu/1) */
+    if (legacyFirst === "waiter" && parts[1] && parts.length === 2) {
       return { tipi: "", slug: decodeURIComponent(parts[1]), role: "kamarier", table: 0 };
     }
-    if (legacyFirst === "kitchen" && parts[1]) {
+    if (legacyFirst === "kitchen" && parts[1] && parts.length === 2) {
       return { tipi: "", slug: decodeURIComponent(parts[1]), role: "kuzhina", table: 0 };
     }
-    if (legacyFirst === "bar" && parts[1]) {
+    if (legacyFirst === "bar" && parts[1] && parts.length === 2) {
       return { tipi: "", slug: decodeURIComponent(parts[1]), role: "bar", table: 0 };
     }
     if (legacyFirst === "menu" && parts[1]) {

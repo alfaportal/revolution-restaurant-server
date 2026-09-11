@@ -606,10 +606,12 @@ async function validateLicense({
     terminals_active: terminalSummary.active_terminal_count,
     terminals_max: terminalSummary.max_terminals,
     grace_until: terminalAccess.grace_until || terminalSummary.grace_until || null,
+    client_tipi: license.clients?.tipi || "",
     ...buildClientWebLinks(getPublicAppOrigin(), {
       id: license.client_id,
       kitchen_slug: kitchenSlug,
       kitchen_key: kitchenKey,
+      tipi: license.clients?.tipi,
     }, normalizePackageTier(license.clients?.package_tier)),
     features: featuresForTier(normalizePackageTier(license.clients?.package_tier)),
   };
@@ -634,7 +636,12 @@ async function getLicenseAccessLinks({ celesi, device_id, app_type, hostname, cl
 
   const slug = result.kitchen_slug || result.client_id || "";
   const key = result.kitchen_key || "";
-  const client = { id: result.client_id, kitchen_slug: slug, kitchen_key: key };
+  const client = {
+    id: result.client_id,
+    kitchen_slug: slug,
+    kitchen_key: key,
+    tipi: result.client_tipi,
+  };
   const links = buildClientWebLinks(getPublicAppOrigin(), client, result.package_tier);
 
   return {
@@ -644,6 +651,7 @@ async function getLicenseAccessLinks({ celesi, device_id, app_type, hostname, cl
     client_name: result.client_name,
     kitchen_slug: slug,
     kitchen_key: key,
+    client_tipi: result.client_tipi || "",
     package_tier: result.package_tier,
     ...links,
   };

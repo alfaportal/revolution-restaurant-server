@@ -108,6 +108,7 @@ const RESERVED_URL_TIPI = new Set([
   "waiter",
   "kitchen",
   "menu",
+  "menu-stock",
   "kiosk",
   "r",
   "s",

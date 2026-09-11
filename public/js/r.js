@@ -108,9 +108,8 @@
     });
   }
 
-  function registerSw(slug) {
-    if (!("serviceWorker" in navigator) || !slug) return;
-    const enc = encodeURIComponent(slug);
+  function registerSw() {
+    if (!("serviceWorker" in navigator)) return;
     const slug = getSlug();
     const tipi = getUrlTipi();
     if (!slug) return;
@@ -745,7 +744,7 @@
     }
 
     showScreen("screen-loading");
-    registerSw(slug);
+    registerSw();
     initPwaBanner();
 
     try {
