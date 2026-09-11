@@ -640,8 +640,17 @@
     observeReveal(document.querySelectorAll(".reveal"));
   }
 
+  function takeawayPath() {
+    const slug = getSlug();
+    const tipi = getUrlTipi();
+    if (!slug || !tipi) return "";
+    return `/${encodeURIComponent(tipi)}/${encodeURIComponent(slug)}/takeaway`;
+  }
+
   function bindOrderLinks(orderUrl) {
-    pageOrderUrl = String(orderUrl || "").trim();
+    const local = takeawayPath();
+    const raw = String(orderUrl || "").trim();
+    pageOrderUrl = local || raw;
     const orderBar = document.getElementById("order-bar");
     const orderBtn = document.getElementById("btn-order");
     const heroBtn = document.getElementById("hero-order-btn");
@@ -744,7 +753,11 @@
     }
 
     showScreen("screen-loading");
-    registerSw();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      }).catch(() => {});
+    }
     initPwaBanner();
 
     try {

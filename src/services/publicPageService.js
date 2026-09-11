@@ -5,6 +5,7 @@ const { getClientBySlugOrId, ensureKitchenCredentials } = require("../lib/kitche
 const { getClientMenuCatalog, getClientShopCatalog } = require("./menuCatalogService");
 const { clientHasFeature, packageUpgradeMessage } = require("../lib/packages");
 const { isShopStorefront, storefrontPrefix, buildStorefrontUrl } = require("../lib/storefront");
+const { urlTipiSegment, buildRolePath } = require("../lib/productUrls");
 const { qrPngBuffer, assertSameOriginUrl } = require("./qrService");
 const { getClientById } = require("./salesService");
 
@@ -241,9 +242,12 @@ async function getPublicRestaurantPage(slug, baseUrl) {
   });
 
   const base = String(baseUrl || "").replace(/\/+$/, "");
+  const urlTipi = urlTipiSegment(client);
+  const publicPath = buildRolePath(urlTipi, pageSlug, "public");
+  const takeawayPath = buildRolePath(urlTipi, pageSlug, "takeaway");
   let order_url = null;
-  if (clientHasFeature(client, "online_orders")) {
-    order_url = `${base}/r/${encodeURIComponent(pageSlug)}/order`;
+  if (clientHasFeature(client, "online_orders") && takeawayPath) {
+    order_url = `${base}${takeawayPath}`;
   }
 
   const name = String(settings?.restaurant_name || client.emri || "Restorant").trim();
@@ -268,7 +272,7 @@ async function getPublicRestaurantPage(slug, baseUrl) {
     categories: menuData.categories,
     menu: menuData.menu || [],
     order_url,
-    public_url: `${base}/r/${encodeURIComponent(pageSlug)}`,
+    public_url: publicPath ? `${base}${publicPath}` : `${base}/r/${encodeURIComponent(pageSlug)}`,
     ...settingsProfileFields(settings, pageSlug, "r"),
   };
 }

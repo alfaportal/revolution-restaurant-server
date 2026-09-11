@@ -34,15 +34,37 @@
     if (stepsEl) OrderTrack.renderSteps(stepsEl, "pending");
   }
 
+  function getUrlTipi() {
+    if (typeof parseProductPath === "function") {
+      const p = parseProductPath(window.location.pathname);
+      if (p.tipi) return p.tipi;
+    }
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    if (parts[0] === "r" || parts[0] === "restaurant") return "kafene";
+    return decodeURIComponent(parts[0] || "kafene");
+  }
+
   function getSlug() {
     if (typeof parseProductPath === "function") {
       const p = parseProductPath(window.location.pathname);
       if (p.slug) return p.slug;
     }
     const parts = window.location.pathname.split("/").filter(Boolean);
-    return parts[0] === "r" || parts[0] === "restaurant"
-      ? decodeURIComponent(parts[1] || "")
-      : "";
+    if (parts[0] === "r" || parts[0] === "restaurant") {
+      return decodeURIComponent(parts[1] || "");
+    }
+    if (parts.length >= 2) return decodeURIComponent(parts[1]);
+    return "";
+  }
+
+  function isOnTakeawayPage() {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    if (parts[2] === "takeaway") return true;
+    if (typeof parseProductPath === "function") {
+      const p = parseProductPath(window.location.pathname);
+      if (p.role === "takeaway") return true;
+    }
+    return parts[0] === "r" && parts[2] === "order";
   }
 
   function publicPageUrl(slug) {
@@ -422,6 +444,8 @@
   }
 
   async function loadPage() {
+    showScreen("screen-loading");
+    try {
     const slug = getSlug();
     setBackLinks(slug);
 
@@ -431,11 +455,9 @@
       return;
     }
 
-    showScreen("screen-loading");
     initOrderTypeToggle();
     document.getElementById("btn-submit")?.addEventListener("click", submitOrder);
 
-    try {
       const res = await fetch(`/api/r/${encodeURIComponent(slug)}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -443,7 +465,7 @@
         showScreen("screen-error");
         return;
       }
-      if (!data.order_url) {
+      if (!data.order_url && !isOnTakeawayPage()) {
         document.getElementById("error-msg").textContent = "Porositë online nuk janë të aktivizuara për këtë restorant.";
         showScreen("screen-error");
         return;
