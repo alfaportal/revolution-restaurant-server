@@ -1589,6 +1589,28 @@ a.article-card {
   letter-spacing: 0.02em;
 }
 
+.download-license-hint {
+  margin: 0.65rem 0 0;
+  max-width: 42rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.get-started-section .download-license-hint,
+.site-section-muted .download-license-hint {
+  color: var(--text-muted, #64748b);
+}
+
+.hero-setup-version {
+  margin-top: 1rem;
+  max-width: 36rem;
+}
+
+.packages-setup-version {
+  margin-top: 0.5rem;
+}
+
 .get-started-actions {
   display: flex;
   flex-wrap: wrap;

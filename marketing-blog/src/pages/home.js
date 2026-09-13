@@ -16,16 +16,16 @@ import { assetPath, blogArticlePath } from "../lib/base.js";
 
 const PACKAGE_PLANS = ["p1", "p2", "p3", "p4"];
 const PACKAGE_DETAIL_KEYS = {
-  p1: ["incl", "f1", "f2", "f3", "f4", "f5", "f6"],
-  p2: ["incl", "f1", "f2", "f3", "f4", "f5", "f6"],
-  p3: ["incl", "f1", "f2", "f3", "f4", "f5", "f6"],
-  p4: ["incl", "f1", "f2", "f3", "f4", "f5", "f6"],
+  p1: ["incl", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"],
+  p2: ["incl", "f1", "f2", "f3", "f4", "f5"],
+  p3: ["incl", "f1", "f2", "f3", "f4"],
+  p4: ["incl", "f1", "f2", "f3"],
 };
 const PACKAGE_CARD_KEYS = {
-  p1: ["incl", "f1", "f2", "f3", "f4"],
-  p2: ["incl", "f1", "f2", "f3", "f4"],
-  p3: ["incl", "f1", "f2", "f3", "f4"],
-  p4: ["incl", "f1", "f2", "f3", "f4"],
+  p1: ["f1", "f2", "f3", "f4", "f5"],
+  p2: ["f1", "f2", "f3", "f4"],
+  p3: ["f1", "f2", "f3", "f4"],
+  p4: ["f1", "f2", "f3"],
 };
 
 function packageFeaturesHtml(plan, { keys } = {}) {
@@ -57,7 +57,7 @@ function packageCard(plan) {
         <h3 class="package-name">${name}</h3>
         ${tagline ? `<p class="package-tagline">${tagline}</p>` : ""}
         <ul class="package-list">${packageFeaturesHtml(plan, { keys: PACKAGE_CARD_KEYS[plan] })}</ul>
-        <span class="btn btn-ghost package-select-btn">${plan === "p4" ? t("cta.contactAi") : t("cta.buyPackage")}</span>
+        <span class="btn btn-ghost package-select-btn">${t("cta.buyPackage")}</span>
       </div>
     </article>
   `;
@@ -372,6 +372,26 @@ async function openSetupLinkModal(plan = "") {
   startSetupDownload(plan);
 }
 
+function applyPublicSetupConfig(data) {
+  if (!data?.setup_version) return;
+  const versionHtml = `<strong>${t("getStarted.version")}:</strong> <span class="setup-version-num">v${data.setup_version}</span> — ${t("getStarted.versionHint")}`;
+  const verEl = document.getElementById("setup-version-label");
+  if (verEl) {
+    verEl.hidden = false;
+    verEl.innerHTML = versionHtml;
+  }
+  const heroVer = document.getElementById("hero-setup-version");
+  if (heroVer) {
+    heroVer.hidden = false;
+    heroVer.innerHTML = versionHtml;
+  }
+  const pkgVer = document.getElementById("packages-setup-version");
+  if (pkgVer) {
+    pkgVer.hidden = false;
+    pkgVer.innerHTML = versionHtml;
+  }
+}
+
 function bindGetStartedDownload() {
   const help = document.getElementById("get-started-wa");
   const verEl = document.getElementById("setup-version-label");
@@ -398,10 +418,7 @@ function bindGetStartedDownload() {
       const res = await fetch("/api/public/config");
       const data = await res.json();
       if (!res.ok || !data.ok) return;
-      if (verEl && data.setup_version) {
-        verEl.hidden = false;
-        verEl.innerHTML = `<strong>${t("getStarted.version")}:</strong> <span class="setup-version-num">v${data.setup_version}</span> — ${t("getStarted.versionHint")}`;
-      }
+      applyPublicSetupConfig(data);
       const digits = data.support_phone_digits || "38348707880";
       const wa = `https://wa.me/${digits}?text=${setupWaTextEncoded()}`;
       if (help) help.href = wa;
@@ -544,7 +561,7 @@ function bindPackageCards() {
 
     const dlBtn = document.getElementById("package-detail-download");
     if (dlBtn) {
-      dlBtn.textContent = t("getStarted.cta");
+      dlBtn.textContent = t("pillars.cta");
       dlBtn.hidden = false;
     }
 
@@ -982,6 +999,8 @@ export function renderHome() {
             <button type="button" class="btn btn-hero-secondary" data-equip-modal>${t("nav.equipment")}</button>
             <a class="btn btn-hero-ghost" href="#pakot">${t("hero.cta.secondary")}</a>
           </div>
+          <p class="setup-version-banner hero-setup-version" id="hero-setup-version" hidden></p>
+          <p class="download-license-hint">${t("download.licenseRequired")} ${t("download.licenseShort")}</p>
           <div class="hero-stats" aria-label="Statistika">
             <span>${t("hero.stats.restaurants")}</span>
             <span class="hero-stats-sep" aria-hidden="true">·</span>
@@ -1033,6 +1052,7 @@ export function renderHome() {
             <a class="btn btn-ghost" href="#pakot">${t("nav.packages")}</a>
             <a class="btn btn-ghost" id="get-started-wa" href="https://wa.me/38348707880" target="_blank" rel="noopener noreferrer">${t("getStarted.ctaHelp")}</a>
           </div>
+          <p class="download-license-hint">${t("download.licenseRequired")}</p>
           <p class="get-started-note">${t("getStarted.note")}</p>
         </div>
       </section>
@@ -1087,6 +1107,8 @@ export function renderHome() {
             <p>${t("packages.subtitle")}</p>
             <p class="packages-hint">${t("packages.clickHint")}</p>
             <p class="packages-hint packages-price-hint">${t("packages.priceHint")}</p>
+            <p class="setup-version-banner packages-setup-version" id="packages-setup-version" hidden></p>
+            <p class="download-license-hint">${t("download.licenseShort")}</p>
             <p class="packages-hint" id="packages-one-only" hidden></p>
           </div>
           <div class="packages-grid">
@@ -1105,7 +1127,7 @@ export function renderHome() {
             <ul class="package-detail-list" id="package-detail-list"></ul>
             <input type="hidden" id="contact-package" value="">
             <div class="package-detail-actions">
-              <button type="button" class="btn btn-ghost" id="package-detail-download" hidden>${t("cta.downloadSetup")}</button>
+              <button type="button" class="btn btn-ghost" id="package-detail-download" hidden>${t("pillars.cta")}</button>
               <button class="btn btn-primary" type="button" id="package-detail-cta">${t("cta.choosePackage")}</button>
             </div>
           </div>
