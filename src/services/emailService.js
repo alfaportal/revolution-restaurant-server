@@ -29,10 +29,14 @@ async function deliverEmail({ to, subject, text, html, attachments }) {
     html,
   };
   if (Array.isArray(attachments) && attachments.length) {
-    payload.attachments = attachments.map((a) => ({
-      filename: String(a.filename || "attachment.pdf"),
-      content: String(a.content || ""),
-    }));
+    payload.attachments = attachments.map((a) => {
+      const item = {
+        filename: String(a.filename || "attachment.pdf"),
+        content: String(a.content || ""),
+      };
+      if (a.content_id) item.content_id = String(a.content_id);
+      return item;
+    });
   }
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -846,6 +850,83 @@ async function sendOwnerLicenseRevokedEmail({ to, clientName }) {
   return deliverEmail({ to, subject, text, html });
 }
 
+/** Kuponi fiskal SEF — dërgim te konsumatori (tekst + QR + logo RKS/MF + PDF). */
+async function sendFiscalReceiptConsumerEmail({
+  to,
+  nuikf,
+  receiptText,
+  qrPngBase64,
+  logoPngBase64,
+  pdfBase64,
+  businessName,
+  taxpayerNui,
+  totalAmount,
+  fiscalDate,
+}) {
+  const safeNuikf = String(nuikf || "").trim() || "—";
+  const biz = String(businessName || "Revolution POS").trim();
+  const subject = `Kuponi juaj fiskal — ${safeNuikf}`;
+  const plain = String(receiptText || "").trim() || "Kuponi fiskal.";
+  const supportEmail = getSupportEmail();
+
+  const text = [
+    biz,
+    `NUIKF: ${safeNuikf}`,
+    taxpayerNui ? `NUI: ${taxpayerNui}` : null,
+    fiscalDate ? `Data: ${fiscalDate}` : null,
+    totalAmount != null && totalAmount !== "" ? `Totali: ${totalAmount} EUR` : null,
+    "",
+    plain,
+    "",
+    "QR dhe logo fiskale janë në versionin HTML / PDF të bashkangjitur.",
+    supportEmail ? `Pyetje: ${supportEmail}` : null,
+  ]
+    .filter((x) => x != null)
+    .join("\n");
+
+  const attachments = [];
+  if (pdfBase64) {
+    attachments.push({
+      filename: `Kupon-${safeNuikf.replace(/[^\w.-]+/g, "_")}.pdf`,
+      content: String(pdfBase64),
+    });
+  }
+  if (qrPngBase64) {
+    attachments.push({
+      filename: "qr-fiskal.png",
+      content: String(qrPngBase64),
+      content_id: "qr-fiscal",
+    });
+  }
+  if (logoPngBase64) {
+    attachments.push({
+      filename: "logo-rks-mf.png",
+      content: String(logoPngBase64),
+      content_id: "logo-rks-mf",
+    });
+  }
+
+  const qrBlock = qrPngBase64
+    ? `<img src="cid:qr-fiscal" alt="QR fiskal" width="200" height="200" style="display:block;margin:16px auto;" />`
+    : "";
+  const logoBlock = logoPngBase64
+    ? `<img src="cid:logo-rks-mf" alt="Logo fiskale RKS/MF" width="160" height="80" style="display:block;margin:12px auto;" />`
+    : "";
+
+  const html = `
+    <div style="font-family:ui-monospace,Consolas,monospace;max-width:420px;margin:0 auto;color:#111">
+      <p style="font-family:system-ui,sans-serif;font-size:15px;text-align:center;margin:0 0 8px"><strong>${escapeHtmlEmail(biz)}</strong></p>
+      <p style="font-family:system-ui,sans-serif;font-size:13px;text-align:center;color:#444;margin:0 0 12px">Kuponi juaj fiskal · NUIKF <strong>${escapeHtmlEmail(safeNuikf)}</strong></p>
+      <pre style="white-space:pre-wrap;font-size:12px;line-height:1.35;background:#f7f7f7;padding:12px;border-radius:6px;border:1px solid #ddd;margin:0">${escapeHtmlEmail(plain)}</pre>
+      ${qrBlock}
+      ${logoBlock}
+      <p style="font-family:system-ui,sans-serif;font-size:12px;color:#666;text-align:center;margin-top:16px">e-kuponi · Revolution POS SEF</p>
+    </div>
+  `;
+
+  return deliverEmail({ to, subject, text, html, attachments });
+}
+
 module.exports = {
   isEmailConfigured,
   deliverEmail,
@@ -872,4 +953,5 @@ module.exports = {
   sendLicenseExpiredEmail,
   sendOwnerPackageChangedEmail,
   sendOwnerLicenseRevokedEmail,
+  sendFiscalReceiptConsumerEmail,
 };

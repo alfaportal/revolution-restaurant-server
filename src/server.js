@@ -59,6 +59,8 @@ const {
 const { adminPanelPath } = require("./lib/admin-path");
 const { paymentsConfigured } = require("./lib/stripeConfig");
 const seoRoutes = require("./routes/seo");
+const sefUpdateRoutes = require("./routes/sefUpdate");
+const sefReceiptEmailRoutes = require("./routes/sefReceiptEmail");
 const { asyncHandler } = require("./lib/asyncHandler");
 const {
   renderPublicStorefrontHtml,
@@ -276,6 +278,11 @@ app.use(jsonErrorHandler);
 app.use(cookieParser());
 app.use(requestLogger);
 app.use(noCachePanel);
+
+/** SEF desktop auto-update — latest.yml + .exe (revolution-pos.com/sef/update/) */
+app.use("/sef/update", sefUpdateRoutes);
+/** SEF — dërgim kupon fiskal me email te konsumatori */
+app.use("/api/sef", sefReceiptEmailRoutes);
 
 /** API private — mos indekso */
 app.use("/api", (_req, res, next) => {
