@@ -236,6 +236,122 @@ async function findLicenseByDeviceId(deviceId) {
   return found.row;
 }
 
+async function findLicenseByHardwareIdOnDb(db, hardwareId) {
+  const want = normalizeHardwareIdStored(hardwareId);
+  if (!want) return null;
+
+  try {
+    const { data: byHw, error } = await db
+      .from("licenses")
+      .select(LICENSE_WITH_CLIENT_SELECT)
+      .eq("hardware_id", want)
+      .order("last_activated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error && !/hardware_id|schema cache/i.test(error.message || "")) throw error;
+    if (byHw) return byHw;
+  } catch (err) {
+    const msg = String(err?.message || err || "");
+    if (!/hardware_id|schema cache/i.test(msg)) throw err;
+  }
+
+  const meta = encodeHwMeta(want);
+  if (meta) {
+    const { data: byMeta, error: metaErr } = await db
+      .from("licenses")
+      .select(LICENSE_WITH_CLIENT_SELECT)
+      .eq("last_validation_error", meta)
+      .limit(1)
+      .maybeSingle();
+    if (metaErr && !/hardware_id|schema cache/i.test(metaErr.message || "")) throw metaErr;
+    if (byMeta) return byMeta;
+  }
+
+  const { data: recent, error: recentErr } = await db
+    .from("licenses")
+    .select(LICENSE_WITH_CLIENT_SELECT)
+    .order("last_activated_at", { ascending: false })
+    .limit(200);
+  if (recentErr) throw recentErr;
+  const hit = (recent || []).find((row) => resolveLicenseHardwareId(row) === want);
+  return hit || null;
+}
+
+async function findLicenseByHardwareId(hardwareId) {
+  const want = normalizeHardwareIdStored(hardwareId);
+  if (!want) return null;
+  const found = await findLicenseOnProductDbs((db) => findLicenseByHardwareIdOnDb(db, want));
+  return found.row;
+}
+
+/** Poll desktop — gjen licencën pas regjistrimit nga telefoni (Hardware ID). */
+async function claimLicenseByHardware({
+  hardware_id,
+  device_id,
+  app_type,
+  hostname,
+  client_ip,
+}) {
+  const license = await findLicenseByHardwareId(hardware_id);
+  if (!license) {
+    return {
+      valid: false,
+      code: "NOT_FOUND",
+      message: "Nuk ka licencë të regjistruar për këtë Hardware ID.",
+      force_logout: true,
+      force_factory_reset: true,
+    };
+  }
+
+  const { getSupportPhone } = require("../lib/publicOrigin");
+  if (license.statusi === "revokuar") {
+    return {
+      valid: false,
+      code: "REVOKED",
+      message: `Licenca nuk është më aktive. Kontaktoni: ${getSupportPhone()}`,
+      force_logout: true,
+      force_factory_reset: true,
+    };
+  }
+  if (license.statusi === "pezulluar") {
+    return {
+      valid: false,
+      code: "SUSPENDED",
+      message: "Liçenca është pezulluar.",
+      force_logout: true,
+    };
+  }
+
+  const usable = isLicenseUsable(license);
+  if (!usable.ok) {
+    return {
+      valid: false,
+      code: usable.code,
+      message: usable.message,
+      force_logout: usable.code === "EXPIRED",
+      force_factory_reset: usable.code === "EXPIRED",
+    };
+  }
+
+  const key = String(license.celesi || "").trim();
+  if (!key) {
+    return {
+      valid: false,
+      code: "NOT_FOUND",
+      message: "Licenca nuk ka çelës — kontaktoni Revolution Invest.",
+    };
+  }
+
+  return validateLicense({
+    celesi: key,
+    device_id,
+    app_type,
+    hostname,
+    hardware_id: normalizeHardwareIdStored(hardware_id) || resolveLicenseHardwareId(license),
+    client_ip,
+  });
+}
+
 async function findLicenseByKeyOnDb(db, normalized) {
   const variants = keyLookupVariants(normalized);
   const { data, error } = await db
@@ -1834,6 +1950,8 @@ module.exports = {
   normalizeKey,
   findLicenseByKey,
   findLicenseByDeviceId,
+  findLicenseByHardwareId,
+  claimLicenseByHardware,
   generateLicenseKey,
   generateDeviceId,
   provisionLicenseDevice,

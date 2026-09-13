@@ -1,6 +1,12 @@
 const express = require("express");
 const { licenseApiKeyOptional } = require("../middleware/auth");
-const { validateLicense, getLicenseAccessLinks, reportHardwareId } = require("../services/licenseService");
+const {
+  validateLicense,
+  getLicenseAccessLinks,
+  reportHardwareId,
+  claimLicenseByHardware,
+  normalizeHardwareIdStored,
+} = require("../services/licenseService");
 const { verifyMasterPin, verifyDailyEmergencyCode, isMasterPinConfigured } = require("../lib/emergencyPin");
 const { logAdminActivity } = require("../services/activityLogService");
 const { verifyWaiterPin, listWaitersForOwner } = require("../services/waiterPinService");
@@ -120,6 +126,50 @@ router.post("/report-hardware", licenseApiKeyOptional, async (req, res) => {
     res.status(400).json({ ok: false, gabim: e.message || String(e) });
   }
 });
+
+function resolveHardwareIdFromBody(body) {
+  const direct = normalizeHardwareIdStored(body?.hardware_id || body?.hardwareId || "");
+  if (direct) return direct;
+  const devHex = String(body?.device_id || "")
+    .replace(/[^a-fA-F0-9]/g, "")
+    .toUpperCase();
+  if (devHex.length === 16) return normalizeHardwareIdStored(devHex);
+  return "";
+}
+
+async function handleLicenseCheckByHardware(req, res) {
+  try {
+    const body = req.body || {};
+    const hardware_id = resolveHardwareIdFromBody(body);
+    if (!hardware_id) {
+      return res.status(400).json({
+        valid: false,
+        gabim: "Mungon Hardware ID.",
+        code: "MISSING_HARDWARE",
+      });
+    }
+    const result = await claimLicenseByHardware({
+      hardware_id,
+      device_id: body.device_id,
+      app_type: body.app_type,
+      hostname: body.hostname,
+      client_ip: clientIp(req),
+    });
+    res.status(result.valid ? 200 : result.code === "NOT_FOUND" ? 404 : 403).json(result);
+  } catch (e) {
+    res.status(500).json({ valid: false, gabim: e.message || String(e), code: "SERVER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/license/check — poll desktop (Hardware ID 16 si device_id ose hardware_id)
+ */
+router.post("/check", licenseApiKeyOptional, handleLicenseCheckByHardware);
+
+/**
+ * POST /api/v1/license/by-hardware — e njëjta si /check (alias për desktop)
+ */
+router.post("/by-hardware", licenseApiKeyOptional, handleLicenseCheckByHardware);
 
 /**
  * POST /api/v1/license/access-links — linket e plota për POS (kamarier, KDS, kiosk, website)
