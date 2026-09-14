@@ -91,8 +91,7 @@ async function findRecentActiveOrderForDedup(db, {
   if (error) return null;
   if (!data) return null;
   const { WEB_KIOSK } = require("../lib/orderSource");
-  const { isOrderAccepted } = require("../lib/salesOrderSelect");
-  if (String(deviceId).toUpperCase() === WEB_KIOSK && isOrderAccepted(data)) {
+  if (String(deviceId).toUpperCase() === WEB_KIOSK && data.accepted_at) {
     return null;
   }
   return data;
@@ -277,21 +276,15 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
       waiterId: body.waiter_id,
     });
     if (recent) {
-      const { isOrderAccepted } = require("../lib/salesOrderSelect");
-      const kiosk = String(deviceId).toUpperCase() === WEB_KIOSK;
-      if (kiosk && isOrderAccepted(recent)) {
-        /* Porosi e dytë QR pas PRANO — rresht i ri, jo merge në të pranuarën */
-      } else {
-        const prevItems = normalizeItems(recent.items_json);
-        const nextItems = items;
-        if (JSON.stringify(prevItems) === JSON.stringify(nextItems)) {
-          return recent;
-        }
-        localOrderId = recent.local_order_id;
-        existing = recent;
-        items = mergeOrderItems(prevItems, nextItems);
-        total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      const prevItems = normalizeItems(recent.items_json);
+      const nextItems = items;
+      if (JSON.stringify(prevItems) === JSON.stringify(nextItems)) {
+        return recent;
       }
+      localOrderId = recent.local_order_id;
+      existing = recent;
+      items = mergeOrderItems(prevItems, nextItems);
+      total = items.reduce((s, i) => s + i.price * i.quantity, 0);
     }
   }
 
