@@ -56,26 +56,31 @@ async function getActiveTableOrders(clientId) {
 
   const byTable = new Map();
   for (const [n, rows] of rowsByTable) {
-    if (rows.length === 1) {
-      byTable.set(n, rows[0]);
+    // QR (WEB-KIOSK) në pritje NUK futet në faturë / pagesë telefon — vetëm pas PRANO.
+    // Mos bashko porosi pending QR me rreshta të pranuara (dyfishim artikujsh + pagesa).
+    const payable = rows.filter(attachActiveOrderToWaiterTableLayout);
+    if (!payable.length) continue;
+
+    if (payable.length === 1) {
+      byTable.set(n, payable[0]);
       continue;
     }
     let items = [];
-    for (const row of rows) {
+    for (const row of payable) {
       items = mergeOrderItems(items, row.items_json);
     }
     const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-    const withLocalId = rows.filter(r => String(r.local_order_id || "").trim());
+    const withLocalId = payable.filter(r => String(r.local_order_id || "").trim());
     const primary =
       withLocalId.find(r => String(r.device_id || "").toUpperCase() !== WEB_WAITER)
       || withLocalId[0]
-      || rows.find(r => String(r.device_id || "").toUpperCase() !== WEB_WAITER)
-      || rows[0];
+      || payable.find(r => String(r.device_id || "").toUpperCase() !== WEB_WAITER)
+      || payable[0];
     byTable.set(n, {
       ...primary,
       items_json: items,
       total,
-      merged_order_ids: rows.map(r => r.id),
+      merged_order_ids: payable.map(r => r.id),
     });
   }
   return byTable;
@@ -482,7 +487,9 @@ async function closeWaiterTable(clientId, body) {
     const active = await getActiveTableOrders(clientId);
     existing = active.get(tableNumber);
     if (!existing) {
-      throw new Error(`Nuk ka porosi aktive në cloud për T${tableNumber}.`);
+      throw new Error(
+        `T${tableNumber} u pagua tashmë ose nuk ka porosi aktive (panel ose telefon).`,
+      );
     }
     assertWaiterOnTable(existing, waiter, tableNumber);
   } else {

@@ -2162,7 +2162,14 @@
       scheduleIdleLock();
     } catch (e) {
       showErr(err, e.message);
-      showSuccessToast(e.message || "Nuk u mbyll pagesa.");
+      const msg = String(e.message || "");
+      if (/pagua|mbyllur|aktive/i.test(msg)) {
+        cart = [];
+        renderCart();
+        tableNumber = 0;
+        await refreshBootstrap();
+        showScreen("screen-tables");
+      }
     } finally {
       tableClosing = false;
       if (btnCash) {

@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require("uuid");
-const { normalizeItems, updateActiveSaleFromPos } = require("./salesService");
+const { getSupabase } = require("../db");
+const { normalizeItems, mergeOrderItems, updateActiveSaleFromPos } = require("./salesService");
 const { getLicenseForClient, cancelTableOrder } = require("./waiterService");
+const { isOrderAccepted } = require("../lib/salesOrderSelect");
 const { WEB_KIOSK } = require("../lib/orderSource");
 const { getClientMenuCatalog } = require("./menuCatalogService");
 const { issueOrderTrackToken } = require("../lib/orderTrackToken");
@@ -28,11 +30,33 @@ async function submitKioskOrder(client, body) {
   const newItems = normalizeItems(body.items);
   if (!newItems.length) throw new Error("Shtoni të paktën një artikull.");
 
-  const total = newItems.reduce((s, i) => s + i.price * i.quantity, 0);
   const now = new Date().toISOString();
   const license = await getLicenseForClient(client.id);
-  const localOrderId = `kiosk-${uuidv4()}`;
   const waiterName = tableWaiterLabel(tableNumber);
+
+  // Një porosi QR në pritje për T — përditëso të njëjtin rresht cloud (jo kiosk-uuid të ri çdo skanim).
+  let pendingKiosk = null;
+  try {
+    const db = getSupabase();
+    const { data } = await db
+      .from("sales_orders")
+      .select("id, local_order_id, items_json, ordered_at, accepted_at, accepted_by_waiter_name")
+      .eq("client_id", client.id)
+      .eq("table_number", tableNumber)
+      .eq("device_id", KIOSK_DEVICE)
+      .in("status", ["ordered", "ready"])
+      .order("ordered_at", { ascending: false })
+      .limit(5);
+    pendingKiosk = (data || []).find(row => !isOrderAccepted(row)) || null;
+  } catch (err) {
+    console.warn("[kiosk/orders] pending lookup:", err.message);
+  }
+
+  const items = pendingKiosk
+    ? mergeOrderItems(pendingKiosk.items_json, newItems)
+    : newItems;
+  const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const localOrderId = pendingKiosk?.local_order_id || `kiosk-${uuidv4()}`;
 
   const sale = await updateActiveSaleFromPos({
     celesi: license.celesi,
@@ -40,10 +64,10 @@ async function submitKioskOrder(client, body) {
     local_order_id: localOrderId,
     table_number: tableNumber,
     waiter_name: waiterName,
-    items: newItems,
+    items,
     total,
     status: "ordered",
-    ordered_at: now,
+    ordered_at: pendingKiosk?.ordered_at || now,
   });
 
   try {
