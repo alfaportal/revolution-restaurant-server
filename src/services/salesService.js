@@ -62,7 +62,9 @@ function mergeOrderItems(existingItems, newItems) {
   return merged;
 }
 
-/** Parandalon double-submit: porosi e njëjtë brenda 60s (table + device + waiter). */
+/** Parandalon double-submit: porosi e njëjtë brenda 60s (table + device + waiter).
+ *  Porosi QR (WEB-KIOSK) që ka accepted_at NUK bëhet dedup — klienti ka porositur sërish
+ *  pas pranimit dhe duhet rresht i ri (porosi e dytë reale, jo double-click). */
 async function findRecentActiveOrderForDedup(db, {
   clientId,
   tableNumber,
@@ -87,7 +89,12 @@ async function findRecentActiveOrderForDedup(db, {
   if (wid) q = q.eq("waiter_id", wid);
   const { data, error } = await q.maybeSingle();
   if (error) return null;
-  return data || null;
+  if (!data) return null;
+  const { WEB_KIOSK } = require("../lib/orderSource");
+  if (String(deviceId).toUpperCase() === WEB_KIOSK && data.accepted_at) {
+    return null;
+  }
+  return data;
 }
 
 /** Një porosi aktive për tavolinë — mbyll rreshtat e vjetër (WEB-WAITER vs POS etj.) */
