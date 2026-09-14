@@ -347,6 +347,14 @@
 
   function startNewOrder() {
     stopOrderTracking();
+    orderSubmitting = false;
+    cart = [];
+    renderCart();
+    const btn = $("btn-send");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Dërgo porosinë te banaku";
+    }
     showErr($("order-err"), "");
     showScreen("screen-order");
     scheduleKioskLayout();
@@ -379,14 +387,16 @@
       if (msgEl) {
         msgEl.textContent = `Porosia juaj për T${tableNumber} u dërgua te banaku.`;
       }
-      startOrderTracking(result.order_id || result.order?.id, result.track_token);
       showScreen("screen-success");
+      try {
+        startOrderTracking(result.order_id || result.order?.id, result.track_token);
+      } catch { /* tracking opsional — mos blloko suksesin */ }
     } catch (e) {
       showErr(err, e.message);
     } finally {
       orderSubmitting = false;
+      btn.disabled = cart.length === 0;
       if ($("screen-order")?.classList.contains("active")) {
-        btn.disabled = cart.length === 0;
         btn.textContent = "Dërgo porosinë te banaku";
       }
     }

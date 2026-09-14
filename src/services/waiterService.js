@@ -15,6 +15,15 @@ const {
   listWaiterReservations,
   attachReservationsToLayout,
 } = require("./reservationService");
+const { isOrderAccepted } = require("../lib/salesOrderSelect");
+
+/** QR (WEB-KIOSK) në pritje — jo «T1 e zënë» deri PRANO (si takeaway te Online). */
+function attachActiveOrderToWaiterTableLayout(row) {
+  if (!row) return false;
+  const device = String(row.device_id || "").trim().toUpperCase();
+  if (device === WEB_KIOSK && !isOrderAccepted(row)) return false;
+  return true;
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const WEB_DEVICE = WEB_WAITER;
@@ -31,7 +40,7 @@ async function getActiveTableOrders(clientId) {
   const db = getSupabase();
   const { data, error } = await db
     .from("sales_orders")
-    .select("id, table_number, waiter_name, waiter_id, status, total, ordered_at, items_json, local_order_id, device_id, accepted_by_waiter_id, accepted_by_waiter_name")
+    .select("id, table_number, waiter_name, waiter_id, status, total, ordered_at, items_json, local_order_id, device_id, accepted_at, accepted_by_waiter_id, accepted_by_waiter_name")
     .eq("client_id", clientId)
     .in("status", ["ordered", "ready"])
     .order("ordered_at", { ascending: true });
@@ -171,6 +180,7 @@ async function buildWaiterTableLayout(clientId, { webToken = "" } = {}) {
   const activeTables = await getActiveTableOrders(clientId);
   const activeByTable = new Map();
   for (const [n, row] of activeTables) {
+    if (!attachActiveOrderToWaiterTableLayout(row)) continue;
     activeByTable.set(n, {
       waiter_name: row.waiter_name,
       waiter_id: row.waiter_id || null,

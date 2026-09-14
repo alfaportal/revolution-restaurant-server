@@ -77,14 +77,20 @@ function filterWaiterAcceptOrders(orders, waiterId) {
   });
 }
 
-/** Takeaway/Delivery — slotet Online 1…6 (jo QR tavolinë). */
+/** Takeaway/Delivery + QR në pritje — slotet Online 1…6; QR e pranuar shkon te T{n}. */
 function isOnlineSlotOrder(order) {
   if (!order || isStaffWaiterOrder(order)) return false;
   const device = String(order?.device_id || "").trim().toUpperCase();
   if (device === WEB_PUBLIC) return true;
+  if (device === WEB_KIOSK || isKioskWaiterName(order?.waiter_name)) {
+    const tableNum = Number(order.table_number) || 0;
+    if (tableNum < 1) return false;
+    const norm = normalizeAcceptanceFields(order);
+    const accepted = !!(norm.accepted_at || String(norm.accepted_by_waiter_name || "").trim());
+    return !accepted;
+  }
   const tableNum = Number(order.table_number) || 0;
   if (tableNum > 0) return false;
-  if (device === WEB_KIOSK || isKioskWaiterName(order?.waiter_name)) return false;
   const w = String(order?.waiter_name || "").trim().toLowerCase();
   if (w.startsWith("takeaway") || w.startsWith("delivery")) return true;
   return false;
