@@ -297,39 +297,118 @@ async function loginWaiterWithPin(clientId, pin, webToken = null) {
   return verifyWaiterPin(clientId, pin, webToken);
 }
 
+/** Porosi QR në pritje (pa PRANO) — për merge / anulim klienti. */
+async function findUnacceptedKioskOrderOnTable(clientId, tableNumber) {
+  const num = Number(tableNumber);
+  if (!num || num < 1) return null;
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("sales_orders")
+    .select(
+      "id, local_order_id, items_json, ordered_at, device_id, waiter_name, waiter_id, status, total, accepted_at, accepted_by_waiter_name",
+    )
+    .eq("client_id", clientId)
+    .eq("table_number", num)
+    .eq("device_id", WEB_KIOSK)
+    .in("status", ["ordered", "ready"])
+    .order("ordered_at", { ascending: false })
+    .limit(5);
+  if (error) throw error;
+  return (data || []).find(row => !isOrderAccepted(row)) || null;
+}
+
+/**
+ * Një rrugë për tavolinë fizike T≥1: telefon (WEB-WAITER) dhe QR (WEB-KIOSK).
+ * - Kamarier: bashkon me porosinë aktive të pranueshme në T.
+ * - QR: bashkon vetëm pending; pas PRANO porosi e re = rresht i ri (PRANO në panel).
+ */
+async function submitPhysicalTableWebOrder(clientId, opts = {}) {
+  await assertClient(clientId);
+  const tableNumber = Number(opts.tableNumber);
+  if (!tableNumber || tableNumber < 1) throw new Error("Mungon numri i tavolinës.");
+
+  const newItems = normalizeItems(opts.items);
+  if (!newItems.length) throw new Error("Shtoni të paktën një artikull.");
+
+  const deviceId = String(opts.deviceId || WEB_DEVICE).trim().toUpperCase();
+  const now = new Date().toISOString();
+  const license = await getLicenseForClient(clientId);
+
+  let existing = null;
+  let items;
+  let localOrderId;
+  let orderedAt;
+  let effectiveDeviceId = deviceId;
+
+  if (deviceId === WEB_KIOSK) {
+    const pending = await findUnacceptedKioskOrderOnTable(clientId, tableNumber);
+    if (pending) {
+      existing = pending;
+      items = mergeOrderItems(pending.items_json, newItems);
+      localOrderId = pending.local_order_id;
+      orderedAt = pending.ordered_at || now;
+      effectiveDeviceId = WEB_KIOSK;
+    } else {
+      items = newItems;
+      localOrderId = `kiosk-${uuidv4()}`;
+      orderedAt = now;
+    }
+  } else {
+    const active = await getActiveTableOrders(clientId);
+    existing = active.get(tableNumber) || null;
+    if (opts.waiter) {
+      assertWaiterOnTable(existing, opts.waiter, tableNumber);
+    }
+    items = existing ? mergeOrderItems(existing.items_json, newItems) : newItems;
+    localOrderId = existing?.local_order_id || `web-${uuidv4()}`;
+    orderedAt = existing?.ordered_at || now;
+    effectiveDeviceId = String(existing?.device_id || WEB_DEVICE).trim().toUpperCase() || WEB_DEVICE;
+  }
+
+  const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+  const sale = await updateActiveSaleFromPos({
+    celesi: license.celesi,
+    device_id: effectiveDeviceId,
+    local_order_id: localOrderId,
+    table_number: tableNumber,
+    waiter_name: String(opts.waiterName || "").trim(),
+    waiter_id: opts.waiterId || undefined,
+    items,
+    total,
+    status: "ordered",
+    ordered_at: orderedAt,
+  });
+
+  try {
+    const { deductStockForOrder } = require("./stockService");
+    await deductStockForOrder(clientId, newItems);
+  } catch (err) {
+    console.warn("[stock] table order deduct failed:", err.message);
+  }
+
+  try {
+    const { deductIngredientsForOrder } = require("./inventoryService");
+    await deductIngredientsForOrder(clientId, newItems);
+  } catch (err) {
+    console.warn("[inventory] table order deduct failed:", err.message);
+  }
+
+  return { sale, newItems, tableNumber, total, deviceId: effectiveDeviceId };
+}
+
 async function submitWaiterOrder(clientId, body) {
   await assertClient(clientId);
   const waiter = await resolveWaiterForOrder(clientId, body.waiter_id, body.waiter_name);
 
   const tableNumber = Number(body.table_number);
-  if (!tableNumber || tableNumber < 1) throw new Error("Zgjidhni tavolinën.");
-
-  const newItems = normalizeItems(body.items);
-  if (!newItems.length) throw new Error("Shtoni të paktën një artikull.");
-
-  const active = await getActiveTableOrders(clientId);
-  const existing = active.get(tableNumber);
-  assertWaiterOnTable(existing, waiter, tableNumber);
-
-  const items = existing
-    ? mergeOrderItems(existing.items_json, newItems)
-    : newItems;
-  const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const now = new Date().toISOString();
-  const license = await getLicenseForClient(clientId);
-  const localOrderId = existing?.local_order_id || `web-${uuidv4()}`;
-
-  const sale = await updateActiveSaleFromPos({
-    celesi: license.celesi,
-    device_id: existing?.device_id || WEB_DEVICE,
-    local_order_id: localOrderId,
-    table_number: tableNumber,
-    waiter_name: waiter.name,
-    waiter_id: waiter.id,
-    items,
-    total,
-    status: "ordered",
-    ordered_at: existing?.ordered_at || now,
+  const { sale, newItems, total } = await submitPhysicalTableWebOrder(clientId, {
+    tableNumber,
+    items: body.items,
+    deviceId: WEB_DEVICE,
+    waiterName: waiter.name,
+    waiterId: waiter.id,
+    waiter,
   });
 
   let saved = sale;
@@ -351,20 +430,6 @@ async function submitWaiterOrder(clientId, body) {
         .single());
     }
     if (!error && data) saved = data;
-  }
-
-  try {
-    const { deductStockForOrder } = require("./stockService");
-    await deductStockForOrder(clientId, newItems);
-  } catch (err) {
-    console.warn("[stock] waiter deduct failed:", err.message);
-  }
-
-  try {
-    const { deductIngredientsForOrder } = require("./inventoryService");
-    await deductIngredientsForOrder(clientId, newItems);
-  } catch (err) {
-    console.warn("[inventory] waiter deduct failed:", err.message);
   }
 
   console.log("[waiter/orders] saved", {
@@ -575,6 +640,8 @@ module.exports = {
   getWaiterBootstrap,
   getWaiterLiveState,
   loginWaiterWithPin,
+  submitPhysicalTableWebOrder,
+  findUnacceptedKioskOrderOnTable,
   submitWaiterOrder,
   cancelWaiterOrder,
   closeWaiterTable,

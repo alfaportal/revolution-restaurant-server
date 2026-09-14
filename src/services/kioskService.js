@@ -1,8 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
-const { getSupabase } = require("../db");
-const { normalizeItems, mergeOrderItems, updateActiveSaleFromPos } = require("./salesService");
-const { getLicenseForClient, cancelTableOrder } = require("./waiterService");
-const { isOrderAccepted } = require("../lib/salesOrderSelect");
+const { normalizeItems } = require("./salesService");
+const {
+  getLicenseForClient,
+  cancelTableOrder,
+  submitPhysicalTableWebOrder,
+  findUnacceptedKioskOrderOnTable,
+} = require("./waiterService");
 const { WEB_KIOSK } = require("../lib/orderSource");
 const { getClientMenuCatalog } = require("./menuCatalogService");
 const { issueOrderTrackToken } = require("../lib/orderTrackToken");
@@ -27,62 +29,12 @@ async function submitKioskOrder(client, body) {
     throw new Error("Mungon numri i tavolinës (?table=... në link).");
   }
 
-  const newItems = normalizeItems(body.items);
-  if (!newItems.length) throw new Error("Shtoni të paktën një artikull.");
-
-  const now = new Date().toISOString();
-  const license = await getLicenseForClient(client.id);
-  const waiterName = tableWaiterLabel(tableNumber);
-
-  // Një porosi QR në pritje për T — përditëso të njëjtin rresht cloud (jo kiosk-uuid të ri çdo skanim).
-  let pendingKiosk = null;
-  try {
-    const db = getSupabase();
-    const { data } = await db
-      .from("sales_orders")
-      .select("id, local_order_id, items_json, ordered_at, accepted_at, accepted_by_waiter_name")
-      .eq("client_id", client.id)
-      .eq("table_number", tableNumber)
-      .eq("device_id", KIOSK_DEVICE)
-      .in("status", ["ordered", "ready"])
-      .order("ordered_at", { ascending: false })
-      .limit(5);
-    pendingKiosk = (data || []).find(row => !isOrderAccepted(row)) || null;
-  } catch (err) {
-    console.warn("[kiosk/orders] pending lookup:", err.message);
-  }
-
-  const items = pendingKiosk
-    ? mergeOrderItems(pendingKiosk.items_json, newItems)
-    : newItems;
-  const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const localOrderId = pendingKiosk?.local_order_id || `kiosk-${uuidv4()}`;
-
-  const sale = await updateActiveSaleFromPos({
-    celesi: license.celesi,
-    device_id: KIOSK_DEVICE,
-    local_order_id: localOrderId,
-    table_number: tableNumber,
-    waiter_name: waiterName,
-    items,
-    total,
-    status: "ordered",
-    ordered_at: pendingKiosk?.ordered_at || now,
+  const { sale } = await submitPhysicalTableWebOrder(client.id, {
+    tableNumber,
+    items: body.items,
+    deviceId: KIOSK_DEVICE,
+    waiterName: tableWaiterLabel(tableNumber),
   });
-
-  try {
-    const { deductStockForOrder } = require("./stockService");
-    await deductStockForOrder(client.id, newItems);
-  } catch (err) {
-    console.warn("[stock] kiosk deduct failed:", err.message);
-  }
-
-  try {
-    const { deductIngredientsForOrder } = require("./inventoryService");
-    await deductIngredientsForOrder(client.id, newItems);
-  } catch (err) {
-    console.warn("[inventory] kiosk deduct failed:", err.message);
-  }
 
   if (sale?.id) {
     try {
@@ -92,7 +44,7 @@ async function submitKioskOrder(client, body) {
         table_number: tableNumber,
         status: "ordered",
         device_id: WEB_KIOSK,
-        waiter_name: waiterName,
+        waiter_name: tableWaiterLabel(tableNumber),
       });
     } catch (err) {
       console.warn("[kiosk/orders] SSE notify failed:", err.message);
@@ -115,10 +67,11 @@ async function cancelKioskOrder(client, body) {
   if (!tableNumber || tableNumber < 1) {
     throw new Error("Mungon numri i tavolinës.");
   }
-  const { getActiveTableOrders } = require("./waiterService");
-  const active = await getActiveTableOrders(client.id);
-  const existing = active.get(tableNumber);
-  const sale = await cancelTableOrder(client.id, { tableNumber, existing });
+  const pending = await findUnacceptedKioskOrderOnTable(client.id, tableNumber);
+  if (!pending) {
+    throw new Error("Nuk ka porosi QR në pritje për anullim në këtë tavolinë.");
+  }
+  const sale = await cancelTableOrder(client.id, { tableNumber, existing: pending });
   return {
     ok: true,
     message: "Porosia u anullua",
