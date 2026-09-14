@@ -63,8 +63,8 @@ function mergeOrderItems(existingItems, newItems) {
 }
 
 /** Parandalon double-submit: porosi e njëjtë brenda 60s (table + device + waiter).
- *  QR (WEB-KIOSK): rresht i pranuar → kurrë dedup (porosi e re = rresht pending i ri).
- *  QR pending me artikuj të ndryshëm → gjithashtu rresht i ri (merge vetëm double-click i njëjtë). */
+ *  Porosi QR (WEB-KIOSK) që ka accepted_at NUK bëhet dedup — klienti ka porositur sërish
+ *  pas pranimit dhe duhet rresht i ri (porosi e dytë reale, jo double-click). */
 async function findRecentActiveOrderForDedup(db, {
   clientId,
   tableNumber,
@@ -91,8 +91,7 @@ async function findRecentActiveOrderForDedup(db, {
   if (error) return null;
   if (!data) return null;
   const { WEB_KIOSK } = require("../lib/orderSource");
-  const { isOrderAccepted } = require("../lib/salesOrderSelect");
-  if (String(deviceId).toUpperCase() === WEB_KIOSK && isOrderAccepted(data)) {
+  if (String(deviceId).toUpperCase() === WEB_KIOSK && data.accepted_at) {
     return null;
   }
   return data;
@@ -277,31 +276,15 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
       waiterId: body.waiter_id,
     });
     if (recent) {
-      const { isOrderAccepted } = require("../lib/salesOrderSelect");
-      const kiosk = String(deviceId).toUpperCase() === WEB_KIOSK;
-      if (kiosk) {
-        if (isOrderAccepted(recent)) {
-          recent = null;
-        } else {
-          const prevItems = normalizeItems(recent.items_json);
-          const nextItems = items;
-          if (JSON.stringify(prevItems) === JSON.stringify(nextItems)) {
-            return recent;
-          }
-          recent = null;
-        }
+      const prevItems = normalizeItems(recent.items_json);
+      const nextItems = items;
+      if (JSON.stringify(prevItems) === JSON.stringify(nextItems)) {
+        return recent;
       }
-      if (recent) {
-        const prevItems = normalizeItems(recent.items_json);
-        const nextItems = items;
-        if (JSON.stringify(prevItems) === JSON.stringify(nextItems)) {
-          return recent;
-        }
-        localOrderId = recent.local_order_id;
-        existing = recent;
-        items = mergeOrderItems(prevItems, nextItems);
-        total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-      }
+      localOrderId = recent.local_order_id;
+      existing = recent;
+      items = mergeOrderItems(prevItems, nextItems);
+      total = items.reduce((s, i) => s + i.price * i.quantity, 0);
     }
   }
 
