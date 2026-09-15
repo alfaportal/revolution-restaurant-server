@@ -2916,6 +2916,7 @@ async function boot() {
       hardware_id: hardwareId || undefined,
       celesi: licenseKey || undefined,
       license_key: licenseKey || undefined,
+      max_terminals: Number(document.getElementById("nc-max-terminals")?.value || 1) || 1,
     };
 
     if (btn) btn.disabled = true;
