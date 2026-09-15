@@ -295,7 +295,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     service: "revolution-restaurant-server",
     version: pkg.version || "1.0.0",
-    site_version: "2026-08-18-restaurant-server-v1.0.502-kafene-v1.0.507",
+    site_version: "2026-09-15-restaurant-server-v1.0.512-kafene-v1.0.531",
     git_commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
     git_branch: process.env.RAILWAY_GIT_BRANCH || null,
     time: new Date().toISOString(),
