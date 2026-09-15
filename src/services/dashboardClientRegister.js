@@ -97,12 +97,6 @@ function buildFullAddress(adresa, qyteti) {
   return a || q || "";
 }
 
-function parseMaxTerminals(body) {
-  const n = Number(body?.max_terminals);
-  if (!Number.isFinite(n)) return 1;
-  return Math.max(1, Math.min(4, Math.round(n)));
-}
-
 function ownerRoleForProgram(program) {
   return program === "security" ? "pronari" : "owner";
 }
@@ -231,7 +225,7 @@ async function registerPosFamilyClient(body, program, licenseOpts) {
       product_line: dbProductLine,
       license_type: "annual",
       muaj: licenseOpts.muaj,
-      max_terminals: parseMaxTerminals(body),
+      max_terminals: Math.min(4, Math.max(1, Number(body.max_terminals) || 1)),
       celesi: licenseOpts.celesi || undefined,
       hardware_id: licenseOpts.hardwareId || undefined,
     });
