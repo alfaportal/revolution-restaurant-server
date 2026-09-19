@@ -219,13 +219,13 @@ let ownerClientPackageTier = "";
 
 /** Tab-e të menaxhuara sipas paketës (vetëm fshehje UI — HTML mbetet). */
 const OWNER_TIER_TAB_GATES = {
-  pako_3: ["zreport", "fiskale", "licenca", "blerje", "ai", "ai-raporte", "ai-asistent"],
-  pako_4: ["zreport", "fiskale", "licenca", "blerje"],
+  pako_2: ["zreport", "fiskale", "licenca", "blerje", "ai", "ai-raporte", "ai-asistent"],
+  pako_5: ["zreport", "fiskale", "licenca", "blerje"],
 };
 
 function applyOwnerPackageTabGating(packageTier) {
   const tier = String(packageTier || "").trim();
-  if (tier !== "pako_3" && tier !== "pako_4") return;
+  if (tier !== "pako_2" && tier !== "pako_5") return;
 
   const hideTabs = OWNER_TIER_TAB_GATES[tier];
   if (!hideTabs?.length) return;
