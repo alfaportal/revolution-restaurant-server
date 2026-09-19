@@ -215,6 +215,36 @@ function renderOrderCard(o) {
 }
 
 let ownerPackageFeatures = {};
+let ownerClientPackageTier = "";
+
+/** Tab-e të menaxhuara sipas paketës (vetëm fshehje UI — HTML mbetet). */
+const OWNER_TIER_TAB_GATES = {
+  pako_3: ["zreport", "fiskale", "licenca", "blerje", "ai", "ai-raporte", "ai-asistent"],
+  pako_4: ["zreport", "fiskale", "licenca", "blerje"],
+};
+
+function applyOwnerPackageTabGating(packageTier) {
+  const tier = String(packageTier || "").trim();
+  if (tier !== "pako_3" && tier !== "pako_4") return;
+
+  const hideTabs = OWNER_TIER_TAB_GATES[tier];
+  if (!hideTabs?.length) return;
+
+  for (const tabName of hideTabs) {
+    const btn = document.querySelector(`.tab.nav-tile[data-tab="${tabName}"]`);
+    const panel = document.getElementById(`panel-${tabName}`);
+    if (btn) {
+      btn.setAttribute("hidden", "");
+      btn.classList.add("hidden");
+      btn.classList.remove("active");
+    }
+    if (panel) {
+      panel.setAttribute("hidden", "");
+      panel.classList.add("hidden");
+    }
+  }
+}
+
 const AI_UPGRADE_MSG = "Kontaktoni Revolution POS për upgrade";
 window.AI_UPGRADE_MSG = AI_UPGRADE_MSG;
 
@@ -296,6 +326,9 @@ async function loadClient() {
   if (empty) {
     empty.classList.toggle("hidden", !!(features.waiter || features.kds || features.kiosk || features.website));
   }
+
+  ownerClientPackageTier = String(client?.package_tier || "").trim();
+  applyOwnerPackageTabGating(ownerClientPackageTier);
 }
 
 async function kopjoLinkun(inputId, btn) {
@@ -3010,6 +3043,7 @@ async function applyAiUiState() {
     window.applySupplySuggestionsSection?.(data);
     window.applyAiAssistantTab?.(data);
     window.applyNotificationsTab?.(data);
+    applyOwnerPackageTabGating(ownerClientPackageTier || _ownerLastPackageTier || data.package_tier);
   } catch {
     root?.classList.add("hidden");
     fab?.classList.add("hidden");
