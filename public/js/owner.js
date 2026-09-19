@@ -317,10 +317,16 @@ async function loadClient() {
     ["owner-link-public-row", "owner-public-url", features.website, links.public_page],
   ];
   for (const [rowId, inputId, enabled, url] of rows) {
+    const hideWaiterRow = rowId === "owner-link-waiter-row";
     const row = document.getElementById(rowId);
-    if (row) row.classList.toggle("hidden", !enabled);
+    if (row) {
+      const hide = hideWaiterRow || !enabled;
+      row.classList.toggle("hidden", hide);
+      if (hide) row.setAttribute("hidden", "");
+      else row.removeAttribute("hidden");
+    }
     const input = document.getElementById(inputId);
-    if (input) input.value = enabled ? (url || "") : "";
+    if (input) input.value = enabled || hideWaiterRow ? (url || "") : "";
   }
   const empty = document.getElementById("owner-links-empty");
   if (empty) {
