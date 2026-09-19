@@ -297,7 +297,7 @@
           <button type="button" class="btn-ready btn-refuse" data-refuse="${o.id}">REFUZO ✖</button>
         </div>`;
       } else {
-        actions = `<button type="button" class="btn-ready btn-accept" data-accept="${o.id}">Prano me PIN 🔐</button>`;
+        actions = `<button type="button" class="btn-ready btn-accept" data-accept="${o.id}">Prano ✅</button>`;
       }
       return `
         <article class="order-ticket${isNew ? " new" : ""}${accepted ? " accepted" : " pending"}" data-id="${o.id}">
