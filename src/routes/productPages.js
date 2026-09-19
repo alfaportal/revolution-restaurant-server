@@ -106,6 +106,7 @@ function registerProductPageRoutes(app, ctx) {
 
   app.get("/:tipi/:slug/kamarier/manifest.json", (req, res, next) => {
     if (isReservedUrlTipi(req.params.tipi)) return next();
+    return res.status(403).end();
     const tipi = encodeURIComponent(String(req.params.tipi || "").trim());
     const slug = encodeURIComponent(String(req.params.slug || "").trim());
     const key = String(req.query.key || "").trim();
@@ -134,6 +135,7 @@ function registerProductPageRoutes(app, ctx) {
   });
 
   app.get("/:tipi/:slug/kamarier", resolve, (req, res) => {
+    return res.status(403).end();
     if (!allowsPosStaffRoutes(req.tipiCategory)) {
       return res.status(404).type("html").send(notFoundHtml());
     }

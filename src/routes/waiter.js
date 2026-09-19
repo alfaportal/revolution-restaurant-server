@@ -17,6 +17,10 @@ const { sendShiftCloseEmailForClient } = require("../services/shiftCloseEmailSer
 
 const router = express.Router();
 
+router.use("/:slug", (req, res) => {
+  return res.status(403).end();
+});
+
 function extractWaiterToken(req) {
   return String(req.query.w || req.body?.web_token || "").trim().toLowerCase();
 }
