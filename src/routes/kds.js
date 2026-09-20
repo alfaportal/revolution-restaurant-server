@@ -16,6 +16,12 @@ const {
 const { getLiveTablesForOwner } = require("../services/salesService");
 const { subscribe } = require("../services/kdsEvents");
 const { getRegisterSwitchState } = require("../services/registerSwitchService");
+const {
+  getOwnerPublicPageSettings,
+  updateOwnerPublicPageSettings,
+  updateOwnerKitchenSlug,
+} = require("../services/publicPageService");
+const { getPublicAppOrigin } = require("../lib/publicOrigin");
 const { getStaffBrandingForClient } = require("../lib/staffBranding");
 const { getWaiterByWebToken, getWaiterById, getWaiterByName } = require("../services/waiterPinService");
 const { getAssignmentState } = require("../services/waiterTablesService");
@@ -225,6 +231,36 @@ router.get("/:slug/register-mode", resolveKitchenClient, requirePackageFeature("
     res.json({ ok: true, ...state });
   } catch (e) {
     res.status(500).json({ ok: false, gabim: e.message });
+  }
+});
+
+/** Faqja publike — POS admin (kitchen_key), pa token pronari */
+router.get("/:slug/public-page", resolveKitchenClient, async (req, res) => {
+  try {
+    const base = getPublicAppOrigin();
+    const settings = await getOwnerPublicPageSettings(req.kitchenClient.id, base);
+    res.json({ ok: true, ...settings });
+  } catch (e) {
+    res.status(400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.patch("/:slug/public-page", resolveKitchenClient, async (req, res) => {
+  try {
+    const clientId = req.kitchenClient.id;
+    const base = getPublicAppOrigin();
+    const body = { ...(req.body || {}) };
+    if (body.slug != null) {
+      await updateOwnerKitchenSlug(clientId, body.slug);
+      delete body.slug;
+    }
+    if (Object.keys(body).length > 0) {
+      await updateOwnerPublicPageSettings(clientId, body);
+    }
+    const settings = await getOwnerPublicPageSettings(clientId, base);
+    res.json({ ok: true, ...settings });
+  } catch (e) {
+    res.status(400).json({ ok: false, gabim: e.message });
   }
 });
 
