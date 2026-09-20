@@ -317,16 +317,22 @@ async function loadClient() {
     ["owner-link-public-row", "owner-public-url", features.website, links.public_page],
   ];
   for (const [rowId, inputId, enabled, url] of rows) {
-    const hideWaiterRow = rowId === "owner-link-waiter-row";
     const row = document.getElementById(rowId);
     if (row) {
-      const hide = hideWaiterRow || !enabled;
+      const hide = !enabled;
       row.classList.toggle("hidden", hide);
       if (hide) row.setAttribute("hidden", "");
       else row.removeAttribute("hidden");
     }
     const input = document.getElementById(inputId);
-    if (input) input.value = enabled || hideWaiterRow ? (url || "") : "";
+    if (input) input.value = enabled ? (url || "") : "";
+  }
+  const waiterLbl = document.querySelector("#owner-link-waiter-row label");
+  if (waiterLbl) {
+    const venue = client?.emri ? String(client.emri).trim() : "";
+    waiterLbl.textContent = venue
+      ? `Kamarieri — ${venue} (telefon / tablet)`
+      : "Kamarieri — telefon / tablet";
   }
   const empty = document.getElementById("owner-links-empty");
   if (empty) {
