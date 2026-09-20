@@ -397,7 +397,7 @@ async function listKitchenOrders(clientId) {
   const result = [];
 
   for (const order of orders) {
-    if (isDirectCustomerKitchenOrder(order) && !order.accepted_at) continue;
+    if (isDirectCustomerKitchenOrder(order) && !order.accepted_at && !order.accepted_by_waiter_name) continue;
     const items = normalizeItems(order.items_json).filter(it => isKitchenItem(it, lookup));
     const mapped = mapOrderWithItems(order, items);
     if (mapped) result.push(mapped);
