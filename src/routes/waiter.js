@@ -1,7 +1,7 @@
 const express = require("express");
 const { resolveKitchenClient } = require("../middleware/kitchenAuth");
 const { requirePackageFeature } = require("../middleware/packageTier");
-const { getWaiterLiveState } = require("../services/waiterService");
+const { getWaiterLiveState, closeWaiterTable } = require("../services/waiterService");
 
 const { getKitchenMenuItemPhoto } = require("../services/menuService");
 const { verifyKasaSessionToken } = require("../lib/kasaSession");
@@ -112,7 +112,15 @@ router.post("/:slug/kasa-session", resolveKitchenClient, requirePackageFeature("
 router.post("/:slug/orders", resolveKitchenClient, requirePackageFeature("waiter"), blockCloudWaiterPhone);
 router.post("/:slug/order", resolveKitchenClient, requirePackageFeature("waiter"), blockCloudWaiterPhone);
 
-router.post("/:slug/orders/close", resolveKitchenClient, requirePackageFeature("waiter"), blockCloudWaiterPhone);
+/** Mbyllje nga kasa KAFENE (takeaway/online, QR pas pagesës) — auth me kitchen key, jo telefoni cloud. */
+router.post("/:slug/orders/close", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {
+  try {
+    const result = await closeWaiterTable(req.kitchenClient.id, req.body || {});
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ ok: false, gabim: e.message || "Gabim." });
+  }
+});
 
 /** Raport ditor te pronari pas mbylljes së ndërrimit (thirret nga KAFENE, fire-and-forget). */
 router.post("/:slug/shift-close-email", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {
