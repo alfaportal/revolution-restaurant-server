@@ -16,6 +16,7 @@ const {
   attachReservationsToLayout,
 } = require("./reservationService");
 const { isOrderAccepted } = require("../lib/salesOrderSelect");
+const { isOnlineSlotOrder } = require("./kdsService");
 
 /** QR (WEB-KIOSK) në pritje — jo «T1 e zënë» deri PRANO (si takeaway te Online). */
 function attachActiveOrderToWaiterTableLayout(row) {
@@ -510,6 +511,55 @@ async function fetchActiveOrderById(clientId, orderId) {
   return data;
 }
 
+/**
+ * Pas mbylljes së një porosie Online/takeaway — anulo ghost-e «ordered» të pranuara
+ * me të njëjtin klient + total (shfaqen si Online 1…4 te pronari).
+ */
+async function cancelMatchingAcceptedOnlineSlotGhosts(clientId, keepOrderId, referenceOrder) {
+  const keepId = String(keepOrderId || "").trim();
+  const ref = referenceOrder || {};
+  const customer = String(ref.waiter_name || "").trim().toLowerCase();
+  const total = Number(ref.total);
+  if (!keepId || !customer || !Number.isFinite(total)) return 0;
+
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("sales_orders")
+    .select("id, waiter_name, total, device_id, table_number, status, accepted_at, accepted_by_waiter_name")
+    .eq("client_id", clientId)
+    .eq("status", "ordered");
+  if (error) {
+    console.warn("[close] online slot ghost scan:", error.message);
+    return 0;
+  }
+
+  const cancelNow = new Date().toISOString();
+  let cancelled = 0;
+  for (const row of data || []) {
+    if (String(row.id) === keepId) continue;
+    if (!isOnlineSlotOrder(row)) continue;
+    if (!isOrderAccepted(row)) continue;
+    const w = String(row.waiter_name || "").trim().toLowerCase();
+    if (w !== customer) continue;
+    if (Math.abs(Number(row.total) - total) > 0.02) continue;
+    const { error: updErr } = await db
+      .from("sales_orders")
+      .update({ status: "cancelled", closed_at: cancelNow, total: 0, ready_at: null })
+      .eq("id", row.id);
+    if (!updErr) cancelled += 1;
+  }
+
+  if (cancelled > 0) {
+    try {
+      require("./kdsEvents").notifyKitchenUpdate(clientId, { online_slots: true });
+    } catch {
+      /* optional */
+    }
+    console.log(`[close] online slot ghosts cancelled: ${cancelled} (keep ${keepId})`);
+  }
+  return cancelled;
+}
+
 async function cancelSiblingActiveTableOrders(clientId, tableNumber, keepOrderId) {
   const db = getSupabase();
   const num = Number(tableNumber);
@@ -608,6 +658,9 @@ async function closeWaiterTable(clientId, body) {
         .in("status", ["ordered", "ready"]);
     } else if (closeTableNum >= 1) {
       await cancelSiblingActiveTableOrders(clientId, closeTableNum, saleResult.sale.id);
+    }
+    if (isOnlineSlotOrder(existing)) {
+      await cancelMatchingAcceptedOnlineSlotGhosts(clientId, saleResult.sale.id, existing);
     }
   }
 
