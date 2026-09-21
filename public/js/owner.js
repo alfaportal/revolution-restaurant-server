@@ -310,7 +310,6 @@ async function loadClient() {
   const rows = [
     ["owner-link-owner-row", "owner-owner-url", true, links.owner],
     ["owner-link-bar-row", "owner-bar-url", features.kds, links.bar || data.bar_url],
-    ["owner-link-waiter-row", "owner-waiter-url", features.waiter, links.waiter || data.waiter_url],
     ["owner-link-kitchen-row", "owner-kitchen-url", features.kds, links.kitchen || data.kitchen_url],
     ["owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.menu || links.kiosk],
     ["owner-link-takeaway-row", "owner-takeaway-url", features.online_orders, links.takeaway],
@@ -327,16 +326,9 @@ async function loadClient() {
     const input = document.getElementById(inputId);
     if (input) input.value = enabled ? (url || "") : "";
   }
-  const waiterLbl = document.querySelector("#owner-link-waiter-row label");
-  if (waiterLbl) {
-    const venue = client?.emri ? String(client.emri).trim() : "";
-    waiterLbl.textContent = venue
-      ? `Kamarieri — ${venue} (telefon / tablet)`
-      : "Kamarieri — telefon / tablet";
-  }
   const empty = document.getElementById("owner-links-empty");
   if (empty) {
-    empty.classList.toggle("hidden", !!(features.waiter || features.kds || features.kiosk || features.website));
+    empty.classList.toggle("hidden", !!(features.kds || features.kiosk || features.website || features.online_orders));
   }
 
   ownerClientPackageTier = String(client?.package_tier || "").trim();
@@ -359,9 +351,6 @@ async function kopjoLinkun(inputId, btn) {
 
 document.getElementById("btn-owner-copy-owner")?.addEventListener("click", function () {
   kopjoLinkun("owner-owner-url", this);
-});
-document.getElementById("btn-owner-copy-waiter").addEventListener("click", function () {
-  kopjoLinkun("owner-waiter-url", this);
 });
 document.getElementById("btn-owner-copy-kitchen").addEventListener("click", function () {
   kopjoLinkun("owner-kitchen-url", this);
