@@ -114,6 +114,15 @@ async function createOwner({ client_id, emri, email, password }, baseUrl) {
     throw error;
   }
 
+  if (pw && data?.client_id) {
+    try {
+      const { recordPosAdminPasswordSha256 } = require("./posAdminPasswordSyncService");
+      await recordPosAdminPasswordSha256(data.client_id, pw, row.password_set_at);
+    } catch (e) {
+      console.warn("[createOwner] POS sync SHA-256:", e.message);
+    }
+  }
+
   const owner = sanitizeOwnerForAdmin(data, baseUrl);
 
   if (!pw && owner.invite_url && isEmailConfigured()) {
@@ -269,6 +278,16 @@ async function completeOwnerSetup(token, password) {
 
   if (error) throw error;
   if (!data) throw new Error("Ftesa nuk u gjet.");
+
+  try {
+    const { recordPosAdminPasswordSha256 } = require("./posAdminPasswordSyncService");
+    if (data.client_id) {
+      await recordPosAdminPasswordSha256(data.client_id, pw, new Date().toISOString());
+    }
+  } catch (e) {
+    console.warn("[completeOwnerSetup] POS sync SHA-256:", e.message);
+  }
+
   return data;
 }
 
@@ -322,6 +341,20 @@ async function updateOwner(id, { emri, email, password, aktiv }, baseUrl) {
     throw error;
   }
   if (!data) throw new Error("Pronari nuk u gjet.");
+
+  if (password != null && String(password).trim() && data.client_id) {
+    try {
+      const { recordPosAdminPasswordSha256 } = require("./posAdminPasswordSyncService");
+      await recordPosAdminPasswordSha256(
+        data.client_id,
+        String(password).trim(),
+        patch.password_set_at,
+      );
+    } catch (e) {
+      console.warn("[updateOwner] POS sync SHA-256:", e.message);
+    }
+  }
+
   return sanitizeOwnerForAdmin(data, baseUrl);
 }
 

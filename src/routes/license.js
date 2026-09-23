@@ -867,4 +867,53 @@ router.get("/health", (_req, res) => {
   });
 });
 
+/**
+ * POST /api/v1/license/owner-admin-password/pull — POS merr SHA-256 nëse cloud ka ndryshuar fjalëkalimin.
+ */
+router.post("/owner-admin-password/pull", licenseApiKeyOptional, async (req, res) => {
+  try {
+    const resolved = await resolveLicenseClient(req);
+    if (resolved.error) {
+      return res.status(resolved.error.status).json(resolved.error.body);
+    }
+    const syncedAt =
+      req.body?.synced_at ?? req.body?.password_set_at ?? req.body?.local_synced_at ?? "";
+    const {
+      pullOwnerAdminPasswordForPos,
+    } = require("../services/posAdminPasswordSyncService");
+    const result = await pullOwnerAdminPasswordForPos(resolved.clientId, syncedAt);
+    res.json({ ok: true, ...result });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message || String(e) });
+  }
+});
+
+/**
+ * POST /api/v1/license/owner-admin-password/push — desktop ndryshon fjalëkalimin → cloud owner + SHA-256 POS.
+ */
+router.post("/owner-admin-password/push", licenseApiKeyOptional, async (req, res) => {
+  try {
+    const resolved = await resolveLicenseClient(req);
+    if (resolved.error) {
+      return res.status(resolved.error.status).json(resolved.error.body);
+    }
+    const plain =
+      req.body?.admin_password ?? req.body?.password ?? req.body?.new_password ?? "";
+    const {
+      pushOwnerAdminPasswordFromPos,
+    } = require("../services/posAdminPasswordSyncService");
+    const result = await pushOwnerAdminPasswordFromPos(resolved.clientId, plain);
+    res.json({
+      ok: true,
+      changed: true,
+      password_sha256: result.password_sha256,
+      password_set_at: result.password_set_at,
+      message: "Fjalëkalimi u sinkronizua me llogarinë e pronarit në cloud.",
+    });
+  } catch (e) {
+    const status = e.code === "WEAK_PASSWORD" ? 400 : 500;
+    res.status(status).json({ ok: false, gabim: e.message, code: e.code || null });
+  }
+});
+
 module.exports = router;

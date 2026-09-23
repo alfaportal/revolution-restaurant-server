@@ -166,6 +166,15 @@ async function completeOwnerPasswordReset(email, code, newPassword) {
   await db.from("owner_password_resets").delete().eq("email", e);
   await clearFailCount(e);
 
+  try {
+    const { recordPosAdminPasswordSha256 } = require("./posAdminPasswordSyncService");
+    if (user.client_id) {
+      await recordPosAdminPasswordSha256(user.client_id, pw, nowIso);
+    }
+  } catch (e) {
+    console.warn("[owner-password] POS sync SHA-256 (reset):", e.message);
+  }
+
   return user;
 }
 
@@ -231,6 +240,14 @@ async function changeOwnerPassword(userId, currentPassword, newPassword) {
   if (updErr) throw updErr;
 
   await clearFailCount(user.email);
+  try {
+    const { recordPosAdminPasswordSha256 } = require("./posAdminPasswordSyncService");
+    if (user.client_id) {
+      await recordPosAdminPasswordSha256(user.client_id, next, nowIso);
+    }
+  } catch (e) {
+    console.warn("[owner-password] POS sync SHA-256:", e.message);
+  }
   return user;
 }
 
