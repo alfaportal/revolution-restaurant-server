@@ -78,10 +78,44 @@ function buildMenuRows(clientId, menuItems, photoByLocalId, stockByLocalId) {
     .filter(m => m.name);
 }
 
-/** Pronari/cloud kanë prioritet — POS shton vetëm local_id të rinj, pa fshirje/pa UPDATE. */
-function menuRowsToInsertOnly(existingLocalIds, incomingRows) {
+/**
+ * Pronari/cloud kanë prioritet për emër/çmim/kategori/foto.
+ * POS: INSERT vetëm local_id të rinj; për ekzistues — vetëm UPDATE active (Stop/Shfaq).
+ */
+function splitMenuRowsForPosSync(existingLocalIds, incomingRows) {
   const seen = existingLocalIds instanceof Set ? existingLocalIds : new Set(existingLocalIds);
-  return (incomingRows || []).filter(r => !seen.has(Number(r.local_id)));
+  const toInsert = [];
+  const activeUpdates = [];
+  for (const row of incomingRows || []) {
+    const localId = Number(row.local_id);
+    if (!Number.isFinite(localId)) continue;
+    if (seen.has(localId)) {
+      activeUpdates.push({ local_id: localId, active: Boolean(row.active) });
+    } else {
+      toInsert.push(row);
+    }
+  }
+  return { toInsert, activeUpdates };
+}
+
+async function applyMenuActiveFromPosSupabase(db, clientId, activeUpdates) {
+  for (const { local_id, active } of activeUpdates || []) {
+    const { error } = await db
+      .from("pos_menu_items")
+      .update({ active })
+      .eq("client_id", clientId)
+      .eq("local_id", local_id);
+    if (error) throw error;
+  }
+}
+
+async function applyMenuActiveFromPosPg(client, clientId, activeUpdates) {
+  for (const { local_id, active } of activeUpdates || []) {
+    await client.query(
+      `UPDATE pos_menu_items SET active = $1 WHERE client_id = $2 AND local_id = $3`,
+      [active, clientId, local_id],
+    );
+  }
 }
 
 async function mergeCategoriesFromPosSupabase(db, clientId, categories) {
@@ -374,11 +408,12 @@ async function syncCatalogFromPosSupabase(license, body) {
   let menuPreserved = false;
   if (menuItems.length) {
     const incomingRows = buildMenuRows(clientId, menuItems, photoByLocalId, stockByLocalId);
-    const toInsert = menuRowsToInsertOnly(existingLocalIds, incomingRows);
+    const { toInsert, activeUpdates } = splitMenuRowsForPosSync(existingLocalIds, incomingRows);
     if (toInsert.length) {
       const { error } = await db.from("pos_menu_items").insert(toInsert);
       if (error) throw error;
     }
+    await applyMenuActiveFromPosSupabase(db, clientId, activeUpdates);
     menuCount = (existingMenu || []).length + toInsert.length;
   } else {
     menuPreserved = menuCount > 0;
@@ -504,7 +539,7 @@ async function syncCatalogFromPosTransactional(license, body) {
     let menuPreserved = false;
     if (resolvedMenuRows.length) {
       const existingLocalIds = new Set((existingMenuRows || []).map(row => Number(row.local_id)));
-      const toInsert = menuRowsToInsertOnly(existingLocalIds, resolvedMenuRows);
+      const { toInsert, activeUpdates } = splitMenuRowsForPosSync(existingLocalIds, resolvedMenuRows);
       for (const m of toInsert) {
         await client.query(
           `INSERT INTO pos_menu_items (client_id, local_id, name, category, price, active, photo, description, sku, track_stock, stock_quantity, stock_alert_threshold)
@@ -525,6 +560,7 @@ async function syncCatalogFromPosTransactional(license, body) {
           ],
         );
       }
+      await applyMenuActiveFromPosPg(client, clientId, activeUpdates);
       menuCount = existingMenuRows.length + toInsert.length;
     } else {
       menuPreserved = menuCount > 0;
