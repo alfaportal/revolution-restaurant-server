@@ -132,7 +132,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   return cancelled;
 }
 
-const STALE_POS_SYNC_MS = 2 * 60 * 1000;
+const STALE_POS_SYNC_MS = 24 * 60 * 60 * 1000;
 const EXPIRE_STARTUP_GRACE_MS = 90 * 1000;
 const _salesServiceStartedAt = Date.now();
 
