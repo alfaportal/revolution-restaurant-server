@@ -156,6 +156,14 @@ function buildMenuCategories(dbCategories, menuItems) {
   return merged;
 }
 
+/** Si kiosk: vetëm kategori që kanë ≥1 artikull në menu (pas filtrit web). */
+function categoriesWithMenuItems(categoryNames, menuItems) {
+  const present = new Set(
+    (menuItems || []).map(m => String(m.category || "").trim()).filter(Boolean),
+  );
+  return (categoryNames || []).filter(c => present.has(String(c).trim()));
+}
+
 function mapMenuItemForWeb(row, photoOpts = {}) {
   const item = {
     id: row.local_id,
@@ -265,11 +273,12 @@ async function getClientMenuCatalog(clientId, { activeOnly = true, kitchenSlug =
     ...c,
     name: toSqMenuLabel(c.name),
   }));
+  const mergedCategories = buildMenuCategories(sqCategories, mappedMenu);
   return {
     restaurant_name: settings?.restaurant_name || "",
     table_count: Math.min(30, Math.max(1, Number(settings?.table_count) || 10)),
     synced_at: settings?.synced_at || null,
-    categories: buildMenuCategories(sqCategories, mappedMenu),
+    categories: categoriesWithMenuItems(mergedCategories, mappedMenu),
     menu: mappedMenu,
     staff: (staff || []).map(s => s.name),
   };
@@ -283,10 +292,11 @@ async function getClientShopCatalog(clientId, { activeOnly = true, pageSlug = ""
     ...c,
     name: toSqMenuLabel(c.name),
   }));
+  const mergedCategories = buildMenuCategories(sqCategories, mappedProducts);
   return {
     shop_name: settings?.restaurant_name || "",
     synced_at: settings?.synced_at || null,
-    categories: buildMenuCategories(sqCategories, mappedProducts),
+    categories: categoriesWithMenuItems(mergedCategories, mappedProducts),
     products: mappedProducts,
   };
 }

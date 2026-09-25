@@ -78,6 +78,101 @@ function buildMenuRows(clientId, menuItems, photoByLocalId, stockByLocalId) {
     .filter(m => m.name);
 }
 
+/** Pronari/cloud kanë prioritet — POS shton vetëm local_id të rinj, pa fshirje/pa UPDATE. */
+function menuRowsToInsertOnly(existingLocalIds, incomingRows) {
+  const seen = existingLocalIds instanceof Set ? existingLocalIds : new Set(existingLocalIds);
+  return (incomingRows || []).filter(r => !seen.has(Number(r.local_id)));
+}
+
+async function mergeCategoriesFromPosSupabase(db, clientId, categories) {
+  if (!categories.length) {
+    const { count, error } = await db
+      .from("pos_categories")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", clientId);
+    if (error) throw error;
+    return { catCount: count || 0, categoriesPreserved: (count || 0) > 0 };
+  }
+
+  const { data: existing, error: loadErr } = await db
+    .from("pos_categories")
+    .select("name, sort_order")
+    .eq("client_id", clientId);
+  if (loadErr) throw loadErr;
+
+  const byName = new Map(
+    (existing || []).map(c => [String(c.name || "").trim().toLowerCase(), c]),
+  );
+  let maxSort = (existing || []).reduce((m, c) => Math.max(m, Number(c.sort_order) || 0), -1);
+
+  const toInsert = [];
+  for (let i = 0; i < categories.length; i += 1) {
+    const name = String(categories[i].name || categories[i] || "").trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (byName.has(key)) continue;
+    maxSort += 1;
+    toInsert.push({
+      client_id: clientId,
+      name,
+      sort_order: maxSort,
+    });
+    byName.set(key, { name, sort_order: maxSort });
+  }
+
+  if (toInsert.length) {
+    const { error } = await db.from("pos_categories").insert(toInsert);
+    if (error) throw error;
+  }
+
+  const { count, error: countErr } = await db
+    .from("pos_categories")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", clientId);
+  if (countErr) throw countErr;
+  return { catCount: count || 0, categoriesPreserved: true };
+}
+
+async function mergeCategoriesFromPosPg(client, clientId, catRows) {
+  if (!catRows.length) {
+    const { rows: catExisting } = await client.query(
+      `SELECT COUNT(*)::int AS c FROM pos_categories WHERE client_id = $1`,
+      [clientId],
+    );
+    const catCount = catExisting[0]?.c || 0;
+    return { catCount, categoriesPreserved: catCount > 0 };
+  }
+
+  const { rows: existing } = await client.query(
+    `SELECT name, sort_order FROM pos_categories WHERE client_id = $1`,
+    [clientId],
+  );
+  const byName = new Map(
+    (existing || []).map(c => [String(c.name || "").trim().toLowerCase(), c]),
+  );
+  let maxSort = (existing || []).reduce((m, c) => Math.max(m, Number(c.sort_order) || 0), -1);
+
+  for (const c of catRows) {
+    const name = String(c.name || "").trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (byName.has(key)) continue;
+    maxSort += 1;
+    await client.query(
+      `INSERT INTO pos_categories (client_id, name, sort_order) VALUES ($1, $2, $3)`,
+      [clientId, name, maxSort],
+    );
+    byName.set(key, { name, sort_order: maxSort });
+  }
+
+  const { rows: catCountRows } = await client.query(
+    `SELECT COUNT(*)::int AS c FROM pos_categories WHERE client_id = $1`,
+    [clientId],
+  );
+  const catCount = catCountRows[0]?.c || 0;
+  return { catCount, categoriesPreserved: catRows.length ? true : catCount > 0 };
+}
+
 async function syncStaffFromPos(db, clientId, staff) {
   const incoming = mapIncomingStaff(staff);
   if (!incoming.length) return 0;
@@ -242,37 +337,24 @@ async function syncCatalogFromPosSupabase(license, body) {
   await db.from("pos_settings").upsert(settingsRow);
 
   const categories = extractCategories(body);
-  let catCount = 0;
-  let categoriesPreserved = false;
-  if (categories.length) {
-    await db.from("pos_categories").delete().eq("client_id", clientId);
-    const catRows = categories
-      .map((c, i) => ({
-        client_id: clientId,
-        name: String(c.name || c).trim(),
-        sort_order: Number(c.sort_order ?? i) || i,
-      }))
-      .filter(c => c.name);
-    catCount = catRows.length;
-    if (catRows.length) {
-      const { error } = await db.from("pos_categories").insert(catRows);
-      if (error) throw error;
-    }
-  } else {
-    const { count, error } = await db
-      .from("pos_categories")
-      .select("id", { count: "exact", head: true })
-      .eq("client_id", clientId);
-    if (error) throw error;
-    catCount = count || 0;
-    categoriesPreserved = true;
-  }
+  const catRows = categories
+    .map((c, i) => ({
+      name: String(c.name || c).trim(),
+      sort_order: Number(c.sort_order ?? i) || i,
+    }))
+    .filter(c => c.name);
+  const { catCount, categoriesPreserved } = await mergeCategoriesFromPosSupabase(
+    db,
+    clientId,
+    catRows,
+  );
 
   const menuItems = extractMenuItems(body);
   const { data: existingMenu } = await db
     .from("pos_menu_items")
     .select("local_id, photo, track_stock, stock_quantity, stock_alert_threshold")
     .eq("client_id", clientId);
+  const existingLocalIds = new Set((existingMenu || []).map(row => Number(row.local_id)));
   const photoByLocalId = new Map(
     (existingMenu || [])
       .filter(row => String(row.photo || "").trim())
@@ -288,18 +370,17 @@ async function syncCatalogFromPosSupabase(license, body) {
       },
     ]),
   );
-  let menuCount = 0;
+  let menuCount = (existingMenu || []).length;
   let menuPreserved = false;
   if (menuItems.length) {
-    await db.from("pos_menu_items").delete().eq("client_id", clientId);
-    const menuRows = buildMenuRows(clientId, menuItems, photoByLocalId, stockByLocalId);
-    menuCount = menuRows.length;
-    if (menuRows.length) {
-      const { error } = await db.from("pos_menu_items").insert(menuRows);
+    const incomingRows = buildMenuRows(clientId, menuItems, photoByLocalId, stockByLocalId);
+    const toInsert = menuRowsToInsertOnly(existingLocalIds, incomingRows);
+    if (toInsert.length) {
+      const { error } = await db.from("pos_menu_items").insert(toInsert);
       if (error) throw error;
     }
+    menuCount = (existingMenu || []).length + toInsert.length;
   } else {
-    menuCount = (existingMenu || []).length;
     menuPreserved = menuCount > 0;
     if (!menuPreserved) {
       console.warn(`[pos-sync] ${clientId}: sync pa menu_items — menuja mbetet bosh. Dërgoni artikuj nga POS.`);
@@ -414,29 +495,17 @@ async function syncCatalogFromPosTransactional(license, body) {
     }
 
     let categoriesPreserved = false;
-    let catCount = catRows.length;
-    if (catRows.length) {
-      await client.query(`DELETE FROM pos_categories WHERE client_id = $1`, [clientId]);
-      for (const c of catRows) {
-        await client.query(
-          `INSERT INTO pos_categories (client_id, name, sort_order) VALUES ($1, $2, $3)`,
-          [clientId, c.name, c.sort_order],
-        );
-      }
-    } else {
-      const { rows: catExisting } = await client.query(
-        `SELECT COUNT(*)::int AS c FROM pos_categories WHERE client_id = $1`,
-        [clientId],
-      );
-      catCount = catExisting[0]?.c || 0;
-      categoriesPreserved = catCount > 0;
-    }
+    let catCount = 0;
+    const catMerge = await mergeCategoriesFromPosPg(client, clientId, catRows);
+    catCount = catMerge.catCount;
+    categoriesPreserved = catMerge.categoriesPreserved;
 
-    let menuCount = resolvedMenuRows.length;
+    let menuCount = existingMenuRows.length;
     let menuPreserved = false;
     if (resolvedMenuRows.length) {
-      await client.query(`DELETE FROM pos_menu_items WHERE client_id = $1`, [clientId]);
-      for (const m of resolvedMenuRows) {
+      const existingLocalIds = new Set((existingMenuRows || []).map(row => Number(row.local_id)));
+      const toInsert = menuRowsToInsertOnly(existingLocalIds, resolvedMenuRows);
+      for (const m of toInsert) {
         await client.query(
           `INSERT INTO pos_menu_items (client_id, local_id, name, category, price, active, photo, description, sku, track_stock, stock_quantity, stock_alert_threshold)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
@@ -456,8 +525,8 @@ async function syncCatalogFromPosTransactional(license, body) {
           ],
         );
       }
+      menuCount = existingMenuRows.length + toInsert.length;
     } else {
-      menuCount = existingMenuRows.length;
       menuPreserved = menuCount > 0;
       if (!menuPreserved) {
         console.warn(`[pos-sync] ${clientId}: sync pa menu_items — menuja mbetet bosh. Dërgoni artikuj nga POS.`);
