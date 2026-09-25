@@ -1047,6 +1047,32 @@ async function updateClient(id, body) {
     throw error;
   }
   if (!data) throw new Error("Klienti nuk u gjet.");
+  if (patch.adresa != null && String(patch.adresa).trim()) {
+    try {
+      await db
+        .from("pos_settings")
+        .update({ address: String(patch.adresa).trim(), synced_at: new Date().toISOString() })
+        .eq("client_id", id);
+    } catch (addrErr) {
+      console.warn("[updateClient] pos_settings address sync failed:", addrErr.message);
+    }
+  }
+  if (patch.email != null && String(patch.email).trim()) {
+    try {
+      const { listOwnersForClient, updateOwner } = require("./userService");
+      const { getPublicAppOrigin } = require("../lib/publicOrigin");
+      const baseUrl = getPublicAppOrigin();
+      const owners = await listOwnersForClient(id, baseUrl);
+      for (const o of owners) {
+        const cur = String(o.email || "").trim().toLowerCase();
+        if (cur !== patch.email) {
+          await updateOwner(o.id, { email: patch.email }, baseUrl);
+        }
+      }
+    } catch (ownerMailErr) {
+      console.warn("[updateClient] owner email sync failed:", ownerMailErr.message);
+    }
+  }
   try {
     if (!isDedicatedProduct(product)) {
       await syncPosSettingsFromClient(id);

@@ -894,7 +894,7 @@ async function getClientDetail(clientId) {
 
   const { listOwnersForClient } = require("./userService");
   const fromIso = dayStartIso(addDays(new Date(), -30));
-  const [salesRows, licenses, stockAlerts, aiSummary, staff, owners] = await Promise.all([
+  const [salesRows, licenses, stockAlerts, aiSummary, staff, owners, posSettingsRow] = await Promise.all([
     fetchClosedSales({ fromIso }).then((rows) => rows.filter((r) => r.client_id === id)),
     listLicenses().then((all) => all.filter((l) => (l.client_id || l.clients?.id) === id)),
     listStockAlertsForAdmin()
@@ -909,6 +909,13 @@ async function getClientDetail(clientId) {
       .then((r) => r.data || [])
       .catch(() => []),
     listOwnersForClient(id).catch(() => []),
+    db
+      .from("pos_settings")
+      .select("address")
+      .eq("client_id", id)
+      .maybeSingle()
+      .then((r) => r.data || null)
+      .catch(() => null),
   ]);
 
   const salesToday = salesRows
@@ -929,9 +936,16 @@ async function getClientDetail(clientId) {
     (m) => m.track_stock && m.active !== false && Number(m.stock_quantity || 0) <= 0,
   );
 
+  const ownerEmails = (owners || []).map((o) => String(o.email || "").trim()).filter(Boolean);
+  const mergedEmail = String(client.email || "").trim() || ownerEmails[0] || "";
+  const mergedAdresa =
+    String(client.adresa || "").trim() || String(posSettingsRow?.address || "").trim();
+
   return {
     client: {
       ...client,
+      email: mergedEmail,
+      adresa: mergedAdresa,
       tipi_label: labelForTipi(client.tipi),
       package_label: packageLabel(client.package_tier),
       icon: iconForTipi(client.tipi),

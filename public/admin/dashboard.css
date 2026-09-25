@@ -517,6 +517,14 @@ table.sa-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
   margin: 0.35rem 0 0;
   word-break: break-all;
 }
+
+/* Telefon — vetëm linku i pronarit te «Linket e biznesit» */
+@media (max-width: 768px) {
+  .link-row-staff-mobile-hide {
+    display: none !important;
+  }
+}
+
 .drawer-expiry-alert {
   margin: 0.75rem 0;
   padding: 0.75rem 0.85rem;

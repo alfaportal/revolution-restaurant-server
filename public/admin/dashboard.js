@@ -1058,20 +1058,58 @@ async function rotateLicenseKeyUi({ licenseId, product, hwEl, keyEl, msgEl, btn 
   }
 }
 
+function isOwnerWebLink(link) {
+  const key = String(link?.key || "").toLowerCase();
+  const label = String(link?.label || "").trim().toLowerCase();
+  return key === "owner" || key === "pronari" || label === "pronari";
+}
+
 function renderWebLinksBlock(links = []) {
   if (!Array.isArray(links) || !links.length) return "";
   const rows = links
-    .map(
-      (l) => `<div class="link-row" style="margin-bottom:0.65rem">
+    .map((l) => {
+      const staffHide = !isOwnerWebLink(l) ? " link-row-staff-mobile-hide" : "";
+      return `<div class="link-row${staffHide}" style="margin-bottom:0.65rem">
       <label style="font-size:0.85rem;color:var(--muted)">${esc(l.label)}</label>
       <div style="display:flex;gap:0.4rem;align-items:center">
         <input type="text" readonly value="${esc(l.url)}" style="flex:1;font-size:0.8rem">
         <button type="button" class="btn btn-ghost btn-sm" data-copy-link="${esc(l.url)}">📋</button>
       </div>
-    </div>`,
-    )
+    </div>`;
+    })
     .join("");
-  return `<div class="detail-block"><h4>🔗 Linket e biznesit</h4>${rows}</div>`;
+  return `<div class="detail-block detail-block-web-links"><h4>🔗 Linket e biznesit</h4>${rows}</div>`;
+}
+
+function bindDrawerCopyLinks(root) {
+  (root || document).querySelectorAll("[data-copy-link]").forEach((btn) => {
+    if (btn.dataset.copyBound === "1") return;
+    btn.dataset.copyBound = "1";
+    btn.addEventListener("click", async () => {
+      const url = btn.getAttribute("data-copy-link") || "";
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("Linku u kopjua");
+      } catch {
+        window.prompt("Kopjo linkun:", url);
+      }
+    });
+  });
+}
+
+function drawerDisplayEmail(client, owners) {
+  const fromClient = String(client?.email || "").trim();
+  if (fromClient) return fromClient;
+  for (const o of owners || []) {
+    const e = String(o?.email || "").trim();
+    if (e) return e;
+  }
+  return "";
+}
+
+function drawerDisplayAdresa(client) {
+  return String(client?.adresa || "").trim();
 }
 
 async function openClientDetail(id, opts = {}) {
@@ -1084,19 +1122,23 @@ async function openClientDetail(id, opts = {}) {
   const { d, product } = await fetchClientDetailSmart(id, preferred);
   drawerProduct = product;
   const c = d.client || {};
+  const owners = d.owners || [];
   const licenses = d.licenses || [];
+  const displayEmail = drawerDisplayEmail(c, owners);
+  const displayAdresa = drawerDisplayAdresa(c);
+  const slug = String(c.kitchen_slug || c.slug || "").trim();
   document.getElementById("drawer-root").classList.remove("hidden");
   document.getElementById("drawer-title").textContent = `${c.icon || "🏪"} ${c.emri || "Klient"}`;
-  document.getElementById("drawer-sub").textContent = "Edito klientin & licencat — Ruaj";
+  document.getElementById("drawer-sub").textContent = "Edito klientin, licencat & fjalëkalimin — Ruaj";
 
   const isDesktopProduct = ["kontabilisti", "fiskale", "security"].includes(product);
   const sectorFields =
     product === "hotel"
-      ? `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>
+      ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
       <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>`
       : isDesktopProduct
-        ? `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>`
-        : `<label>Adresa<input id="dr-adresa" value="${esc(c.adresa || "")}"></label>
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>`
+        : `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
       <label>Veprimtaria (POS)<select id="dr-tipi">${selectOpts(DRAWER_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
@@ -1104,6 +1146,23 @@ async function openClientDetail(id, opts = {}) {
           <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
         </div>
       </label>`;
+
+  const slugBlock =
+    product === "kontabilisti" || product === "fiskale"
+      ? ""
+      : `<div class="detail-block">
+      <h4>Slug / URL</h4>
+      <div id="dr-slug-view">
+        <p style="margin:0 0 0.5rem;color:var(--muted);font-size:0.9rem">Aktual: <strong>${esc(slug || "—")}</strong></p>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-drawer-edit-slug">✏️ Ndrysho Slug</button>
+      </div>
+      <div id="dr-slug-edit" class="hidden" style="margin-top:0.5rem">
+        <label>Slug i ri<input id="dr-slug" value="${esc(slug)}" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
+        <p id="dr-slug-preview" class="drawer-slug-preview"></p>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-save-slug" style="margin-top:0.35rem">Ruaj slug</button>
+        <p id="dr-slug-msg" style="font-size:0.85rem;color:var(--muted);margin:0.35rem 0 0"></p>
+      </div>
+    </div>`;
 
   const cacheHit = clientsFlat.find((x) => String(x.id) === String(id));
   const expiryAlertHtml = (() => {
@@ -1130,15 +1189,18 @@ async function openClientDetail(id, opts = {}) {
       <h4>Të dhënat e klientit</h4>
       ${expiryAlertHtml}
       <div class="drawer-form">
-        <label>Emri<input id="dr-emri" value="${esc(c.emri || "")}" required></label>
-        <label>Email<input id="dr-email" type="email" value="${esc(c.email || "")}"></label>
-        <label>Telefon<input id="dr-tel" value="${esc(c.telefoni || "")}"></label>
+        <label>Emri<input id="dr-emri" value="${esc(c.emri || "")}" required autocomplete="organization"></label>
+        <label>Email<input id="dr-email" type="email" value="${esc(displayEmail)}" autocomplete="email"></label>
+        <label>Telefon<input id="dr-tel" value="${esc(c.telefoni || "")}" autocomplete="tel"></label>
         ${sectorFields}
       </div>
       <button type="button" class="btn btn-primary" id="btn-drawer-save" style="margin-top:0.75rem;width:100%">Ruaj ndryshimet</button>
       <button type="button" class="btn btn-danger" id="btn-drawer-delete-client" style="margin-top:0.5rem;width:100%">Fshi klientin krejt</button>
       <p id="dr-save-msg" style="color:var(--muted);font-size:0.9rem;margin:0.5rem 0 0"></p>
     </div>
+    ${slugBlock}
+    ${renderWebLinksBlock(d.web_links || [])}
+    ${renderPasswordBlock(owners)}
     <div class="detail-block">
       <h4>Licenca (edito ID / çelës / status)</h4>
       ${renderLicenseEditBlocks(licenses, product)}
@@ -1148,6 +1210,9 @@ async function openClientDetail(id, opts = {}) {
   body.querySelectorAll("[data-lic-hw], [data-lic-key]").forEach((el) => bindDrawerHex16(el));
   bindDrawerSave(id, product);
   bindDrawerChangePackage(id, product);
+  bindDrawerPassword(id, product);
+  bindDrawerChangeSlug(id, c, product);
+  bindDrawerCopyLinks(body);
   bindDrawerLicenseFix(body, id, product);
   bindLicenseActions(body);
   document.getElementById("btn-drawer-extend-now")?.addEventListener("click", () => {
@@ -1259,6 +1324,7 @@ function bindDrawerPassword(clientId, productLine) {
             email,
             telefoni: document.getElementById("dr-tel")?.value?.trim(),
             telefon: document.getElementById("dr-tel")?.value?.trim(),
+            adresa: document.getElementById("dr-adresa")?.value?.trim() || "",
           }),
         }).catch(() => null);
       }
