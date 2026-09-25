@@ -311,7 +311,7 @@ async function loadClient() {
     ["owner-link-owner-row", "owner-owner-url", true, links.owner],
     ["owner-link-bar-row", "owner-bar-url", features.kds, links.bar || data.bar_url],
     ["owner-link-kitchen-row", "owner-kitchen-url", features.kds, links.kitchen || data.kitchen_url],
-    ["owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.menu || links.kiosk],
+    ["owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.kiosk || links.menu],
     ["owner-link-takeaway-row", "owner-takeaway-url", features.online_orders, links.takeaway],
     ["owner-link-public-row", "owner-public-url", features.website, links.public_page],
   ];

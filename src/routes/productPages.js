@@ -186,7 +186,10 @@ function registerProductPageRoutes(app, ctx) {
       if (req.tipiCategory !== "pos" && req.tipiCategory !== "hotel") {
         return res.status(404).type("html").send(notFoundHtml());
       }
-      return sendPublicStorefront(req, res, "r", "restorant");
+      return res.redirect(
+        302,
+        `/${encodeURIComponent(req.params.tipi)}/${encodeURIComponent(req.params.slug)}/menu/1${querySuffix(req)}`,
+      );
     }),
   );
 

@@ -205,7 +205,7 @@ function appendPosStaffLinks(links, baseUrl, urlTipi, slug, features, keyQuery) 
   }
   if (features.kiosk) {
     links.kiosk_url = buildRoleUrl(baseUrl, urlTipi, slug, "menu", { table: 1 });
-    links.menu_url = buildRoleUrl(baseUrl, urlTipi, slug, "menu");
+    links.menu_url = links.kiosk_url;
   }
   if (features.online_orders) links.public_order_url = buildRoleUrl(baseUrl, urlTipi, slug, "takeaway");
 }
