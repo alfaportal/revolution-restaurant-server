@@ -78,14 +78,14 @@ const PRODUCT_LABELS = {
 
 /** REVOLUTION MARKET — 8 kategori dyqanesh. */
 const FALLBACK_MARKET_SECTORS = [
-  { num: 1, id: "minimarket", label: "Mini-market / Market", keywords: ["mini", "market"], clients: [] },
-  { num: 2, id: "pilar", label: "Pilar (dyqan i vogël lagje)", keywords: ["pilar"], clients: [] },
+  { num: 1, id: "minimarket", label: "Mini-market", keywords: ["mini", "market"], clients: [] },
+  { num: 2, id: "market", label: "Market", keywords: ["market"], clients: [] },
   { num: 3, id: "supermarket", label: "Supermarket", keywords: ["supermarket"], clients: [] },
-  { num: 4, id: "dyqan_ushqimor", label: "Dyqan ushqimor", keywords: ["ushqimor"], clients: [] },
-  { num: 5, id: "manav", label: "Dyqan pemë-perimesh (manav)", keywords: ["manav"], clients: [] },
-  { num: 6, id: "bulmetore", label: "Dyqan bulmetore", keywords: ["bulmetore"], clients: [] },
-  { num: 7, id: "kasap", label: "Dyqan mishit (kasap)", keywords: ["kasap"], clients: [] },
-  { num: 8, id: "dyqan_peshku", label: "Dyqan peshku", keywords: ["peshk"], clients: [] },
+  { num: 4, id: "ushqimor", label: "Dyqan ushqimor", keywords: ["ushqimor"], clients: [] },
+  { num: 5, id: "peme_perime", label: "Pemë dhe Perime", keywords: ["peme", "perime", "manav"], clients: [] },
+  { num: 6, id: "mishtore", label: "Mishtore", keywords: ["misht", "kasap"], clients: [] },
+  { num: 7, id: "bulmetore", label: "Bulmetore", keywords: ["bulmetore"], clients: [] },
+  { num: 8, id: "peshkatore", label: "Peshkatore", keywords: ["peshk"], clients: [] },
 ];
 
 function ensureSectors(apiSectors, fallback) {
@@ -473,7 +473,14 @@ function populateNcPackageOptions(program) {
   const opts = [];
   if (program === "pos" || program === "furra") {
     opts.push(["pako_3", "Pako 1"], ["pako_4", "Pako 2"], ["pako_2", "Pako 3"], ["pako_5", "Pako 4"]);
-  } else if (program === "hotel" || program === "market") {
+  } else if (program === "market") {
+    opts.push(
+      ["pako_3", "Pako 1"],
+      ["pako_4", "Pako 2"],
+      ["pako_2", "Pako 3"],
+      ["pako_5", "Pako 4 (AI)"],
+    );
+  } else if (program === "hotel") {
     opts.push(["pako_2", "Pako"], ["pako_5", "Pako AI"]);
   } else if (program === "security" || program === "kontabilisti") {
     opts.push(["standard", "Standard"], ["premium", "Premium"]);

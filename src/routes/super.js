@@ -210,7 +210,24 @@ router.post(
   "/dashboard/clients/:id/set-password",
   asyncHandler(async (req, res) => {
     const id = String(req.params.id || "").trim();
+    const product = normalizeProductLine(req.body?.product_line || req.query.product || "kafene");
     const password = req.body?.password || req.body?.new_password;
+    if (product === "market") {
+      const { setMarketClientOwnerPassword } = require("../lib/marketAdminBridge");
+      const result = await setMarketClientOwnerPassword(id, {
+        password,
+        email: req.body?.email,
+        emri: req.body?.emri,
+      });
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "market_owner_password_set",
+        targetType: "client",
+        targetId: id,
+        details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "market" });
+    }
     const result = await setOwnerPasswordForClient(id, password, {
       email: req.body?.email,
       emri: req.body?.emri,

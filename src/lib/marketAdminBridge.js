@@ -297,6 +297,15 @@ async function deleteMarketLicense(id) {
   return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}`, { method: "DELETE" });
 }
 
+async function setMarketClientOwnerPassword(id, { password, email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit MARKET.");
+  return marketRequest(`/dashboard/clients/${encodeURIComponent(cid)}/set-password`, {
+    method: "POST",
+    body: { password, email, emri },
+  });
+}
+
 module.exports = {
   MARKET_SECTOR_DEFS,
   getMarketClientsGrouped,
@@ -307,4 +316,5 @@ module.exports = {
   updateMarketClient,
   deleteMarketClient,
   deleteMarketLicense,
+  setMarketClientOwnerPassword,
 };
