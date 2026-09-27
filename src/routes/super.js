@@ -989,6 +989,25 @@ router.post(
       const result = await revokeKontabilistiLicense(id);
       return res.json({ ok: true, ...result, product_line: "kontabilisti" });
     }
+    if (product === "market") {
+      const { revokeMarketLicense } = require("../lib/marketAdminBridge");
+      const result = await revokeMarketLicense(id, {
+        reason: req.body?.reason,
+        hardware_id: req.body?.hardware_id || req.body?.hardwareId,
+      });
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_revoke",
+        targetType: "license",
+        targetId: id,
+        details: {
+          hardware_id: req.body?.hardware_id || req.body?.hardwareId || "",
+          reason: req.body?.reason || "",
+          product_line: "market",
+        },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "market" });
+    }
 
     const result = await revokeLicenseRemote(id, {
       hardwareId: req.body?.hardware_id || req.body?.hardwareId,
@@ -1028,6 +1047,25 @@ router.post(
       const { reactivateKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
       const result = await reactivateKontabilistiLicense(id);
       return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+    if (product === "market") {
+      const { reactivateMarketLicense } = require("../lib/marketAdminBridge");
+      const result = await reactivateMarketLicense(id, {
+        reason: req.body?.reason,
+        hardware_id: req.body?.hardware_id || req.body?.hardwareId,
+      });
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_reactivate",
+        targetType: "license",
+        targetId: id,
+        details: {
+          hardware_id: req.body?.hardware_id || req.body?.hardwareId || "",
+          reason: req.body?.reason || "",
+          product_line: "market",
+        },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "market" });
     }
 
     const result = await reactivateLicenseRemote(id, {

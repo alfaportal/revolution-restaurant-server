@@ -297,6 +297,30 @@ async function deleteMarketLicense(id) {
   return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}`, { method: "DELETE" });
 }
 
+async function revokeMarketLicense(id, { reason, hardware_id, hardwareId } = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës MARKET.");
+  return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}/revoke`, {
+    method: "POST",
+    body: {
+      reason: reason || "Revokuar nga Super Admin (MARKET bridge)",
+      hardware_id: hardware_id || hardwareId || undefined,
+    },
+  });
+}
+
+async function reactivateMarketLicense(id, { hardware_id, hardwareId, reason } = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës MARKET.");
+  return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}/reactivate`, {
+    method: "POST",
+    body: {
+      reason: reason || undefined,
+      hardware_id: hardware_id || hardwareId || undefined,
+    },
+  });
+}
+
 async function setMarketClientOwnerPassword(id, { password, email, emri } = {}) {
   const cid = String(id || "").trim();
   if (!cid) throw new Error("Mungon ID e klientit MARKET.");
@@ -316,5 +340,7 @@ module.exports = {
   updateMarketClient,
   deleteMarketClient,
   deleteMarketLicense,
+  revokeMarketLicense,
+  reactivateMarketLicense,
   setMarketClientOwnerPassword,
 };
