@@ -394,6 +394,8 @@ function syncNewClientForm() {
   show(".nc-tipi-security", program === "security");
   show(".nc-tipi-furra", program === "furra");
   show(".nc-tipi-simple", program === "kontabilisti" || program === "fiskale");
+  const pkgField = document.getElementById("nc-package")?.closest(".field");
+  if (pkgField) pkgField.classList.toggle("hidden", program === "market");
   populateNcPackageOptions(program);
   updateNcSlugPreview();
 }
@@ -479,6 +481,7 @@ function populateNcPackageOptions(program) {
       ["pako_4", "Pako 2"],
       ["pako_2", "Pako 3"],
       ["pako_5", "Pako 4 (AI)"],
+      ["pako_premium", "Pako 5 (Premium)"],
     );
   } else if (program === "hotel") {
     opts.push(["pako_2", "Pako"], ["pako_5", "Pako AI"]);
@@ -901,6 +904,15 @@ const DRAWER_PAKO_OPTS = [
   ["pako_5", "Pako 4 (AI)"],
 ];
 
+const DRAWER_PAKO_OPTS_MARKET = [
+  ...DRAWER_PAKO_OPTS,
+  ["pako_premium", "Pako 5 (Premium)"],
+];
+
+function drawerPakoOpts(productLine) {
+  return productLine === "market" ? DRAWER_PAKO_OPTS_MARKET : DRAWER_PAKO_OPTS;
+}
+
 function selectOpts(options, selected) {
   const sel = String(selected || "");
   const has = options.some(([v]) => v === sel);
@@ -1149,7 +1161,7 @@ async function openClientDetail(id, opts = {}) {
       <label>Veprimtaria (POS)<select id="dr-tipi">${selectOpts(DRAWER_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
-          <select id="dr-pako">${selectOpts(DRAWER_PAKO_OPTS, c.package_tier)}</select>
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
           <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
         </div>
       </label>`;
@@ -2766,6 +2778,8 @@ async function loadSettings() {
   document.getElementById("set-p2").value = ui.pako_2 ?? s.package_prices?.pako_4 ?? "";
   document.getElementById("set-p3").value = ui.pako_3 ?? s.package_prices?.pako_2 ?? "";
   document.getElementById("set-p4").value = ui.pako_4 ?? s.package_prices?.pako_5 ?? "";
+  document.getElementById("set-p5").value =
+    ui.pako_5 ?? s.package_prices?.marketing?.pako_5 ?? "";
   document.getElementById("set-ai").value = s.ai_price_per_1k_tokens ?? "";
 }
 
@@ -2967,6 +2981,10 @@ async function boot() {
     }
 
     const tipi = ncSelectedTipi(program);
+    const ncTier =
+      program === "market"
+        ? document.getElementById("nc-pako")?.value
+        : document.getElementById("nc-package")?.value;
     const body = {
       program,
       product_line: program === "pos" ? "kafene" : program,
@@ -2977,8 +2995,8 @@ async function boot() {
       telefon: document.getElementById("nc-tel")?.value?.trim(),
       tipi,
       veprimtari: program === "security" ? tipi : undefined,
-      package: document.getElementById("nc-package")?.value,
-      package_tier: document.getElementById("nc-package")?.value,
+      package: ncTier,
+      package_tier: ncTier,
       muaj: Number(document.getElementById("nc-duration")?.value || 12),
       duration_months: Number(document.getElementById("nc-duration")?.value || 12),
       owner_emri: emri,
@@ -3146,6 +3164,7 @@ async function boot() {
             pako_2: Number(document.getElementById("set-p2").value),
             pako_3: Number(document.getElementById("set-p3").value),
             pako_4: Number(document.getElementById("set-p4").value),
+            pako_5: Number(document.getElementById("set-p5").value),
           },
           ai_price_per_1k_tokens: Number(document.getElementById("set-ai").value),
         }),
