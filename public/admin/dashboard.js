@@ -1032,6 +1032,17 @@ const DRAWER_HOTEL_TIPI_OPTS = [
   ["resort", "Resort"],
 ];
 
+const DRAWER_MARKET_TIPI_OPTS = [
+  ["minimarket", "Mini-market"],
+  ["market", "Market"],
+  ["supermarket", "Supermarket"],
+  ["ushqimor", "Dyqan ushqimor"],
+  ["peme_perime", "Pemë dhe Perime"],
+  ["mishtore", "Mishtore"],
+  ["bulmetore", "Bulmetore"],
+  ["peshkatore", "Peshkatore"],
+];
+
 async function fetchClientDetailSmart(id, preferredProduct) {
   const pref = preferredProduct || currentProduct || "kafene";
   const order = [pref];
@@ -1181,6 +1192,15 @@ async function openClientDetail(id, opts = {}) {
     product === "hotel"
       ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
       <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
+      : product === "market"
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
+      <label>Tipi i dyqanit (MARKET)<select id="dr-tipi">${selectOpts(DRAWER_MARKET_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
           <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
@@ -3033,6 +3053,8 @@ async function boot() {
       duration_months: Number(document.getElementById("nc-duration")?.value || 12),
       owner_emri: emri,
       owner_email: ownerEmail,
+      email: ownerEmail,
+      adresa: document.getElementById("nc-adresa")?.value?.trim() || "",
       owner_password: ownerPassword,
       issue_license: true,
       license_type: "annual",

@@ -150,7 +150,7 @@ async function registerViaBridge(program, body, licenseOpts) {
     emri: body.emri,
     tipi: resolveTipi(program, body),
     telefoni: body.telefoni || body.telefon,
-    email: body.email,
+    email: String(body.email || body.owner_email || "").trim().toLowerCase(),
     adresa: buildFullAddress(body.adresa, body.qyteti),
     kitchen_slug: body.kitchen_slug || body.slug,
     slug: body.kitchen_slug || body.slug,
