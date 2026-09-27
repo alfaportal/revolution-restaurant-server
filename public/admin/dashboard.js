@@ -484,7 +484,11 @@ function populateNcPackageOptions(program) {
       ["pako_premium", "Pako 5 (Premium)"],
     );
   } else if (program === "hotel") {
-    opts.push(["pako_2", "Pako"], ["pako_5", "Pako AI"]);
+    opts.push(
+      ["pako_2", "Pako"],
+      ["pako_5", "Pako AI"],
+      ["pako_premium", "Pako 5 (Premium)"],
+    );
   } else if (program === "security" || program === "kontabilisti") {
     opts.push(["standard", "Standard"], ["premium", "Premium"]);
   } else if (program === "fiskale") {
@@ -909,8 +913,16 @@ const DRAWER_PAKO_OPTS_MARKET = [
   ["pako_premium", "Pako 5 (Premium)"],
 ];
 
+const DRAWER_PAKO_OPTS_HOTEL = [
+  ["pako_2", "Pako"],
+  ["pako_5", "Pako AI"],
+  ["pako_premium", "Pako 5 (Premium)"],
+];
+
 function drawerPakoOpts(productLine) {
-  return productLine === "market" ? DRAWER_PAKO_OPTS_MARKET : DRAWER_PAKO_OPTS;
+  if (productLine === "market") return DRAWER_PAKO_OPTS_MARKET;
+  if (productLine === "hotel") return DRAWER_PAKO_OPTS_HOTEL;
+  return DRAWER_PAKO_OPTS;
 }
 
 function selectOpts(options, selected) {
@@ -1154,7 +1166,13 @@ async function openClientDetail(id, opts = {}) {
   const sectorFields =
     product === "hotel"
       ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
-      <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>`
+      <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
       : isDesktopProduct
         ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>`
         : `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
