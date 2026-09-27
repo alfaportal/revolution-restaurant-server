@@ -133,6 +133,14 @@ const PAKO_LABELS = {
   pako_5: "Pako 4",
 };
 
+const PAKO_LABELS_MARKET = {
+  pako_3: "Pako 1 — Bazik",
+  pako_4: "Pako 2 — Standard",
+  pako_2: "Pako 3 — Profesional",
+  pako_5: "Pako 4 — Biznes + AI",
+  pako_premium: "Pako 5 — Premium",
+};
+
 function formatSqDate(iso) {
   if (!iso) return "—";
   const d = new Date(String(iso).slice(0, 10));
@@ -140,8 +148,11 @@ function formatSqDate(iso) {
   return d.toLocaleDateString("sq-AL", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function pakoLabel(tier) {
-  return PAKO_LABELS[String(tier || "").trim()] || tier || "—";
+function pakoLabel(tier, productLine) {
+  const t = String(tier || "").trim();
+  const pl = productLine || drawerProduct || currentProduct;
+  if (pl === "market") return PAKO_LABELS_MARKET[t] || t || "—";
+  return PAKO_LABELS[t] || t || "—";
 }
 
 let clientsExpirySummary = null;
@@ -477,11 +488,11 @@ function populateNcPackageOptions(program) {
     opts.push(["pako_3", "Pako 1"], ["pako_4", "Pako 2"], ["pako_2", "Pako 3"], ["pako_5", "Pako 4"]);
   } else if (program === "market") {
     opts.push(
-      ["pako_3", "Pako 1"],
-      ["pako_4", "Pako 2"],
-      ["pako_2", "Pako 3"],
-      ["pako_5", "Pako 4 (AI)"],
-      ["pako_premium", "Pako 5 (Premium)"],
+      ["pako_3", "Pako 1 — Bazik"],
+      ["pako_4", "Pako 2 — Standard"],
+      ["pako_2", "Pako 3 — Profesional"],
+      ["pako_5", "Pako 4 — Biznes + AI"],
+      ["pako_premium", "Pako 5 — Premium"],
     );
   } else if (program === "hotel") {
     opts.push(
@@ -909,8 +920,11 @@ const DRAWER_PAKO_OPTS = [
 ];
 
 const DRAWER_PAKO_OPTS_MARKET = [
-  ...DRAWER_PAKO_OPTS,
-  ["pako_premium", "Pako 5 (Premium)"],
+  ["pako_3", "Pako 1 — Bazik"],
+  ["pako_4", "Pako 2 — Standard"],
+  ["pako_2", "Pako 3 — Profesional"],
+  ["pako_5", "Pako 4 — Biznes + AI"],
+  ["pako_premium", "Pako 5 — Premium"],
 ];
 
 const DRAWER_PAKO_OPTS_HOTEL = [
@@ -1471,8 +1485,8 @@ function bindDrawerChangePackage(clientId, productLine) {
         body: JSON.stringify({ product_line: product, package_tier: tier }),
       });
       await afterLicenseAction(clientId, {
-        toast: `✅ Paketa u ndryshua në ${pakoLabel(tier)}`,
-        clientPatch: { package_tier: tier, package_label: pakoLabel(tier) },
+        toast: `✅ Paketa u ndryshua në ${pakoLabel(tier, drawerProduct)}`,
+        clientPatch: { package_tier: tier, package_label: pakoLabel(tier, drawerProduct) },
         product,
       });
     } catch (ex) {
