@@ -1043,8 +1043,34 @@ const DRAWER_MARKET_TIPI_OPTS = [
   ["peshkatore", "Peshkatore"],
 ];
 
+const DEDICATED_DRAWER_PRODUCTS = new Set([
+  "market",
+  "hotel",
+  "security",
+  "fiskale",
+  "kontabilisti",
+]);
+
+function resolveDrawerProduct(fetchedProduct, opts = {}) {
+  const pref = String(
+    opts.product || opts.product_line || drawerProduct || currentProduct || "",
+  ).trim();
+  if (DEDICATED_DRAWER_PRODUCTS.has(pref)) return pref;
+  if (DEDICATED_DRAWER_PRODUCTS.has(fetchedProduct)) return fetchedProduct;
+  return fetchedProduct || pref || "kafene";
+}
+
 async function fetchClientDetailSmart(id, preferredProduct) {
   const pref = preferredProduct || currentProduct || "kafene";
+  if (DEDICATED_DRAWER_PRODUCTS.has(pref)) {
+    const d = await api(
+      `/api/super/dashboard/clients/${encodeURIComponent(id)}?product=${encodeURIComponent(pref)}`,
+    );
+    if (!d?.client?.id && !d?.client?.emri) {
+      throw new Error("Klienti nuk u gjet");
+    }
+    return { d, product: d.product_line || pref };
+  }
   const order = [pref];
   for (const p of ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"]) {
     if (!order.includes(p)) order.push(p);
@@ -1175,7 +1201,8 @@ async function openClientDetail(id, opts = {}) {
     || drawerProduct
     || (typeof opts === "string" ? opts : null)
     || null;
-  const { d, product } = await fetchClientDetailSmart(id, preferred);
+  const { d, product: fetchedProduct } = await fetchClientDetailSmart(id, preferred);
+  const product = resolveDrawerProduct(fetchedProduct, opts);
   drawerProduct = product;
   const c = d.client || {};
   const owners = d.owners || [];
