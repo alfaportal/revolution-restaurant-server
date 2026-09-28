@@ -129,6 +129,7 @@ async function getHotelClientsGrouped() {
         sectors: data.sectors,
         groups: data.groups || data.sectors,
         total: data.total ?? data.sectors.reduce((n, s) => n + (s.clients?.length || 0), 0),
+        online_count: data.online_count ?? 0,
         product_line: "hotel",
         bridge_error: data.bridge_error || "",
       };
@@ -176,6 +177,7 @@ async function getHotelOverview() {
     if (data && (data.active_clients != null || data.licenses_total != null)) {
       return {
         active_clients: data.active_clients ?? 0,
+        online_count: data.online_count ?? 0,
         licenses_active: data.licenses_active ?? data.licenses_total ?? 0,
         licenses_total: data.licenses_total ?? 0,
         trial_accounts: data.trial_accounts ?? 0,
@@ -194,6 +196,7 @@ async function getHotelOverview() {
     ).length;
     return {
       active_clients: active,
+      online_count: grouped.online_count ?? 0,
       licenses_active: licActive,
       licenses_total: (licView.licenses || []).length,
       trial_accounts: 0,
@@ -206,6 +209,7 @@ async function getHotelOverview() {
   } catch (e) {
     return {
       active_clients: 0,
+      online_count: 0,
       licenses_active: 0,
       licenses_total: 0,
       trial_accounts: 0,
