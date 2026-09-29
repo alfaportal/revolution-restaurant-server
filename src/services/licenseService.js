@@ -363,6 +363,59 @@ async function claimLicenseByHardware({
   });
 }
 
+/** Desktop hardware-only — a ekziston / aktive HW ID në cloud (pa çelës cloud). */
+async function checkHardwareStatus(hardwareId) {
+  const hw = normalizeHardwareIdStored(hardwareId);
+  if (!hw) {
+    return { valid: false, code: "NOT_FOUND", message: "Mungon Hardware ID." };
+  }
+
+  const license = await findLicenseByHardwareId(hw);
+  if (!license) {
+    return {
+      valid: false,
+      code: "NOT_FOUND",
+      message: "Nuk ka licencë të regjistruar për këtë Hardware ID.",
+    };
+  }
+
+  const { getSupportPhone } = require("../lib/publicOrigin");
+  if (license.statusi === "revokuar") {
+    return {
+      valid: false,
+      code: "REVOKED",
+      message: `Licenca nuk është më aktive. Kontaktoni: ${getSupportPhone()}`,
+    };
+  }
+  if (license.statusi === "pezulluar") {
+    return {
+      valid: false,
+      code: "SUSPENDED",
+      message: "Liçenca është pezulluar.",
+    };
+  }
+
+  const usable = isLicenseUsable(license);
+  if (!usable.ok) {
+    return {
+      valid: false,
+      code: usable.code || "EXPIRED",
+      message: usable.message || "Liçenca nuk është e vlefshme.",
+    };
+  }
+
+  const hwControl = await getHardwareControl(license.id, hw);
+  if (hwControl?.revoked_at) {
+    return {
+      valid: false,
+      code: "REVOKED",
+      message: `Licenca nuk është më aktive. Kontaktoni: ${getSupportPhone()}`,
+    };
+  }
+
+  return { valid: true, code: "OK", message: "Liçenca është aktive." };
+}
+
 async function findLicenseByKeyOnDb(db, normalized) {
   const variants = keyLookupVariants(normalized);
   const { data, error } = await db
@@ -2004,6 +2057,7 @@ module.exports = {
   findLicenseByKey,
   findLicenseByDeviceId,
   findLicenseByHardwareId,
+  checkHardwareStatus,
   claimLicenseByHardware,
   generateLicenseKey,
   generateDeviceId,

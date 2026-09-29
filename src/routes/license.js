@@ -5,6 +5,7 @@ const {
   getLicenseAccessLinks,
   reportHardwareId,
   claimLicenseByHardware,
+  checkHardwareStatus,
   normalizeHardwareIdStored,
 } = require("../services/licenseService");
 const { verifyMasterPin, verifyDailyEmergencyCode, isMasterPinConfigured } = require("../lib/emergencyPin");
@@ -160,6 +161,27 @@ async function handleLicenseCheckByHardware(req, res) {
     res.status(500).json({ valid: false, gabim: e.message || String(e), code: "SERVER_ERROR" });
   }
 }
+
+/**
+ * POST /api/v1/license/check-hardware — status HW ID (hardware-only POS, pa çelës cloud)
+ */
+router.post("/check-hardware", licenseApiKeyOptional, async (req, res) => {
+  try {
+    const hardware_id = resolveHardwareIdFromBody(req.body || {});
+    if (!hardware_id) {
+      return res.status(400).json({
+        valid: false,
+        code: "NOT_FOUND",
+        gabim: "Mungon Hardware ID.",
+      });
+    }
+    const result = await checkHardwareStatus(hardware_id);
+    const status = result.valid ? 200 : result.code === "NOT_FOUND" ? 404 : 403;
+    res.status(status).json(result);
+  } catch (e) {
+    res.status(500).json({ valid: false, code: "ERROR", gabim: e.message || String(e) });
+  }
+});
 
 /**
  * POST /api/v1/license/check — poll desktop (Hardware ID 16 si device_id ose hardware_id)
