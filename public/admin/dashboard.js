@@ -939,6 +939,28 @@ function drawerPakoOpts(productLine) {
   return DRAWER_PAKO_OPTS;
 }
 
+const DRAWER_MAX_REGISTER_OPTS = Array.from({ length: 10 }, (_, i) => {
+  const v = String(i + 1);
+  return [v, i === 0 ? "1 (default — vetëm Arka 1)" : v];
+});
+
+/** Numri i arkave — vetëm POS (Kafene/Furra), jo Hotel/Security/Fiskale/Kontabilist. */
+function drawerShowsMaxRegisters(product) {
+  const excluded = new Set(["hotel", "security", "fiskale", "kontabilisti"]);
+  const p = String(product || drawerProduct || currentProduct || "kafene").toLowerCase();
+  const tab = String(currentProduct || "kafene").toLowerCase();
+  if (excluded.has(p) || excluded.has(tab)) return false;
+  return true;
+}
+
+function renderDrawerMaxRegistersField(client, productLine) {
+  if (!drawerShowsMaxRegisters(productLine)) return "";
+  const n = client?.max_registers ?? 1;
+  return `<label class="drawer-max-registers">Numri i arkave
+        <select id="dr-max-registers" aria-label="Numri i arkave">${selectOpts(DRAWER_MAX_REGISTER_OPTS, n)}</select>
+      </label>`;
+}
+
 function selectOpts(options, selected) {
   const sel = String(selected || "");
   const has = options.some(([v]) => v === sel);
@@ -1245,6 +1267,8 @@ async function openClientDetail(id, opts = {}) {
         </div>
       </label>`;
 
+  const maxRegField = renderDrawerMaxRegistersField(c, product);
+
   const slugBlock =
     product === "kontabilisti" || product === "fiskale"
       ? ""
@@ -1291,8 +1315,9 @@ async function openClientDetail(id, opts = {}) {
         <label>Email<input id="dr-email" type="email" value="${esc(displayEmail)}" autocomplete="email"></label>
         <label>Telefon<input id="dr-tel" value="${esc(c.telefoni || "")}" autocomplete="tel"></label>
         ${sectorFields}
+        ${maxRegField}
       </div>
-      <button type="button" class="btn btn-primary" id="btn-drawer-save" style="margin-top:0.75rem;width:100%">Ruaj ndryshimet</button>
+      <button type="button" class="btn btn-primary drawer-save-touch" id="btn-drawer-save" style="margin-top:0.75rem;width:100%">Ruaj ndryshimet</button>
       <button type="button" class="btn btn-danger" id="btn-drawer-delete-client" style="margin-top:0.5rem;width:100%">Fshi klientin krejt</button>
       <p id="dr-save-msg" style="color:var(--muted);font-size:0.9rem;margin:0.5rem 0 0"></p>
     </div>
@@ -1482,6 +1507,8 @@ function bindDrawerSave(clientId, productLine) {
     const pakoEl = document.getElementById("dr-pako");
     if (tipiEl?.value) body.tipi = tipiEl.value;
     if (pakoEl?.value) body.package_tier = pakoEl.value;
+    const maxRegEl = document.getElementById("dr-max-registers");
+    if (maxRegEl?.value) body.max_registers = Number(maxRegEl.value);
 
     document.querySelectorAll("[data-lic-edit]").forEach((row) => {
       const id = row.dataset.licEdit;
@@ -1502,11 +1529,15 @@ function bindDrawerSave(clientId, productLine) {
         body: JSON.stringify(body),
       });
       const licErrs = saved?.license_errors || [];
+      const okText = licErrs.length
+        ? `Klienti u ruajt. Licenca: ${licErrs.map((e) => e.gabim).join("; ")}`
+        : "✅ U ruajt — numri i arkave dhe të dhënat e klientit.";
       if (msg) {
-        msg.textContent = licErrs.length
-          ? `Klienti u ruajt. Licenca: ${licErrs.map((e) => e.gabim).join("; ")}`
-          : "U ruajt.";
+        msg.textContent = okText;
+        msg.classList.toggle("save-ok", !licErrs.length);
+        msg.style.color = licErrs.length ? "var(--muted)" : "";
       }
+      showToast(licErrs.length ? okText : "✅ U ruajt.", licErrs.length ? "ok" : "ok");
       await refreshClientsAndProblems().catch(() => null);
       await openClientDetail(clientId, { product: saved?.product_line || product });
     } catch (ex) {

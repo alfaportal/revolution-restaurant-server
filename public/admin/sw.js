@@ -1,5 +1,5 @@
 /* PWA Master Admin — scope /admin/ */
-const CACHE_NAME = "rev-admin-v1";
+const CACHE_NAME = "rev-admin-v2";
 const OFFLINE_MSG = "Nuk ka internet — lidhuni dhe provoni përsëri";
 
 const PRECACHE = [
@@ -7,8 +7,8 @@ const PRECACHE = [
   "/admin/icon-192.png",
   "/admin/icon-512.png",
   "/admin/dashboard.html",
-  "/admin/dashboard.css?v=34",
-  "/admin/dashboard.js?v=45",
+  "/admin/dashboard.css?v=51",
+  "/admin/dashboard.js?v=51",
 ];
 
 function offlineHtml() {
@@ -55,6 +55,22 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/")) return;
 
   if (!isAdminAsset(url.pathname) && !url.pathname.startsWith("/admin/")) return;
+
+  /* Dashboard JS/CSS — network-first që telefoni/PWA marrë drawer-in e ri */
+  if (url.pathname.includes("dashboard.js") || url.pathname.includes("dashboard.css")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request)),
+    );
+    return;
+  }
 
   const navigate = request.mode === "navigate";
 
