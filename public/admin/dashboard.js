@@ -944,9 +944,9 @@ const DRAWER_MAX_REGISTER_OPTS = Array.from({ length: 10 }, (_, i) => {
   return [v, i === 0 ? "1 (default — vetëm Arka 1)" : v];
 });
 
-/** Numri i arkave — vetëm POS (Kafene/Furra), jo Hotel/Security/Fiskale/Kontabilist. */
+/** Numri i arkave — POS + Hotel; jo Security/Fiskale/Kontabilist. */
 function drawerShowsMaxRegisters(product) {
-  const excluded = new Set(["hotel", "security", "fiskale", "kontabilisti"]);
+  const excluded = new Set(["security", "fiskale", "kontabilisti"]);
   const p = String(product || drawerProduct || currentProduct || "kafene").toLowerCase();
   const tab = String(currentProduct || "kafene").toLowerCase();
   if (excluded.has(p) || excluded.has(tab)) return false;
