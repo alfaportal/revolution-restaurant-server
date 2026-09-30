@@ -62,6 +62,19 @@ function licenseKeyFromBody(body) {
   return normalizeKey(body?.celesi || body?.license_key || "");
 }
 
+function normalizePosLanHost(raw) {
+  const h = String(raw ?? "").trim();
+  if (!h) return null;
+  return h.slice(0, 64);
+}
+
+function normalizePosLanPort(raw) {
+  if (raw == null || raw === "") return null;
+  const n = Math.floor(Number(raw));
+  if (!Number.isFinite(n) || n < 1 || n > 65535) return null;
+  return n;
+}
+
 async function resolveLicenseFromBody(body) {
   const key = licenseKeyFromBody(body);
   if (!key) {
@@ -84,6 +97,8 @@ async function generatePairCode(body) {
   const terminal_role = normalizeTerminalRole(body.terminal_role);
   const db = getSupabase();
   const expires_at = pairExpiresAtForLicense(license);
+  const pos_lan_host = normalizePosLanHost(body.pos_lan_host);
+  const pos_lan_port = normalizePosLanPort(body.pos_lan_port);
 
   for (let attempt = 0; attempt < 12; attempt += 1) {
     const code = generatePairCodeValue();
@@ -93,6 +108,8 @@ async function generatePairCode(body) {
       code,
       terminal_role,
       expires_at,
+      pos_lan_host,
+      pos_lan_port,
     };
     const { data, error } = await db
       .from("terminal_pair_codes")
@@ -168,7 +185,9 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
 
   const { data: pending, error: loadErr } = await db
     .from("terminal_pair_codes")
-    .select("id, client_id, license_id, code, terminal_role, expires_at, used_at")
+    .select(
+      "id, client_id, license_id, code, terminal_role, expires_at, used_at, pos_lan_host, pos_lan_port",
+    )
     .eq("code", code)
     .maybeSingle();
   if (loadErr) throw loadErr;
@@ -245,6 +264,8 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
     kitchen_slug,
     terminal_role,
     device_id: deviceId,
+    pos_lan_host: pending.pos_lan_host ?? null,
+    pos_lan_port: pending.pos_lan_port ?? null,
   };
 }
 
