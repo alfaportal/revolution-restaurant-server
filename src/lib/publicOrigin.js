@@ -150,13 +150,13 @@ function getPublicAppConfig() {
     setup_download_configured: true,
     setup_via_email: setup_email,
     setup_via_sms: setup_sms,
-    setup_download_url: `${getPublicAppOrigin()}/api/public/setup-download`,
+    setup_download_url: `${getPublicAppOrigin()}/api/public/setup-download?dl=1`,
     setup_downloads: {
-      default: `${getPublicAppOrigin()}/api/public/setup-download`,
-      p1: `${getPublicAppOrigin()}/api/public/setup-download?plan=p1`,
-      p2: `${getPublicAppOrigin()}/api/public/setup-download?plan=p2`,
-      p3: `${getPublicAppOrigin()}/api/public/setup-download?plan=p3`,
-      p4: `${getPublicAppOrigin()}/api/public/setup-download?plan=p4`,
+      default: `${getPublicAppOrigin()}/api/public/setup-download?dl=1`,
+      p1: `${getPublicAppOrigin()}/api/public/setup-download?dl=1&plan=p1`,
+      p2: `${getPublicAppOrigin()}/api/public/setup-download?dl=1&plan=p2`,
+      p3: `${getPublicAppOrigin()}/api/public/setup-download?dl=1&plan=p3`,
+      p4: `${getPublicAppOrigin()}/api/public/setup-download?dl=1&plan=p4`,
     },
   };
 }

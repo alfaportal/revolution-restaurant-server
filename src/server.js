@@ -419,10 +419,14 @@ app.get("/api/public/setup-download", async (req, res) => {
 
   const forceFile = String(req.query.dl || req.query.file || "") === "1";
   const accept = String(req.headers.accept || "");
+  /* Default: stream .exe — pa HTML interstitial (shkrimi «Save link» / fetch pa dl=1 merrte ~1KB HTML si .exe). */
+  const wantsLandingPage = String(req.query.landing || "") === "1";
   const wantsHtml =
-    !forceFile && (accept.includes("text/html") || !accept.includes("application/json"));
+    wantsLandingPage &&
+    !forceFile &&
+    (accept.includes("text/html") || !accept.includes("application/json"));
 
-  /* Faqe e thjeshtë instalimi — linku është GJITHMONË same-origin (jo GitHub) */
+  /* Faqe opsionale instalimi (?landing=1) — linku i skedarit mbetet same-origin (jo GitHub) */
   if (wantsHtml) {
     const dlPath = buildSameOriginDownloadPath(req.query);
     const safeHref = dlPath.replace(/&/g, "&amp;").replace(/"/g, "&quot;");

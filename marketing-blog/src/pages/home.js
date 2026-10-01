@@ -112,7 +112,7 @@ function pillarPanel(p) {
         <h3 class="pillar-title">${t(`pillars.${n}.title`)}</h3>
         <p class="pillar-desc">${t(`pillars.${n}.desc`)}</p>
         <ul class="pillar-list">${bullets}</ul>
-        <a class="btn pillar-cta" href="/api/public/setup-download">${t("pillars.cta")}</a>
+        <a class="btn pillar-cta" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
       </div>
     </article>
   `;
@@ -310,9 +310,10 @@ function setupWhatsAppHref(digits = "38348707880", plan = "") {
 /** URL publike për Setup — pa login / pa token. */
 function setupDownloadHref(plan) {
   const key = String(plan || "").trim().toLowerCase();
-  return key
-    ? `/api/public/setup-download?plan=${encodeURIComponent(key)}`
-    : "/api/public/setup-download";
+  const qs = new URLSearchParams();
+  qs.set("dl", "1");
+  if (key) qs.set("plan", key);
+  return `/api/public/setup-download?${qs.toString()}`;
 }
 
 function isMobileClient() {
@@ -651,7 +652,7 @@ async function openTrialModal() {
         <a href="tel:+${digits}">${phone}</a>
       </p>
       <div class="checkout-actions">
-        <a class="btn btn-primary" id="trial-setup-link" href="/api/public/setup-download">${t("pillars.cta")}</a>
+        <a class="btn btn-primary" id="trial-setup-link" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
         <a class="btn btn-ghost" href="https://wa.me/${digits}?text=${waText}" target="_blank" rel="noopener noreferrer">${t("trialModal.wa")}</a>
         <button type="button" class="btn btn-ghost" id="trial-close">${t("trialModal.close")}</button>
       </div>
@@ -995,7 +996,7 @@ export function renderHome() {
           <h1>${t("hero.title")}</h1>
           <p class="hero-home-subtitle">${t("hero.subtitle")}</p>
           <div class="hero-actions">
-            <a class="btn btn-hero-primary" href="/api/public/setup-download">${t("pillars.cta")}</a>
+            <a class="btn btn-hero-primary" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
             <button type="button" class="btn btn-hero-secondary" data-equip-modal>${t("nav.equipment")}</button>
             <a class="btn btn-hero-ghost" href="#pakot">${t("hero.cta.secondary")}</a>
           </div>
@@ -1048,7 +1049,7 @@ export function renderHome() {
           </ol>
           <p class="setup-version-banner" id="setup-version-label" hidden></p>
           <div class="get-started-actions">
-            <a class="btn btn-primary" id="get-started-download" href="/api/public/setup-download">${t("pillars.cta")}</a>
+            <a class="btn btn-primary" id="get-started-download" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
             <a class="btn btn-ghost" href="#pakot">${t("nav.packages")}</a>
             <a class="btn btn-ghost" id="get-started-wa" href="https://wa.me/38348707880" target="_blank" rel="noopener noreferrer">${t("getStarted.ctaHelp")}</a>
           </div>
