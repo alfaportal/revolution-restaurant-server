@@ -663,7 +663,15 @@ async function validateLicense({
 
   const fail = async (code, message) => {
     await recordValidationFailure(license, code, message, client_ip);
-    const forceLogout = ["REVOKED", "SUSPENDED", "EXPIRED", "DEVICE_MISMATCH", "TERMINAL_LIMIT_EXCEEDED"].includes(code);
+    const forceLogout = [
+      "REVOKED",
+      "SUSPENDED",
+      "EXPIRED",
+      "DEVICE_MISMATCH",
+      "TERMINAL_LIMIT_EXCEEDED",
+      "TERMINAL_REVOKED",
+      "TERMINAL_DENIED",
+    ].includes(code);
     return {
       valid: false,
       code,

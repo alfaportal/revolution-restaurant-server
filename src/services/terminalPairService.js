@@ -7,6 +7,8 @@ const {
   normalizeDeviceId,
   resolveTerminalAccess,
   getMaxTerminals,
+  revokeTerminalAccess,
+  clearTerminalRevocation,
 } = require("./licenseTerminalService");
 
 const PAIR_CHARSET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -252,6 +254,7 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
 
   const terminal_role = normalizeTerminalRole(pending.terminal_role);
   await registerTerminalWithRole(license.id, deviceId, terminal_role, { hostname, ip });
+  await clearTerminalRevocation(license.id, deviceId);
 
   const kitchen_slug =
     license.clients?.kitchen_slug || (await fetchClientKitchenSlug(db, pending.client_id));
@@ -312,6 +315,7 @@ async function removeTerminalForLicense(body, deviceIdRaw) {
     .eq("license_id", license.id)
     .eq("device_id", deviceId);
   if (error) throw error;
+  await revokeTerminalAccess(license.id, deviceId);
   return { ok: true, device_id: deviceId };
 }
 

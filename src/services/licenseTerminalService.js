@@ -173,6 +173,52 @@ function blockedResult(activeCount, maxTerminals) {
   };
 }
 
+const TERMINAL_REVOKED_MESSAGE =
+  "Kjo arkë është çaktivizuar nga administratori. Kontaktoni administratorin për ta riaktivizuar.";
+
+async function dbOf(licenseId) {
+  const { db } = await dbForLicenseId(licenseId);
+  return db;
+}
+
+async function isTerminalRevoked(licenseId, deviceId) {
+  const id = normalizeDeviceId(deviceId);
+  if (!id) return false;
+  const db = await dbOf(licenseId);
+  const { data, error } = await db
+    .from("license_terminal_revocations")
+    .select("device_id")
+    .eq("license_id", licenseId)
+    .eq("device_id", id)
+    .maybeSingle();
+  if (error && !isMissingRelation(error)) throw error;
+  return !!data?.device_id;
+}
+
+async function revokeTerminalAccess(licenseId, deviceId) {
+  const id = normalizeDeviceId(deviceId);
+  if (!id) return;
+  const db = await dbOf(licenseId);
+  const nowIso = new Date().toISOString();
+  const { error } = await db.from("license_terminal_revocations").upsert(
+    { license_id: licenseId, device_id: id, revoked_at: nowIso },
+    { onConflict: "license_id,device_id" },
+  );
+  if (error && !isMissingRelation(error)) throw error;
+}
+
+async function clearTerminalRevocation(licenseId, deviceId) {
+  const id = normalizeDeviceId(deviceId);
+  if (!id) return;
+  const db = await dbOf(licenseId);
+  const { error } = await db
+    .from("license_terminal_revocations")
+    .delete()
+    .eq("license_id", licenseId)
+    .eq("device_id", id);
+  if (error && !isMissingRelation(error)) throw error;
+}
+
 async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId) {
   const id = normalizeDeviceId(deviceId);
   /* 1 PC = 1 çelës: pa device_id → refuzo (mos anashkalo) */
@@ -181,6 +227,17 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
       allowed: false,
       code: "DEVICE_REQUIRED",
       message: "Mungon ID e pajisjes. Riaktivizoni licencën.",
+      force_logout: true,
+      active_count: 0,
+      max_terminals: getMaxTerminals(license),
+    };
+  }
+
+  if (await isTerminalRevoked(license.id, id)) {
+    return {
+      allowed: false,
+      code: "TERMINAL_REVOKED",
+      message: TERMINAL_REVOKED_MESSAGE,
       force_logout: true,
       active_count: 0,
       max_terminals: getMaxTerminals(license),
@@ -320,6 +377,10 @@ module.exports = {
   resolveTerminalAccess,
   getTerminalSummaryForLicense,
   clearAllTerminals,
+  revokeTerminalAccess,
+  clearTerminalRevocation,
+  isTerminalRevoked,
+  TERMINAL_REVOKED_MESSAGE,
   countLicensesOverTerminalLimit,
   calcLicenseTotalPrice(basePrice, maxTerminals, terminalPrice) {
     const base = Number(basePrice) || 0;
