@@ -939,9 +939,16 @@ function drawerPakoOpts(productLine) {
   return DRAWER_PAKO_OPTS;
 }
 
+function drawerMaxRegisterOptionLabel(count) {
+  const n = Math.max(1, Math.min(10, Math.floor(Number(count) || 1)));
+  if (n === 1) return "1 (vetëm Arka 1)";
+  const arkas = Array.from({ length: n }, (_, j) => `Arka ${j + 1}`).join(" + ");
+  return `${n} (${arkas})`;
+}
+
 const DRAWER_MAX_REGISTER_OPTS = Array.from({ length: 10 }, (_, i) => {
   const v = String(i + 1);
-  return [v, i === 0 ? "1 (default — vetëm Arka 1)" : v];
+  return [v, drawerMaxRegisterOptionLabel(i + 1)];
 });
 
 /** Numri i arkave — POS + Hotel; jo Security/Fiskale/Kontabilist. */
