@@ -62,7 +62,9 @@ router.delete("/terminals/:deviceId", licenseApiKeyOptional, async (req, res) =>
     const result = await removeTerminalForLicense({ celesi }, req.params.deviceId);
     res.json(result);
   } catch (e) {
-    res.status(400).json({ ok: false, gabim: e.message || "Gabim." });
+    const code = e.code || "ERROR";
+    const status = code === "PRIMARY_TERMINAL" ? 403 : 400;
+    res.status(status).json({ ok: false, code, gabim: e.message || "Gabim." });
   }
 });
 

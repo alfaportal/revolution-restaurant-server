@@ -5,24 +5,17 @@ const { assertLicenseUsable } = require("../lib/licenseEnforcement");
 const { dbForLicenseId } = require("../lib/productSupabase");
 const {
   normalizeDeviceId,
+  normalizeTerminalRole,
+  normalizePairTerminalRole,
+  isPrimaryTerminalRole,
   resolveTerminalAccess,
   getMaxTerminals,
   revokeTerminalAccess,
   clearTerminalRevocation,
+  repairTerminalRolesForLicense,
 } = require("./licenseTerminalService");
 
 const PAIR_CHARSET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-const MAX_ARKA = 16;
-
-function normalizeTerminalRole(raw) {
-  const r = String(raw || "arka1").trim().toLowerCase().replace(/\s+/g, "");
-  const m = /^arka(\d+)$/.exec(r);
-  if (m) {
-    const n = Number(m[1]);
-    if (n >= 1 && n <= MAX_ARKA) return `arka${n}`;
-  }
-  return "arka1";
-}
 
 function normalizePairCode(raw) {
   return String(raw || "")
@@ -96,7 +89,7 @@ async function resolveLicenseFromBody(body) {
 
 async function generatePairCode(body) {
   const license = await resolveLicenseFromBody(body);
-  const terminal_role = normalizeTerminalRole(body.terminal_role);
+  const terminal_role = normalizePairTerminalRole(body.terminal_role);
   const db = getSupabase();
   const expires_at = pairExpiresAtForLicense(license);
   const pos_lan_host = normalizePosLanHost(body.pos_lan_host);
@@ -151,13 +144,14 @@ async function registerTerminalWithRole(licenseId, deviceId, terminal_role, { ho
   const { db } = await dbForLicenseId(licenseId);
   const id = normalizeDeviceId(deviceId);
   const ts = new Date().toISOString();
+  const role = normalizePairTerminalRole(terminal_role);
   const { error } = await db.from("license_terminals").upsert(
     {
       license_id: licenseId,
       device_id: id,
       device_hostname: String(hostname || "").trim().slice(0, 128),
       last_ip: String(ip || "").trim().slice(0, 64),
-      terminal_role,
+      terminal_role: role,
       first_activated_at: ts,
       last_seen_at: ts,
     },
@@ -222,13 +216,9 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
   }
   assertLicenseUsable(license);
 
-  const access = await resolveTerminalAccess(
-    license,
-    deviceId,
-    hostname,
-    ip,
-    hardware_id,
-  );
+  const access = await resolveTerminalAccess(license, deviceId, hostname, ip, hardware_id, {
+    pendingPairRole: pending.terminal_role,
+  });
   if (!access.allowed) {
     const err = new Error(access.message || "Terminali nuk lejohet për këtë licencë.");
     err.code = access.code || "TERMINAL_DENIED";
@@ -252,7 +242,7 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
     throw err;
   }
 
-  const terminal_role = normalizeTerminalRole(pending.terminal_role);
+  const terminal_role = normalizePairTerminalRole(pending.terminal_role);
   await registerTerminalWithRole(license.id, deviceId, terminal_role, { hostname, ip });
   await clearTerminalRevocation(license.id, deviceId);
 
@@ -274,6 +264,7 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
 
 async function listTerminalsForLicense(body) {
   const license = await resolveLicenseFromBody(body);
+  await repairTerminalRolesForLicense(license);
   const { db } = await dbForLicenseId(license.id);
   const { data, error } = await db
     .from("license_terminals")
@@ -281,7 +272,7 @@ async function listTerminalsForLicense(body) {
       "id, device_id, device_hostname, last_ip, first_activated_at, last_seen_at, terminal_role",
     )
     .eq("license_id", license.id)
-    .order("last_seen_at", { ascending: false });
+    .order("terminal_role", { ascending: true });
   if (error) throw error;
   const terminals = (data || []).map((row) => ({
     id: row.id,
@@ -309,6 +300,26 @@ async function removeTerminalForLicense(body, deviceIdRaw) {
     throw err;
   }
   const { db } = await dbForLicenseId(license.id);
+  const { data: row, error: selErr } = await db
+    .from("license_terminals")
+    .select("terminal_role, device_id")
+    .eq("license_id", license.id)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (selErr) throw selErr;
+  if (!row) {
+    const err = new Error("Terminali nuk u gjet.");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  if (
+    isPrimaryTerminalRole(row.terminal_role) ||
+    normalizeDeviceId(license.device_id) === deviceId
+  ) {
+    const err = new Error("Arka kryesore (Arka 1) nuk mund të hiqet.");
+    err.code = "PRIMARY_TERMINAL";
+    throw err;
+  }
   const { error } = await db
     .from("license_terminals")
     .delete()
