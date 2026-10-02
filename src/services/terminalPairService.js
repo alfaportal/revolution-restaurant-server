@@ -16,6 +16,8 @@ const {
 } = require("./licenseTerminalService");
 
 const PAIR_CHARSET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+/** Kohë minimale nga gjenerimi — pronari/kamarieri të fusin kod + email pa nxitim. */
+const PAIR_CODE_MIN_VALID_MS = 2 * 60 * 1000;
 
 function normalizePairCode(raw) {
   return String(raw || "")
@@ -43,14 +45,23 @@ function isTrialActive(license) {
 }
 
 function pairExpiresAtForLicense(license) {
+  let iso;
   if (isTrialActive(license) && license.trial_ends_at) {
-    return new Date(license.trial_ends_at).toISOString();
+    iso = new Date(license.trial_ends_at).toISOString();
+  } else {
+    const day = String(license.data_skadimit || "").slice(0, 10);
+    if (day) {
+      iso = `${day}T23:59:59.999Z`;
+    } else {
+      iso = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString();
+    }
   }
-  const day = String(license.data_skadimit || "").slice(0, 10);
-  if (day) {
-    return `${day}T23:59:59.999Z`;
+  const minValid = Date.now() + PAIR_CODE_MIN_VALID_MS;
+  const expTs = Date.parse(iso);
+  if (!Number.isFinite(expTs) || expTs < minValid) {
+    return new Date(minValid).toISOString();
   }
-  return new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString();
+  return iso;
 }
 
 function licenseKeyFromBody(body) {
