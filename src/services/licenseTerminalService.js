@@ -158,9 +158,24 @@ async function insertTerminal(
   deviceId,
   { hostname = "", ip = "", now = null, terminal_role = null } = {},
 ) {
+  const id = normalizeDeviceId(deviceId);
+  if (!id) return;
+
+  // Bug 2 fix: mos lejo insertim nëse terminali është i revokuar
+  if (await isTerminalRevoked(licenseId, id)) {
+    return;
+  }
+
   const db = await dbOf(licenseId);
   const ts = now || new Date().toISOString();
-  const id = normalizeDeviceId(deviceId);
+
+  // Bug 3 fix: gjithmonë vendos terminal_role — mos u mbështet te DB default 'arka1'
+  let role = terminal_role;
+  if (!role) {
+    const existing = await listTerminalsOrdered(licenseId);
+    role = roleForDirectTerminalRegistration(existing);
+  }
+
   const row = {
     license_id: licenseId,
     device_id: id,
@@ -168,10 +183,8 @@ async function insertTerminal(
     last_ip: String(ip || "").trim().slice(0, 64),
     first_activated_at: ts,
     last_seen_at: ts,
+    terminal_role: normalizeTerminalRole(role),
   };
-  if (terminal_role) {
-    row.terminal_role = normalizeTerminalRole(terminal_role);
-  }
   const { error } = await db.from("license_terminals").upsert(row, { onConflict: "license_id,device_id" });
   if (error) throw error;
 }
@@ -216,11 +229,6 @@ function blockedResult(activeCount, maxTerminals) {
 
 const TERMINAL_REVOKED_MESSAGE =
   "Kjo arkë është çaktivizuar nga administratori. Kontaktoni administratorin për ta riaktivizuar.";
-
-async function dbOf(licenseId) {
-  const { db } = await dbForLicenseId(licenseId);
-  return db;
-}
 
 async function isTerminalRevoked(licenseId, deviceId) {
   const id = normalizeDeviceId(deviceId);
