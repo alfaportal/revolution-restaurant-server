@@ -939,17 +939,7 @@ function drawerPakoOpts(productLine) {
   return DRAWER_PAKO_OPTS;
 }
 
-function drawerMaxRegisterOptionLabel(count) {
-  const n = Math.max(1, Math.min(10, Math.floor(Number(count) || 1)));
-  if (n === 1) return "1 (vetëm Arka 1)";
-  const arkas = Array.from({ length: n }, (_, j) => `Arka ${j + 1}`).join(" + ");
-  return `${n} (${arkas})`;
-}
-
-const DRAWER_MAX_REGISTER_OPTS = Array.from({ length: 10 }, (_, i) => {
-  const v = String(i + 1);
-  return [v, drawerMaxRegisterOptionLabel(i + 1)];
-});
+const DRAWER_MAX_REGISTERS = 10;
 
 /** Numri i arkave — POS + Hotel; jo Security/Fiskale/Kontabilist. */
 function drawerShowsMaxRegisters(product) {
@@ -962,10 +952,37 @@ function drawerShowsMaxRegisters(product) {
 
 function renderDrawerMaxRegistersField(client, productLine) {
   if (!drawerShowsMaxRegisters(productLine)) return "";
-  const n = client?.max_registers ?? 1;
-  return `<label class="drawer-max-registers">Numri i arkave
-        <select id="dr-max-registers" aria-label="Numri i arkave">${selectOpts(DRAWER_MAX_REGISTER_OPTS, n)}</select>
-      </label>`;
+  const n = Math.max(1, Math.min(DRAWER_MAX_REGISTERS, Math.floor(Number(client?.max_registers) || 1)));
+  const rows = Array.from({ length: DRAWER_MAX_REGISTERS }, (_, i) => {
+    const k = i + 1;
+    const label = k === 1 ? "Kryesore" : `Arka ${k}`;
+    return `<label class="chk-row" style="flex-direction:row;min-height:var(--tap);color:var(--text)">
+          <input type="checkbox" data-max-reg="${k}"${k <= n ? " checked" : ""}${k === 1 ? " disabled" : ""} style="width:1.25rem;height:1.25rem;min-height:0;padding:0;flex:0 0 auto">
+          ${label}
+        </label>`;
+  }).join("");
+  return `<div class="drawer-max-registers" id="dr-max-registers" role="group" aria-label="Numri i arkave">
+        <span style="color:var(--muted);font-size:0.9rem;font-weight:600">Numri i arkave</span>
+        ${rows}
+      </div>`;
+}
+
+/** Arkat me radhë: shënimi i Arka N shënon 2…N; heqja e Arka N heq N…10. */
+function bindDrawerMaxRegisters() {
+  const box = document.getElementById("dr-max-registers");
+  if (!box) return;
+  const inputs = [...box.querySelectorAll("input[data-max-reg]")];
+  box.addEventListener("change", (e) => {
+    const k = Number(e.target?.dataset?.maxReg);
+    if (!k || k === 1) return;
+    const on = e.target.checked;
+    for (const el of inputs) {
+      const j = Number(el.dataset.maxReg);
+      if (j === 1) continue;
+      if (on && j <= k) el.checked = true;
+      if (!on && j >= k) el.checked = false;
+    }
+  });
 }
 
 function selectOpts(options, selected) {
@@ -1338,6 +1355,7 @@ async function openClientDetail(id, opts = {}) {
   `;
   const body = document.getElementById("drawer-body");
   body.querySelectorAll("[data-lic-hw], [data-lic-key]").forEach((el) => bindDrawerHex16(el));
+  bindDrawerMaxRegisters();
   bindDrawerSave(id, product);
   bindDrawerChangePackage(id, product);
   bindDrawerPassword(id, product);
@@ -1514,8 +1532,10 @@ function bindDrawerSave(clientId, productLine) {
     const pakoEl = document.getElementById("dr-pako");
     if (tipiEl?.value) body.tipi = tipiEl.value;
     if (pakoEl?.value) body.package_tier = pakoEl.value;
-    const maxRegEl = document.getElementById("dr-max-registers");
-    if (maxRegEl?.value) body.max_registers = Number(maxRegEl.value);
+    const maxRegBox = document.getElementById("dr-max-registers");
+    if (maxRegBox) {
+      body.max_registers = Math.max(1, maxRegBox.querySelectorAll("input[data-max-reg]:checked").length);
+    }
 
     document.querySelectorAll("[data-lic-edit]").forEach((row) => {
       const id = row.dataset.licEdit;
