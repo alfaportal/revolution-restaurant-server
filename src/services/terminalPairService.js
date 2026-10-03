@@ -240,6 +240,9 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
   }
   assertLicenseUsable(license);
 
+  /* Kod i ri nga Kryesorja = ri-lidhje e lejuar (edhe pas «Hiq arke» / revokimit). */
+  await clearTerminalRevocation(license.id, deviceId);
+
   const access = await resolveTerminalAccess(license, deviceId, hostname, ip, hardware_id, {
     pendingPairRole: pending.terminal_role,
   });
