@@ -27,10 +27,6 @@ const {
   calcLicenseTotalPrice,
   insertTerminal,
   normalizeDeviceId,
-  listTerminalsOrdered,
-  revokeTerminalAccess,
-  isPrimaryTerminalRole,
-  normalizeTerminalRole,
 } = require("./licenseTerminalService");
 
 function pickLatestTerminal(terminals) {
@@ -1099,12 +1095,6 @@ async function updateClient(id, body) {
     previousPackageTier = prevRow?.package_tier ?? null;
   }
 
-  let previousMaxRegisters = null;
-  if (patch.max_registers !== undefined) {
-    const { data: prevRow } = await db.from("clients").select("max_registers").eq("id", id).maybeSingle();
-    if (prevRow?.max_registers != null) previousMaxRegisters = normalizeMaxRegisters(prevRow.max_registers, 1);
-  }
-
   async function doUpdate(p) {
     return db.from("clients").update(p).eq("id", id).select("*").single();
   }
@@ -1145,38 +1135,6 @@ async function updateClient(id, body) {
     throw error;
   }
   if (!data) throw new Error("Klienti nuk u gjet.");
-  if (
-    previousMaxRegisters != null
-    && data.max_registers != null
-    && normalizeMaxRegisters(data.max_registers, 1) < previousMaxRegisters
-  ) {
-    const newMax = normalizeMaxRegisters(data.max_registers, 1);
-    try {
-      const licenses = await listLicensesForClient(id, hint);
-      for (const lic of licenses) {
-        const primaryDevice = normalizeDeviceId(lic.device_id);
-        const terminals = await listTerminalsOrdered(lic.id);
-        for (const t of terminals) {
-          if (!t.terminal_role) continue;
-          const deviceId = normalizeDeviceId(t.device_id);
-          if (!deviceId || isPrimaryTerminalRole(t.terminal_role) || deviceId === primaryDevice) continue;
-          const n = Number(/^arka(\d+)$/.exec(normalizeTerminalRole(t.terminal_role))?.[1] || 0);
-          if (!n || n <= newMax) continue;
-          const { db: licDb } = await dbForLicenseId(lic.id);
-          const { error: delErr } = await licDb
-            .from("license_terminals")
-            .delete()
-            .eq("license_id", lic.id)
-            .eq("device_id", t.device_id);
-          if (delErr) throw delErr;
-          await revokeTerminalAccess(lic.id, deviceId);
-          console.log(`[updateClient] max_registers ${previousMaxRegisters}→${newMax}: u hoq ${t.terminal_role} (${deviceId}) licenca ${lic.id}`);
-        }
-      }
-    } catch (termErr) {
-      console.warn("[updateClient] heqja e arkave mbi kufirin:", termErr.message || termErr);
-    }
-  }
   if (patch.adresa != null && String(patch.adresa).trim()) {
     try {
       await db
