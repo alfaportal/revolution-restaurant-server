@@ -7,6 +7,7 @@ const {
   removeTerminalForLicense,
 } = require("../services/terminalPairService");
 const { normalizeKey } = require("../services/licenseService");
+const relay = require("../services/terminalRelayService");
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ router.post("/generate-pair-code", licenseApiKeyOptional, async (req, res) => {
     const code = e.code || "ERROR";
     const status =
       code === "MISSING_LICENSE" ? 400
-        : ["NOT_FOUND", "REVOKED", "SUSPENDED", "EXPIRED"].includes(code) ? 403
+        : ["NOT_FOUND", "REVOKED", "SUSPENDED", "EXPIRED", "NOT_PRIMARY"].includes(code) ? 403
           : 400;
     res.status(status).json({ ok: false, code, gabim: e.message || "Gabim." });
   }
@@ -59,11 +60,14 @@ router.delete("/terminals/:deviceId", licenseApiKeyOptional, async (req, res) =>
     if (!celesi) {
       return res.status(400).json({ ok: false, gabim: "Mungon çelësi i licencës." });
     }
-    const result = await removeTerminalForLicense({ celesi }, req.params.deviceId);
+    const result = await removeTerminalForLicense(
+      { celesi, caller_device_id: req.query?.caller_device_id },
+      req.params.deviceId,
+    );
     res.json(result);
   } catch (e) {
     const code = e.code || "ERROR";
-    const status = code === "PRIMARY_TERMINAL" ? 403 : 400;
+    const status = code === "PRIMARY_TERMINAL" || code === "NOT_PRIMARY" ? 403 : 400;
     res.status(status).json({ ok: false, code, gabim: e.message || "Gabim." });
   }
 });
@@ -86,5 +90,24 @@ router.post("/join", licenseApiKeyOptional, async (req, res) => {
     res.status(status).json({ ok: false, code, gabim: e.message || "Gabim." });
   }
 });
+
+/** Kryesore ↔ Arka 2+ përmes cloud-it (kur LAN nuk i lidh PC-të). Përmbajtja vjen e koduar nga POS. */
+function relayRoute(handler) {
+  return async (req, res) => {
+    try {
+      res.json(await handler(req.body || {}));
+    } catch (e) {
+      const status = Number(e.status) || (e.code ? 400 : 500);
+      if (status >= 500) console.warn("[terminal-relay]", e.code || "", e.message);
+      res.status(status).json({ ok: false, code: e.code || "ERROR", gabim: e.message || "Gabim." });
+    }
+  };
+}
+
+router.post("/relay/push", licenseApiKeyOptional, relayRoute(relay.pushFromRegister));
+router.post("/relay/inbox", licenseApiKeyOptional, relayRoute(relay.pullInbox));
+router.post("/relay/ack", licenseApiKeyOptional, relayRoute(relay.ackInbox));
+router.post("/relay/snapshots", licenseApiKeyOptional, relayRoute(relay.publishSnapshots));
+router.post("/relay/snapshots/fetch", licenseApiKeyOptional, relayRoute(relay.fetchSnapshots));
 
 module.exports = router;

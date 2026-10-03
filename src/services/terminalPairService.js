@@ -15,6 +15,7 @@ const {
   clearTerminalRevocation,
   repairTerminalRolesForLicense,
 } = require("./licenseTerminalService");
+const { assertCallerIsPrimaryIfKnown } = require("./terminalRelayService");
 
 const PAIR_CHARSET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 /** Kohë minimale nga gjenerimi — pronari/kamarieri të fusin kod + email pa nxitim. */
@@ -101,6 +102,7 @@ async function resolveLicenseFromBody(body) {
 
 async function generatePairCode(body) {
   const license = await resolveLicenseFromBody(body);
+  await assertCallerIsPrimaryIfKnown(license, body.caller_device_id);
   const terminal_role = normalizePairTerminalRole(body.terminal_role);
   const maxTerminals = getMaxTerminals(license);
   const active = await listTerminalsOrdered(license.id);
@@ -333,6 +335,7 @@ async function listTerminalsForLicense(body) {
 
 async function removeTerminalForLicense(body, deviceIdRaw) {
   const license = await resolveLicenseFromBody(body);
+  await assertCallerIsPrimaryIfKnown(license, body.caller_device_id);
   const deviceId = normalizeDeviceId(deviceIdRaw);
   if (!deviceId) {
     const err = new Error("Mungon ID e pajisjes.");
