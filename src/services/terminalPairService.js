@@ -10,6 +10,7 @@ const {
   isPrimaryTerminalRole,
   resolveTerminalAccess,
   getMaxTerminals,
+  listTerminalsOrdered,
   revokeTerminalAccess,
   clearTerminalRevocation,
   repairTerminalRolesForLicense,
@@ -101,6 +102,16 @@ async function resolveLicenseFromBody(body) {
 async function generatePairCode(body) {
   const license = await resolveLicenseFromBody(body);
   const terminal_role = normalizePairTerminalRole(body.terminal_role);
+  const maxTerminals = getMaxTerminals(license);
+  const active = await listTerminalsOrdered(license.id);
+  const roleNr = Number(/^arka(\d+)$/.exec(terminal_role)?.[1] || 2);
+  if (active.length >= maxTerminals || roleNr > maxTerminals) {
+    const err = new Error(
+      `Keni arritur numrin e arkave që ju ka lejuar Revolution Invest (${maxTerminals}). Kontaktoni për shtesë.`,
+    );
+    err.code = "DEVICE_LIMIT_REACHED";
+    throw err;
+  }
   const db = getSupabase();
   const expires_at = pairExpiresAtForLicense(license);
   const pos_lan_host = normalizePosLanHost(body.pos_lan_host);

@@ -24,6 +24,7 @@ const {
   getTerminalSummaryForLicense,
   clearSecondaryTerminals,
   pickPrimaryTerminal,
+  enforceTerminalLimit,
   countLicensesOverTerminalLimit,
   calcLicenseTotalPrice,
   insertTerminal,
@@ -197,6 +198,42 @@ function normalizeMaxRegisters(raw, fallback = 1) {
   const n = Math.floor(Number(raw));
   if (!Number.isFinite(n)) return fallback;
   return Math.min(10, Math.max(1, n));
+}
+
+/** Super Admin cakton një numër arkash: clients.max_registers = licenses.max_terminals (vetëm POS/Kafene). */
+function syncsRegisterLimit(product, productLine) {
+  if (isDedicatedProduct(product)) return false;
+  return String(productLine || "kafene").trim().toLowerCase() !== "security";
+}
+
+async function syncLicensesFromClientMaxRegisters(db, clientId, maxRegisters) {
+  const max = normalizeMaxRegisters(maxRegisters, 1);
+  const { data: lics, error } = await db
+    .from("licenses")
+    .select("id, max_terminals, product_line")
+    .eq("client_id", clientId);
+  if (error) throw error;
+  for (const lic of lics || []) {
+    if (String(lic.product_line || "kafene").toLowerCase() === "security") continue;
+    if (Number(lic.max_terminals) !== max) {
+      const { error: upErr } = await db.from("licenses").update({ max_terminals: max }).eq("id", lic.id);
+      if (upErr) throw upErr;
+    }
+    await enforceTerminalLimit(lic.id, max);
+  }
+}
+
+async function syncClientMaxRegistersFromLicense(db, clientId, maxTerminals) {
+  if (!clientId) return;
+  const max = normalizeMaxRegisters(maxTerminals, 1);
+  const { error } = await db
+    .from("clients")
+    .update({ max_registers: max })
+    .eq("id", clientId)
+    .neq("max_registers", max);
+  if (error && !/max_registers|schema cache/i.test(String(error.message || error.details || ""))) {
+    throw error;
+  }
 }
 
 function maxRegistersFromClient(clients) {
@@ -1135,6 +1172,15 @@ async function updateClient(id, body) {
     throw error;
   }
   if (!data) throw new Error("Klienti nuk u gjet.");
+  if (patch.max_registers !== undefined && syncsRegisterLimit(product, data.product_line)) {
+    try {
+      await syncLicensesFromClientMaxRegisters(db, id, patch.max_registers);
+    } catch (limitErr) {
+      throw new Error(
+        `Numri i arkave u ruajt te klienti, por licenca nuk u përditësua: ${limitErr.message || limitErr}`,
+      );
+    }
+  }
   if (patch.adresa != null && String(patch.adresa).trim()) {
     try {
       await db
@@ -1393,6 +1439,9 @@ async function createLicense(body) {
   }
   if (error) throw error;
   if (data?.id) rememberLicenseHome(data.id, product);
+  if (data?.client_id && syncsRegisterLimit(product, data.product_line)) {
+    await syncClientMaxRegistersFromLicense(db, data.client_id, data.max_terminals);
+  }
   return data;
 }
 
@@ -1500,6 +1549,11 @@ async function updateLicense(id, body) {
     } catch (termErr) {
       console.warn("[updateLicense] terminal sync:", termErr.message);
     }
+  }
+
+  if (patch.max_terminals != null && syncsRegisterLimit(product, data.product_line)) {
+    await enforceTerminalLimit(id, patch.max_terminals);
+    await syncClientMaxRegistersFromLicense(db, data.client_id, patch.max_terminals);
   }
 
   return data;

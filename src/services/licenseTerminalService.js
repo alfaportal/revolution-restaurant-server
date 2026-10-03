@@ -309,6 +309,39 @@ async function clearTerminalRevocation(licenseId, deviceId) {
   if (error && !isMissingRelation(error)) throw error;
 }
 
+function arkaNumberOf(role) {
+  if (!role) return MAX_ARKA + 1;
+  const m = /^arka(\d+)$/.exec(normalizeTerminalRole(role));
+  return m ? Number(m[1]) : MAX_ARKA + 1;
+}
+
+/** Arkat shtesë mbi limitin e Super Admin — numri më i lartë del i pari; Kryesorja kurrë. */
+function secondaryTerminalsOverLimit(terminals, maxTerminals) {
+  const primary = pickPrimaryTerminal(terminals);
+  const secondaries = (terminals || [])
+    .filter((t) => !primary || t.id !== primary.id)
+    .sort((a, b) =>
+      arkaNumberOf(a.terminal_role) - arkaNumberOf(b.terminal_role)
+      || new Date(a.first_activated_at || 0).getTime() - new Date(b.first_activated_at || 0).getTime());
+  return secondaries.slice(Math.max(0, Math.max(1, Number(maxTerminals) || 1) - 1));
+}
+
+/** Super Admin uli numrin e arkave → arkat e tepërta hiqen dhe çaktivizohen (të dhënat e tyre mbeten). */
+async function enforceTerminalLimit(licenseId, maxTerminals) {
+  const terminals = await listTerminalsOrdered(licenseId);
+  const over = secondaryTerminalsOverLimit(terminals, maxTerminals);
+  if (!over.length) return [];
+  const db = await dbOf(licenseId);
+  const removed = [];
+  for (const t of over) {
+    const { error } = await db.from("license_terminals").delete().eq("id", t.id);
+    if (error) throw error;
+    await revokeTerminalAccess(licenseId, t.device_id);
+    removed.push(t.device_id);
+  }
+  return removed;
+}
+
 async function repairTerminalRolesForLicense(license) {
   const db = await dbOf(license.id);
   const { data: rows, error } = await db
@@ -413,20 +446,25 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
 
     const self = terminals[slotIndex];
     const isPrimarySelf = Boolean(self?.terminal_role && isPrimaryTerminalRole(self.terminal_role));
-    const overSlot = !isPrimarySelf && slotIndex >= maxTerminals;
+    const overSlot =
+      !isPrimarySelf
+      && secondaryTerminalsOverLimit(terminals, maxTerminals).some((t) => t.device_id === id);
+    if (overSlot) {
+      await enforceTerminalLimit(license.id, maxTerminals);
+      return {
+        allowed: false,
+        code: "TERMINAL_REVOKED",
+        message: TERMINAL_REVOKED_MESSAGE,
+        force_logout: true,
+        active_count: terminals.length,
+        max_terminals: maxTerminals,
+      };
+    }
     return {
       allowed: true,
       active_count: terminals.length,
       max_terminals: maxTerminals,
       slot: slotIndex + 1,
-      ...(overSlot
-        ? {
-            warning: true,
-            code: "TERMINAL_OVERFLOW",
-            message:
-              "Terminali juaj është i regjistruar. Kontaktoni Revolution Invest nëse duhen më shumë pajisje.",
-          }
-        : {}),
     };
   }
 
@@ -525,6 +563,8 @@ module.exports = {
   getTerminalSummaryForLicense,
   clearSecondaryTerminals,
   pickPrimaryTerminal,
+  secondaryTerminalsOverLimit,
+  enforceTerminalLimit,
   revokeTerminalAccess,
   clearTerminalRevocation,
   isTerminalRevoked,
