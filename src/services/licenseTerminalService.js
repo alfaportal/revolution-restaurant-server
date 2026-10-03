@@ -113,6 +113,15 @@ async function listTerminalsOrdered(licenseId) {
   return (data || []).map(mapTerminalRow);
 }
 
+/** Kryesorja = rreshti arka1; nëse s'ka, terminali i regjistruar i pari. */
+function pickPrimaryTerminal(terminals) {
+  if (!Array.isArray(terminals) || !terminals.length) return null;
+  const sorted = [...terminals].sort(
+    (a, b) => new Date(a.first_activated_at || 0).getTime() - new Date(b.first_activated_at || 0).getTime(),
+  );
+  return sorted.find((t) => t.terminal_role && isPrimaryTerminalRole(t.terminal_role)) || sorted[0];
+}
+
 async function migrateLegacyTerminal(license) {
   const deviceId = normalizeDeviceId(license.device_id);
   if (!deviceId) return;
@@ -185,7 +194,24 @@ async function insertTerminal(
     last_seen_at: ts,
     terminal_role: normalizeTerminalRole(role),
   };
-  const { error } = await db.from("license_terminals").upsert(row, { onConflict: "license_id,device_id" });
+  const { data: existingRow, error: findErr } = await db
+    .from("license_terminals")
+    .select("id, terminal_role")
+    .eq("license_id", licenseId)
+    .eq("device_id", id)
+    .maybeSingle();
+  if (findErr) throw findErr;
+  if (existingRow) {
+    /* first_activated_at mbetet data e regjistrimit të parë; Kryesorja mbetet arka1 */
+    const { first_activated_at: _keep, ...updateRow } = row;
+    if (existingRow.terminal_role && isPrimaryTerminalRole(existingRow.terminal_role)) {
+      updateRow.terminal_role = PRIMARY_TERMINAL_ROLE;
+    }
+    const { error } = await db.from("license_terminals").update(updateRow).eq("id", existingRow.id);
+    if (error) throw error;
+    return;
+  }
+  const { error } = await db.from("license_terminals").insert(row);
   if (error) throw error;
 }
 
@@ -209,11 +235,26 @@ async function startTerminalLimitGrace(licenseId) {
   return data.terminal_limit_grace_at;
 }
 
-async function clearAllTerminals(licenseId) {
+/** Fshin vetëm arkat shtesë; Kryesorja mbetet. Kthen Kryesoren (ose null kur s'ka terminale). */
+async function clearSecondaryTerminals(licenseId) {
+  const terminals = await listTerminalsOrdered(licenseId);
+  const primary = pickPrimaryTerminal(terminals);
+  if (!primary) {
+    await clearTerminalLimitGrace(licenseId);
+    return null;
+  }
   const db = await dbOf(licenseId);
-  const { error } = await db.from("license_terminals").delete().eq("license_id", licenseId);
+  if (!(primary.terminal_role && isPrimaryTerminalRole(primary.terminal_role))) {
+    await db.from("license_terminals").update({ terminal_role: PRIMARY_TERMINAL_ROLE }).eq("id", primary.id);
+  }
+  const { error } = await db
+    .from("license_terminals")
+    .delete()
+    .eq("license_id", licenseId)
+    .neq("id", primary.id);
   if (error && !isMissingRelation(error)) throw error;
   await clearTerminalLimitGrace(licenseId);
+  return primary;
 }
 
 function blockedResult(activeCount, maxTerminals) {
@@ -281,8 +322,11 @@ async function repairTerminalRolesForLicense(license) {
   const sorted = [...rows].sort(
     (a, b) => new Date(a.first_activated_at || 0).getTime() - new Date(b.first_activated_at || 0).getTime(),
   );
+  /* Kryesorja ekzistuese nuk zëvendësohet kurrë nga një arkë tjetër */
   let primaryRow =
-    (primaryId && rows.find((r) => normalizeDeviceId(r.device_id) === primaryId)) || sorted[0];
+    sorted.find((r) => r.terminal_role && isPrimaryTerminalRole(r.terminal_role))
+    || (primaryId && rows.find((r) => normalizeDeviceId(r.device_id) === primaryId))
+    || pickPrimaryTerminal(rows);
   if (!primaryRow) return;
 
   const primaryKey = normalizeDeviceId(primaryRow.device_id);
@@ -367,7 +411,9 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
     slotIndex = terminals.findIndex((t) => t.device_id === id);
     if (terminals.length <= maxTerminals) await clearTerminalLimitGrace(license.id);
 
-    const overSlot = slotIndex >= maxTerminals;
+    const self = terminals[slotIndex];
+    const isPrimarySelf = Boolean(self?.terminal_role && isPrimaryTerminalRole(self.terminal_role));
+    const overSlot = !isPrimarySelf && slotIndex >= maxTerminals;
     return {
       allowed: true,
       active_count: terminals.length,
@@ -384,33 +430,13 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
     };
   }
 
-  const hwReq = String(hardwareId || "").replace(/[^a-fA-F0-9]/g, "").toUpperCase().slice(0, 16);
-  const hwLic = String(license.hardware_id || "").replace(/[^a-fA-F0-9]/g, "").toUpperCase().slice(0, 16);
-  const sameHardware = hwReq.length === 16 && hwLic.length === 16 && hwReq === hwLic;
-  const takeOver =
-    maxTerminals <= 1
-    || !normalizeDeviceId(license.device_id)
-    || sameHardware;
-
   const pendingPairRole = opts.pendingPairRole
     ? normalizePairTerminalRole(opts.pendingPairRole)
     : null;
   const directRole = pendingPairRole || roleForDirectTerminalRegistration(terminals);
 
-  if (terminals.length >= maxTerminals && takeOver) {
-    await clearAllTerminals(license.id);
-    await insertTerminal(license.id, id, {
-      hostname,
-      ip,
-      terminal_role: pendingPairRole || PRIMARY_TERMINAL_ROLE,
-    });
-    return {
-      allowed: true,
-      is_new: true,
-      active_count: 1,
-      max_terminals: maxTerminals,
-    };
-  }
+  /* Kryesorja (arka e parë) nuk fshihet dhe nuk zëvendësohet kurrë nga PC tjetër.
+     Kur s'ka vend, PC e re bllokohet. */
 
   if (terminals.length < maxTerminals) {
     await insertTerminal(license.id, id, { hostname, ip, terminal_role: directRole });
@@ -497,7 +523,8 @@ module.exports = {
   repairTerminalRolesForLicense,
   resolveTerminalAccess,
   getTerminalSummaryForLicense,
-  clearAllTerminals,
+  clearSecondaryTerminals,
+  pickPrimaryTerminal,
   revokeTerminalAccess,
   clearTerminalRevocation,
   isTerminalRevoked,

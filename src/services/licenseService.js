@@ -22,24 +22,18 @@ const { seedPosSettingsForClient, syncPosSettingsFromClient } = require("./recei
 const {
   resolveTerminalAccess,
   getTerminalSummaryForLicense,
-  clearAllTerminals,
+  clearSecondaryTerminals,
+  pickPrimaryTerminal,
   countLicensesOverTerminalLimit,
   calcLicenseTotalPrice,
   insertTerminal,
   normalizeDeviceId,
 } = require("./licenseTerminalService");
 
-function pickLatestTerminal(terminals) {
-  if (!Array.isArray(terminals) || !terminals.length) return null;
-  return [...terminals].sort(
-    (a, b) => new Date(b.last_seen_at || 0).getTime() - new Date(a.last_seen_at || 0).getTime(),
-  )[0];
-}
-
 function enrichLicenseRowWithTerminals(lic, summary) {
-  const latest = pickLatestTerminal(summary.terminals);
+  const primary = pickPrimaryTerminal(summary.terminals);
   const displayDeviceId =
-    normalizeDeviceId(lic.device_id) || (latest?.device_id ? normalizeDeviceId(latest.device_id) : "");
+    normalizeDeviceId(lic.device_id) || (primary?.device_id ? normalizeDeviceId(primary.device_id) : "");
   const hardware_id = resolveLicenseHardwareId(lic);
   return {
     ...lic,
@@ -54,23 +48,23 @@ function enrichLicenseRowWithTerminals(lic, summary) {
     terminals: summary.terminals,
     display_device_id: displayDeviceId,
     display_device_ids: (summary.terminals || []).map(t => t.device_id).filter(Boolean),
-    device_hostname: lic.device_hostname || latest?.device_hostname || "",
-    last_ip: lic.last_ip || latest?.last_ip || "",
-    last_activated_at: lic.last_activated_at || latest?.last_seen_at || null,
+    device_hostname: lic.device_hostname || primary?.device_hostname || "",
+    last_ip: lic.last_ip || primary?.last_ip || "",
+    last_activated_at: lic.last_activated_at || primary?.last_seen_at || null,
   };
 }
 
 async function syncLicenseDeviceFromTerminals(licenseId, lic, summary) {
-  const latest = pickLatestTerminal(summary.terminals);
-  const deviceId = normalizeDeviceId(lic.device_id) || (latest ? normalizeDeviceId(latest.device_id) : "");
+  const primary = pickPrimaryTerminal(summary.terminals);
+  const deviceId = normalizeDeviceId(lic.device_id) || (primary ? normalizeDeviceId(primary.device_id) : "");
   if (!deviceId || normalizeDeviceId(lic.device_id) === deviceId) return;
   const hwKeep = resolveLicenseHardwareId(lic);
   const patch = {
     device_id: deviceId,
     last_validation_error: hwKeep ? encodeHwMeta(hwKeep) : "",
-    ...(latest?.device_hostname ? { device_hostname: latest.device_hostname } : {}),
-    ...(latest?.last_ip ? { last_ip: latest.last_ip } : {}),
-    ...(latest?.last_seen_at ? { last_activated_at: latest.last_seen_at } : {}),
+    ...(primary?.device_hostname ? { device_hostname: primary.device_hostname } : {}),
+    ...(primary?.last_ip ? { last_ip: primary.last_ip } : {}),
+    ...(primary?.last_seen_at ? { last_activated_at: primary.last_seen_at } : {}),
   };
   try {
     await patchLicenseMeta(licenseId, patch);
@@ -721,6 +715,10 @@ async function validateLicense({
   }
 
   const hwStored = hwForCheck;
+  /* Pajisja e licencës = arka e parë (Kryesore). Arkat e tjera nuk e mbishkruajnë kurrë. */
+  const licenseDeviceId = normalizeDeviceId(license.device_id);
+  const claimsLicenseDevice = Boolean(deviceId) && !licenseDeviceId;
+  const isLicenseDevice = Boolean(deviceId) && (claimsLicenseDevice || licenseDeviceId === normalizeDeviceId(deviceId));
   const successPatch = {
     last_activated_at: now,
     last_heartbeat_at: now,
@@ -729,16 +727,18 @@ async function validateLicense({
       ? encodeHwMeta(hwStored)
       : "",
     ...(ip ? { last_ip: ip } : {}),
-    ...(host ? { device_hostname: host } : {}),
-    ...(normalizeHardwareIdStored(hardware_id) ? { hardware_id: normalizeHardwareIdStored(hardware_id) } : {}),
+    ...(host && isLicenseDevice ? { device_hostname: host } : {}),
+    ...(normalizeHardwareIdStored(hardware_id) && isLicenseDevice
+      ? { hardware_id: normalizeHardwareIdStored(hardware_id) }
+      : {}),
   };
-  if (deviceId) {
+  if (claimsLicenseDevice) {
     successPatch.device_id = deviceId;
   }
 
   await patchLicenseMeta(license.id, successPatch);
-  if (deviceId) license.device_id = deviceId;
-  if (host) license.device_hostname = host;
+  if (claimsLicenseDevice) license.device_id = deviceId;
+  if (host && isLicenseDevice) license.device_hostname = host;
 
   const contactEmail = normalizeContactEmail(contact_email || activation_email);
   if (contactEmail) {
@@ -775,8 +775,8 @@ async function validateLicense({
     paketa_id: normalizePackageTier(license.clients?.package_tier),
     paketa: packageLabel(normalizePackageTier(license.clients?.package_tier)),
     client_type: licenseAppType(license),
-    device_id: license.device_id,
-    device_hostname: license.device_hostname || host,
+    device_id: deviceId || license.device_id,
+    device_hostname: host || license.device_hostname,
     last_activated_at: now,
     last_ip: ip,
     trial_active: Boolean(license.trial_ends_at && new Date(license.trial_ends_at) > new Date()),
@@ -893,7 +893,7 @@ async function listLicenses(opts = {}) {
           await syncLicenseDeviceFromTerminals(lic.id, lic, summary);
           const merged = {
             ...lic,
-            device_id: normalizeDeviceId(lic.device_id) || pickLatestTerminal(summary.terminals)?.device_id || lic.device_id,
+            device_id: normalizeDeviceId(lic.device_id) || pickPrimaryTerminal(summary.terminals)?.device_id || lic.device_id,
           };
           return enrichLicenseRowWithTerminals(merged, summary);
         } catch {
@@ -920,7 +920,7 @@ async function listLicenses(opts = {}) {
         await syncLicenseDeviceFromTerminals(lic.id, lic, summary);
         const merged = {
           ...lic,
-          device_id: normalizeDeviceId(lic.device_id) || pickLatestTerminal(summary.terminals)?.device_id || lic.device_id,
+          device_id: normalizeDeviceId(lic.device_id) || pickPrimaryTerminal(summary.terminals)?.device_id || lic.device_id,
         };
         return enrichLicenseRowWithTerminals(merged, summary);
       } catch {
@@ -1565,12 +1565,15 @@ async function resetLicenseDevice(id) {
   if (!licenseId) throw new Error("ID e liçencës mungon.");
 
   const { db } = await dbForLicenseId(licenseId);
+  /* Kryesorja (arka e parë) nuk fshihet kurrë — reset heq vetëm arkat shtesë. */
+  const primary = await clearSecondaryTerminals(licenseId);
+  const keepDevice = primary ? normalizeDeviceId(primary.device_id) : "";
   const patch = {
-    device_id: "",
-    device_hostname: "",
-    last_ip: "",
+    device_id: keepDevice,
+    device_hostname: primary?.device_hostname || "",
+    last_ip: primary?.last_ip || "",
     last_validation_error: "",
-    last_activated_at: null,
+    ...(primary ? {} : { last_activated_at: null }),
     terminal_limit_grace_at: null,
   };
   let { data, error } = await db
@@ -1582,7 +1585,7 @@ async function resetLicenseDevice(id) {
   if (error) {
     const fallback = await db
       .from("licenses")
-      .update({ device_id: "", last_validation_error: "" })
+      .update({ device_id: keepDevice, last_validation_error: "" })
       .eq("id", licenseId)
       .select("*, clients(emri, tipi)")
       .single();
@@ -1590,7 +1593,6 @@ async function resetLicenseDevice(id) {
     data = fallback.data;
   }
   if (!data) throw new Error("Liçenca nuk u gjet.");
-  await clearAllTerminals(licenseId);
   return data;
 }
 

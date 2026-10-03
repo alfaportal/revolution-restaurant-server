@@ -236,6 +236,24 @@ async function joinWithPairCode(body, { hostname = "", ip = "" } = {}) {
     throw err;
   }
 
+  {
+    const { db: licDb } = await dbForLicenseId(license.id);
+    const { data: ownRow } = await licDb
+      .from("license_terminals")
+      .select("terminal_role")
+      .eq("license_id", license.id)
+      .eq("device_id", normalizeDeviceId(deviceId))
+      .maybeSingle();
+    const isPrimaryDevice =
+      (ownRow?.terminal_role && isPrimaryTerminalRole(ownRow.terminal_role))
+      || normalizeDeviceId(license.device_id) === normalizeDeviceId(deviceId);
+    if (isPrimaryDevice) {
+      const err = new Error("Kjo PC është arka Kryesore — nuk lidhet si arkë tjetër.");
+      err.code = "PRIMARY_TERMINAL";
+      throw err;
+    }
+  }
+
   const { data: marked, error: markErr } = await db
     .from("terminal_pair_codes")
     .update({
