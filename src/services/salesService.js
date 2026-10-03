@@ -101,7 +101,7 @@ async function findRecentActiveOrderForDedup(db, {
 async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = null) {
   const num = Number(tableNumber);
   if (!num || num < 1) return 0;
-  const { isRemoteActiveTableOrder } = require("../lib/orderSource");
+  const { isRemoteActiveTableOrder, isPosDesktopDevice } = require("../lib/orderSource");
   const db = getSupabase();
   const { data: rows, error } = await db
     .from("sales_orders")
@@ -113,6 +113,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
 
   const now = new Date().toISOString();
   let cancelled = 0;
+  const keepDevice = String(except?.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
     if (
       except &&
@@ -122,6 +123,8 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
       continue;
     }
     if (isRemoteActiveTableOrder(row.device_id)) continue;
+    const rowDevice = String(row.device_id || "").trim().toUpperCase();
+    if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
@@ -207,7 +210,7 @@ async function freeTableFromPos(body) {
   const tableNum = Number(body.table_number);
   if (!tableNum || tableNum < 1) throw new Error("Mungon numri i tavolinës.");
 
-  const { isRemoteActiveTableOrder } = require("../lib/orderSource");
+  const { isRemoteActiveTableOrder, isPosDesktopDevice } = require("../lib/orderSource");
   const db = getSupabase();
   const { data: rows, error } = await db
     .from("sales_orders")
@@ -219,8 +222,11 @@ async function freeTableFromPos(body) {
 
   const now = new Date().toISOString();
   let cancelled = 0;
+  const keepDevice = String(body.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
     if (isRemoteActiveTableOrder(row.device_id)) continue;
+    const rowDevice = String(row.device_id || "").trim().toUpperCase();
+    if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
