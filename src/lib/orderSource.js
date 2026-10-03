@@ -26,7 +26,13 @@ function publicOrderTypeFromWaiter(waiterName) {
   return null;
 }
 
-function orderSourceLabel({ device_id, waiter_name } = {}) {
+function posTerminalLabel(terminalRole) {
+  const m = /^arka(\d+)$/.exec(String(terminalRole || "").trim().toLowerCase());
+  if (!m) return "POS";
+  return Number(m[1]) === 1 ? "POS Kryesore" : `POS Arka ${Number(m[1])}`;
+}
+
+function orderSourceLabel({ device_id, waiter_name, terminal_role } = {}) {
   const device = String(device_id || "").trim().toUpperCase();
   if (device === WEB_PUBLIC) {
     const kind = publicOrderTypeFromWaiter(waiter_name);
@@ -39,7 +45,7 @@ function orderSourceLabel({ device_id, waiter_name } = {}) {
   if (device === WEB_WAITER) {
     return { code: "waiter", label: "Kamarier", icon: "📱" };
   }
-  return { code: "pos", label: "POS", icon: "🖥️" };
+  return { code: "pos", label: posTerminalLabel(terminal_role), icon: "🖥️" };
 }
 
 function isPublicWebOrder(order) {

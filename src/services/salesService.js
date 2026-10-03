@@ -493,13 +493,40 @@ async function updateActiveSaleFromPos(body) {
   return upsertSaleFromPos({ ...body, status }, { defaultStatus: "ordered" });
 }
 
+/** license_id|device_id → terminal_role (arka1, arka2…) nga license_terminals; gabim → Map bosh. */
+async function resolveTerminalRolesForOrders(orders) {
+  const roles = new Map();
+  const licenseIds = [...new Set((orders || []).map(o => o?.license_id).filter(Boolean))];
+  if (!licenseIds.length) return roles;
+  try {
+    const { data, error } = await getSupabase()
+      .from("license_terminals")
+      .select("license_id, device_id, terminal_role")
+      .in("license_id", licenseIds);
+    if (error) throw error;
+    for (const t of data || []) {
+      const role = String(t.terminal_role || "").trim().toLowerCase();
+      if (!role) continue;
+      roles.set(`${t.license_id}|${String(t.device_id || "").trim().toUpperCase()}`, role);
+    }
+  } catch (err) {
+    console.warn("[sales] terminal roles:", err.message);
+  }
+  return roles;
+}
+
+function terminalRoleForOrder(roles, order) {
+  if (!order?.license_id) return null;
+  return roles.get(`${order.license_id}|${String(order.device_id || "").trim().toUpperCase()}`) || null;
+}
+
 async function fetchOwnerActiveOrders(clientId) {
   const db = getSupabase();
   const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
   const base =
-    "id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, local_order_id, status, device_id";
+    "id, license_id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, local_order_id, status, device_id";
 
-  return selectWithAcceptanceFallback(withAcceptance => {
+  const rows = await selectWithAcceptanceFallback(withAcceptance => {
     const select = withAcceptance
       ? `${base}, accepted_by_waiter_id, accepted_by_waiter_name, accepted_at`
       : base;
@@ -510,6 +537,8 @@ async function fetchOwnerActiveOrders(clientId) {
       .in("status", ["ordered", "ready"])
       .order("ordered_at", { ascending: false });
   });
+  const roles = await resolveTerminalRolesForOrders(rows);
+  return rows.map(o => ({ ...o, terminal_role: terminalRoleForOrder(roles, o) }));
 }
 
 async function getLiveTablesForOwner(clientId) {
@@ -765,7 +794,7 @@ async function listOwnerOrders(clientId, opts = {}) {
   const maps = await loadWaiterStaffMaps(clientId);
   const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
   const base =
-    "id, table_number, waiter_name, waiter_id, items_json, total, receipt_number, closed_at, status, device_id";
+    "id, license_id, table_number, waiter_name, waiter_id, items_json, total, receipt_number, closed_at, status, device_id";
 
   const rows = await selectWithAcceptanceFallback(withAcceptance => {
     const select = withAcceptance
@@ -787,14 +816,17 @@ async function listOwnerOrders(clientId, opts = {}) {
   });
 
   const { orderSourceLabel } = require("../lib/orderSource");
+  const roles = await resolveTerminalRolesForOrders(rows);
   return rows.map(o => {
     const attr = resolveWaiterAttribution(o, maps);
+    const terminal_role = terminalRoleForOrder(roles, o);
     return {
       ...o,
+      terminal_role,
       waiter_name: attr.name || o.waiter_name || "",
       waiter_id: attr.id || o.waiter_id || null,
       items_json: normalizeItems(o.items_json),
-      source: orderSourceLabel(o),
+      source: orderSourceLabel({ ...o, terminal_role }),
       accepted_by: String(o.accepted_by_waiter_name || "").trim(),
     };
   });
