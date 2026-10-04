@@ -1,6 +1,7 @@
 import { getLang, t, setLang } from "../lib/i18n.js";
 import { resolveRoute, getCurrentPath } from "../lib/router.js";
 import { siteRoot, assetPath } from "../lib/base.js";
+import { MANUAL_PUBLIC } from "../lib/siteFlags.js";
 
 function sectionHref(id) {
   return getCurrentPath() === "/" ? `#${id}` : `/#${id}`;
@@ -49,7 +50,7 @@ export function renderHeader({ activeNav = "home" } = {}) {
 
         <nav class="nav nav-desktop" aria-label="${t("navLabel")}">
           ${items.map(navItemHtml).join("")}
-          <a href="/website/manual.html">${t("nav.manual")}</a>
+          ${MANUAL_PUBLIC ? `<a href="/website/manual.html">${t("nav.manual")}</a>` : ""}
           ${sectionLink("kontakt", t("nav.contact"), activeNav, "contact")}
         </nav>
 
@@ -65,7 +66,7 @@ export function renderHeader({ activeNav = "home" } = {}) {
 
       <nav class="nav-mobile" id="nav-mobile" aria-label="${t("navLabel")}">
         ${items.map(navItemHtml).join("")}
-        <a href="/website/manual.html">${t("nav.manual")}</a>
+        ${MANUAL_PUBLIC ? `<a href="/website/manual.html">${t("nav.manual")}</a>` : ""}
         ${sectionLink("kontakt", t("nav.contact"), activeNav, "contact")}
         <a class="btn btn-primary" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
       </nav>
@@ -105,7 +106,7 @@ export function renderFooter() {
             ${footerSectionLink("pakot", t("footer.link.packages"))}
             <li><a href="#pajisjet" data-equip-modal>${t("nav.equipment")}</a></li>
             ${footerSectionLink("artikuj", t("footer.link.blog"))}
-            <li><a href="/website/manual.html">${t("footer.link.manual")}</a></li>
+            ${MANUAL_PUBLIC ? `<li><a href="/website/manual.html">${t("footer.link.manual")}</a></li>` : ""}
           </ul>
         </div>
 

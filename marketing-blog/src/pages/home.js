@@ -13,6 +13,7 @@ import { t } from "../lib/i18n.js";
 import { siteStrings } from "../data/siteStrings.js";
 import { getLang } from "../lib/i18n.js";
 import { assetPath, blogArticlePath } from "../lib/base.js";
+import { MANUAL_PUBLIC } from "../lib/siteFlags.js";
 
 const PACKAGE_PLANS = ["p1", "p2", "p3", "p4"];
 const PACKAGE_DETAIL_KEYS = {
@@ -65,6 +66,9 @@ function packageCard(plan) {
 
 function howCard(imagePath, titleKey, descKey, manualHref) {
   const title = t(titleKey);
+  const manualLink = MANUAL_PUBLIC
+    ? `<a class="how-card-link" href="${manualHref}">${t("how.readManual")}</a>`
+    : "";
   return `
     <article class="how-card">
       <div class="how-card-photo">
@@ -75,7 +79,7 @@ function howCard(imagePath, titleKey, descKey, manualHref) {
         <div class="how-card-desc-wrap">
           <p class="how-card-desc">${t(descKey)}</p>
         </div>
-        <a class="how-card-link" href="${manualHref}">${t("how.readManual")}</a>
+        ${manualLink}
       </div>
     </article>
   `;

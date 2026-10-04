@@ -37,6 +37,7 @@ const {
   shopServiceWorkerHandler,
 } = require("./routes/shop");
 const { resolvePublicClient } = require("./middleware/publicAuth");
+const { isManualPublic } = require("./lib/manualPublic");
 const { ensureSuperAdmin } = require("./services/licenseService");
 const { startLicenseExpiryCron } = require("./jobs/expireLicenses");
 const { startRefusedOrdersExpiryJob } = require("./jobs/expireRefusedOrders");
@@ -595,6 +596,9 @@ app.get(
   (req, res) => {
     const clean = String(req.path || "").replace(/\/+$/, "") || "/";
     if (clean === "/manuali") {
+      if (!isManualPublic()) {
+        return res.status(404).type("text/plain").send("Not found");
+      }
       return res.redirect(301, "/website/manual.html");
     }
     sendMarketingPage(res, clean);
@@ -667,6 +671,15 @@ app.get("/waiter-manifest.json", (_req, res) => {
   res.status(404).type("application/manifest+json").json({
     error: "Use /waiter/:slug/manifest.json?key=...",
   });
+});
+
+app.use((req, res, next) => {
+  if (isManualPublic()) return next();
+  const p = String(req.path || "").replace(/\/+$/, "") || "/";
+  if (p === "/website/manual.html") {
+    return res.status(404).type("text/plain").send("Not found");
+  }
+  next();
 });
 
 app.use(express.static(PUBLIC_DIR));

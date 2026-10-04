@@ -8,6 +8,7 @@ const { getSupabase } = require("../db");
 const { clientHasFeature } = require("../lib/packages");
 const { isShopStorefront, storefrontPrefix } = require("../lib/storefront");
 const { getPublicAppOrigin } = require("../lib/publicOrigin");
+const { isManualPublic } = require("../lib/manualPublic");
 
 const ARTICLES_FILE = path.join(
   __dirname,
@@ -117,7 +118,9 @@ function marketingSitemapUrls() {
     { loc: `${origin}/pakot`, changefreq: "weekly", priority: "0.8" },
     { loc: `${origin}/blog`, changefreq: "weekly", priority: "0.7" },
     { loc: `${origin}/kontakt`, changefreq: "monthly", priority: "0.7" },
-    { loc: `${origin}/website/manual.html`, changefreq: "monthly", priority: "0.7" },
+    ...(isManualPublic()
+      ? [{ loc: `${origin}/website/manual.html`, changefreq: "monthly", priority: "0.7" }]
+      : []),
     { loc: `${origin}/pajisjet`, changefreq: "monthly", priority: "0.6" },
     { loc: `${origin}/restorante`, changefreq: "daily", priority: "0.6" },
     { loc: `${origin}/privacy`, changefreq: "yearly", priority: "0.3" },
