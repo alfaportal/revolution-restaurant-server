@@ -74,7 +74,7 @@ function isSmsChannelAvailable() {
 function buildSetupUrl(plan = "") {
   const token = createSetupDownloadToken({ ttlHours: TOKEN_TTL_HOURS, plan });
   const origin = getPublicAppOrigin();
-  const qs = new URLSearchParams({ t: token });
+  const qs = new URLSearchParams({ t: token, dl: "1" });
   if (plan) qs.set("plan", String(plan).toLowerCase());
   return `${origin}/api/public/setup-download?${qs.toString()}`;
 }

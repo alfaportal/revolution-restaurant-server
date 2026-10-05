@@ -84,6 +84,24 @@ function isSetupRelease(rel) {
   );
 }
 
+function compareSemver(a, b) {
+  const pa = String(a || "0.0.0")
+    .split(".")
+    .map((n) => parseInt(n, 10) || 0);
+  const pb = String(b || "0.0.0")
+    .split(".")
+    .map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < 3; i += 1) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+/**
+ * 1) GitHub release i shënuar «Latest» (çfarë publikon pronari — p.sh. setup-v1.0.502).
+ * 2) Fallback: semver më i lartë me KAFENE-Setup.exe (vetëm nëse latest mungon).
+ */
 async function fetchLatestReleaseMeta() {
   const repo = setupReleaseRepo();
   const headers = {
@@ -93,7 +111,6 @@ async function fetchLatestReleaseMeta() {
   const token = githubToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  /* 1) latest — nëse ka KAFENE-Setup.exe */
   const latestRes = await fetch(
     `https://api.github.com/repos/${repo}/releases/latest`,
     { headers, redirect: "follow" },
@@ -101,9 +118,9 @@ async function fetchLatestReleaseMeta() {
   if (latestRes.ok) {
     const data = await latestRes.json();
     if (isSetupRelease(data)) {
-      const latest = assetsFromRelease(data);
-      if (latest) {
-        cache = latest;
+      const fromLatest = assetsFromRelease(data);
+      if (fromLatest) {
+        cache = fromLatest;
         return cache;
       }
     }
@@ -111,26 +128,30 @@ async function fetchLatestReleaseMeta() {
     throw new Error(`GitHub releases/latest HTTP ${latestRes.status} (${repo})`);
   }
 
-  /* 2) Skano release-et e fundit (setup-v* me KAFENE-Setup.exe) */
   const listRes = await fetch(
-    `https://api.github.com/repos/${repo}/releases?per_page=20`,
+    `https://api.github.com/repos/${repo}/releases?per_page=50`,
     { headers, redirect: "follow" },
   );
   if (!listRes.ok) {
     throw new Error(`GitHub releases HTTP ${listRes.status} (${repo})`);
   }
   const list = await listRes.json();
+  let best = null;
   for (const rel of list || []) {
     if (!isSetupRelease(rel)) continue;
     const parsed = assetsFromRelease(rel);
-    if (parsed) {
-      cache = parsed;
-      return cache;
+    if (!parsed) continue;
+    if (!best || compareSemver(parsed.version, best.version) > 0) {
+      best = parsed;
     }
   }
-  throw new Error(
-    `Asnjë release te ${repo} nuk ka ${PUBLIC_ASSET} (tag setup-v*)`,
-  );
+  if (!best) {
+    throw new Error(
+      `Asnjë release te ${repo} nuk ka ${PUBLIC_ASSET} (tag setup-v*)`,
+    );
+  }
+  cache = best;
+  return cache;
 }
 
 function cacheFresh() {

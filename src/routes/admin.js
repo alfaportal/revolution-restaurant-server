@@ -863,7 +863,7 @@ router.get(
     const plan = String(req.query.plan || "").trim().toLowerCase();
     const token = createSetupDownloadToken({ ttlHours, plan });
     const origin = getPublicAppOrigin();
-    const qs = new URLSearchParams({ t: token });
+    const qs = new URLSearchParams({ t: token, dl: "1" });
     if (plan) qs.set("plan", plan);
     const url = `${origin}/api/public/setup-download?${qs.toString()}`;
     await logAdminActivity({
