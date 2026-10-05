@@ -419,6 +419,12 @@ app.get("/api/public/setup-download", async (req, res) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate");
 
   const forceFile = String(req.query.dl || req.query.file || "") === "1";
+  if (!forceFile && String(req.query.landing || "") !== "1") {
+    const qs = new URLSearchParams(req.query);
+    qs.set("dl", "1");
+    const target = `/api/public/setup-download?${qs.toString()}`;
+    return res.redirect(302, target);
+  }
   const accept = String(req.headers.accept || "");
   /* Default: stream .exe — pa HTML interstitial (shkrimi «Save link» / fetch pa dl=1 merrte ~1KB HTML si .exe). */
   const wantsLandingPage = String(req.query.landing || "") === "1";

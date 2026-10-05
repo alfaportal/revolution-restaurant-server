@@ -335,18 +335,9 @@ function startSetupDownload(plan = "") {
     showDesktopOnlyDownloadNotice();
     return;
   }
-  /* Navigim i plotë te faqja e shkarkimit (HTML) — Safari/Edge nuk i duan mirë 302 te .exe */
+  /* Navigim i plotë — më i sigurt për .exe të madh nga faqja (Edge/Chrome). */
   const href = setupDownloadHref(plan);
-  try {
-    const a = document.createElement("a");
-    a.href = href;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch {
-    window.location.assign(href);
-  }
+  window.location.assign(href);
 }
 
 function bindDesktopOnlyDownloads() {
@@ -355,10 +346,19 @@ function bindDesktopOnlyDownloads() {
     (e) => {
       const link = e.target.closest('a[href*="/api/public/setup-download"]');
       if (!link) return;
-      if (!isMobileClient()) return;
-      e.preventDefault();
-      e.stopPropagation();
-      showDesktopOnlyDownloadNotice();
+      if (isMobileClient()) {
+        e.preventDefault();
+        e.stopPropagation();
+        showDesktopOnlyDownloadNotice();
+        return;
+      }
+      const raw = link.getAttribute("href") || "";
+      if (!raw.includes("dl=1")) {
+        e.preventDefault();
+        e.stopPropagation();
+        const planMatch = raw.match(/[?&]plan=([^&]+)/i);
+        startSetupDownload(planMatch ? decodeURIComponent(planMatch[1]) : "");
+      }
     },
     true,
   );
