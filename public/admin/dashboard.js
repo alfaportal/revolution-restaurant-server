@@ -141,6 +141,13 @@ const PAKO_LABELS_MARKET = {
   pako_premium: "Pako 5 — Premium",
 };
 
+/** HOTEL — 3 tier (pako_1…pako_3), përputhet me revolution-hotel-server. */
+const PAKO_LABELS_HOTEL = {
+  pako_1: "Pako 1 — Bazik",
+  pako_2: "Pako 2 — Standard",
+  pako_3: "Pako 3 — Premium",
+};
+
 function formatSqDate(iso) {
   if (!iso) return "—";
   const d = new Date(String(iso).slice(0, 10));
@@ -152,6 +159,7 @@ function pakoLabel(tier, productLine) {
   const t = String(tier || "").trim();
   const pl = productLine || drawerProduct || currentProduct;
   if (pl === "market") return PAKO_LABELS_MARKET[t] || t || "—";
+  if (pl === "hotel") return PAKO_LABELS_HOTEL[normalizeHotelPackageTier(t)] || t || "—";
   return PAKO_LABELS[t] || t || "—";
 }
 
@@ -496,9 +504,9 @@ function populateNcPackageOptions(program) {
     );
   } else if (program === "hotel") {
     opts.push(
-      ["pako_2", "Pako"],
-      ["pako_5", "Pako AI"],
-      ["pako_premium", "Pako 5 (Premium)"],
+      ["pako_1", "Pako 1 — Bazik"],
+      ["pako_2", "Pako 2 — Standard"],
+      ["pako_3", "Pako 3 — Premium"],
     );
   } else if (program === "security" || program === "kontabilisti") {
     opts.push(["standard", "Standard"], ["premium", "Premium"]);
@@ -509,7 +517,8 @@ function populateNcPackageOptions(program) {
   }
   const prev = sel.value;
   sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
-  if (opts.some(([v]) => v === prev)) sel.value = prev;
+  if (program === "hotel") sel.value = normalizeHotelPackageTier(prev);
+  else if (opts.some(([v]) => v === prev)) sel.value = prev;
 }
 
 function randomNcPassword(len = 10) {
@@ -928,10 +937,43 @@ const DRAWER_PAKO_OPTS_MARKET = [
 ];
 
 const DRAWER_PAKO_OPTS_HOTEL = [
-  ["pako_2", "Pako"],
-  ["pako_5", "Pako AI"],
-  ["pako_premium", "Pako 5 (Premium)"],
+  ["pako_1", "Pako 1 — Bazik"],
+  ["pako_2", "Pako 2 — Standard"],
+  ["pako_3", "Pako 3 — Premium"],
 ];
+
+function normalizeHotelPackageTier(tier) {
+  const raw = String(tier || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\./g, "_")
+    .replace(/\s+/g, "_");
+  const legacy = {
+    pako_4: "pako_2",
+    pako_5: "pako_3",
+    pako_premium: "pako_3",
+    legacy: "pako_1",
+    pako_1_1: "pako_1",
+    pako_2_1: "pako_2",
+    pako_ai: "pako_3",
+    premium: "pako_3",
+  };
+  if (legacy[raw]) return legacy[raw];
+  if (DRAWER_PAKO_OPTS_HOTEL.some(([v]) => v === raw)) return raw;
+  if (raw === "pako_3") return "pako_1";
+  if (raw === "pako_2") return "pako_3";
+  return "pako_1";
+}
+
+function selectDrawerPakoOpts(productLine, tier) {
+  if (productLine === "hotel") {
+    const sel = normalizeHotelPackageTier(tier);
+    return DRAWER_PAKO_OPTS_HOTEL.map(
+      ([v, lab]) => `<option value="${esc(v)}"${v === sel ? " selected" : ""}>${esc(lab)}</option>`,
+    ).join("");
+  }
+  return selectOpts(drawerPakoOpts(productLine), tier);
+}
 
 function drawerPakoOpts(productLine) {
   if (productLine === "market") return DRAWER_PAKO_OPTS_MARKET;
@@ -1267,7 +1309,7 @@ async function openClientDetail(id, opts = {}) {
       <label>Tipi (HOTEL)<select id="dr-tipi">${selectOpts(DRAWER_HOTEL_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
-          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <select id="dr-pako">${selectDrawerPakoOpts(product, c.package_tier)}</select>
           <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
         </div>
       </label>`
