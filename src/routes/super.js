@@ -41,6 +41,8 @@ const {
   reactivateLicenseRemote,
   rotateLicenseKey,
   requestWipeDataForLicense,
+  superAdminRemoveLicenseTerminal,
+  superAdminClearLicenseDeviceSlot,
 } = require("../services/licenseService");
 const {
   setOwnerPasswordForClient,
@@ -527,6 +529,43 @@ router.delete(
       targetId: id,
     }).catch(() => {});
     res.json({ ok: true, product_line: "kafene" });
+  }),
+);
+
+/** Super Admin — hiq terminal / arkë (licenca mbetet; PC i ri mund të aktivizojë të njëjtin çelës). */
+router.delete(
+  "/dashboard/licenses/:id/terminals/:deviceId",
+  asyncHandler(async (req, res) => {
+    const product = resolveDashboardProduct(req);
+    const licenseId = String(req.params.id || "").trim();
+    const deviceId = decodeURIComponent(String(req.params.deviceId || ""));
+
+    let result;
+    if (product === "market") {
+      const { removeMarketLicenseTerminal } = require("../lib/marketAdminBridge");
+      result = await removeMarketLicenseTerminal(licenseId, deviceId);
+    } else if (product === "hotel") {
+      const { removeHotelLicenseTerminal } = require("../lib/hotelAdminBridge");
+      result = await removeHotelLicenseTerminal(licenseId, deviceId);
+    } else if (product === "security" || product === "fiskale" || product === "kontabilisti") {
+      result = await superAdminClearLicenseDeviceSlot(licenseId, deviceId, product);
+    } else {
+      result = await superAdminRemoveLicenseTerminal(licenseId, deviceId, product);
+    }
+
+    await logAdminActivity({
+      ...activityFromReq(req),
+      action: "license_terminal_remove",
+      targetType: "license",
+      targetId: licenseId,
+      details: {
+        device_id: deviceId,
+        product_line: product,
+        active_terminal_count: result?.active_terminal_count,
+      },
+    }).catch(() => {});
+
+    res.json({ ok: true, ...result, product_line: product });
   }),
 );
 

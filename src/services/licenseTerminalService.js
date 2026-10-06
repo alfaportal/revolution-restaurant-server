@@ -548,6 +548,101 @@ async function countLicensesOverTerminalLimit() {
   return total;
 }
 
+/**
+ * Super Admin — hiq terminal (edhe arka1 / PC kryesor) që i njëjti çelës të aktivizohet në pajisje të re.
+ * Licenca (celesi) mbetet; fshihet vetëm regjistrimi i device_id.
+ */
+async function removeTerminalBySuperAdmin(db, licenseId, deviceIdRaw) {
+  const deviceId = normalizeDeviceId(deviceIdRaw);
+  if (!deviceId) {
+    const err = new Error("Mungon device_id i terminalit.");
+    err.code = "MISSING_DEVICE";
+    throw err;
+  }
+  const licId = String(licenseId || "").trim();
+  if (!licId) {
+    const err = new Error("Mungon ID e licencës.");
+    err.code = "MISSING_LICENSE";
+    throw err;
+  }
+
+  const { data: lic, error: licErr } = await db
+    .from("licenses")
+    .select("id, device_id, device_hostname, last_ip, max_terminals")
+    .eq("id", licId)
+    .maybeSingle();
+  if (licErr) throw licErr;
+  if (!lic) {
+    const err = new Error("Licenca nuk u gjet.");
+    err.code = "LICENSE_NOT_FOUND";
+    throw err;
+  }
+
+  let removedFromTable = false;
+  const { data: row, error: selErr } = await db
+    .from("license_terminals")
+    .select("id, terminal_role, device_id")
+    .eq("license_id", licId)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (selErr && !isMissingRelation(selErr)) throw selErr;
+
+  if (row) {
+    const { error: delErr } = await db
+      .from("license_terminals")
+      .delete()
+      .eq("license_id", licId)
+      .eq("device_id", deviceId);
+    if (delErr) throw delErr;
+    removedFromTable = true;
+  }
+
+  try {
+    await clearTerminalRevocation(licId, deviceId);
+  } catch (e) {
+    if (!isMissingRelation(e)) throw e;
+  }
+  await clearTerminalLimitGrace(licId);
+
+  if (!removedFromTable && normalizeDeviceId(lic.device_id) !== deviceId) {
+    const err = new Error("Terminali nuk u gjet për këtë licencë.");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  const terminals = await listTerminalsOrdered(licId);
+  const primary = pickPrimaryTerminal(terminals);
+  const patch = {
+    terminal_limit_grace_at: null,
+    last_validation_error: "",
+  };
+  if (normalizeDeviceId(lic.device_id) === deviceId) {
+    patch.device_id = primary ? normalizeDeviceId(primary.device_id) : "";
+    patch.device_hostname = primary?.device_hostname || "";
+    patch.last_ip = primary?.last_ip || "";
+    if (!primary) patch.last_activated_at = null;
+  }
+
+  const { error: upErr } = await db.from("licenses").update(patch).eq("id", licId);
+  if (upErr) throw upErr;
+
+  if (terminals.length) {
+    try {
+      await repairTerminalRolesForLicense({ id: licId, device_id: patch.device_id || lic.device_id });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return {
+    ok: true,
+    device_id: deviceId,
+    removed_from_terminals: removedFromTable,
+    active_terminal_count: terminals.length,
+    max_terminals: getMaxTerminals(lic),
+  };
+}
+
 module.exports = {
   TERMINAL_GRACE_MS,
   PRIMARY_TERMINAL_ROLE,
@@ -577,4 +672,5 @@ module.exports = {
     return base + extra * (Number(terminalPrice) || 0);
   },
   insertTerminal,
+  removeTerminalBySuperAdmin,
 };

@@ -504,9 +504,9 @@ function populateNcPackageOptions(program) {
     );
   } else if (program === "hotel") {
     opts.push(
-      ["pako_1", "Pako 1 — Bazik"],
-      ["pako_2", "Pako 2 — Standard"],
-      ["pako_3", "Pako 3 — Premium"],
+      ["pako_1", "Pako 1 Bazik"],
+      ["pako_2", "Pako 2 Standard"],
+      ["pako_3", "Pako 3 Premium"],
     );
   } else if (program === "security" || program === "kontabilisti") {
     opts.push(["standard", "Standard"], ["premium", "Premium"]);
@@ -937,9 +937,9 @@ const DRAWER_PAKO_OPTS_MARKET = [
 ];
 
 const DRAWER_PAKO_OPTS_HOTEL = [
-  ["pako_1", "Pako 1 — Bazik"],
-  ["pako_2", "Pako 2 — Standard"],
-  ["pako_3", "Pako 3 — Premium"],
+  ["pako_1", "Pako 1 Bazik"],
+  ["pako_2", "Pako 2 Standard"],
+  ["pako_3", "Pako 3 Premium"],
 ];
 
 function normalizeHotelPackageTier(tier) {
@@ -960,8 +960,6 @@ function normalizeHotelPackageTier(tier) {
   };
   if (legacy[raw]) return legacy[raw];
   if (DRAWER_PAKO_OPTS_HOTEL.some(([v]) => v === raw)) return raw;
-  if (raw === "pako_3") return "pako_1";
-  if (raw === "pako_2") return "pako_3";
   return "pako_1";
 }
 
@@ -1036,6 +1034,44 @@ function selectOpts(options, selected) {
     .join("");
 }
 
+function licenseTerminalRows(l) {
+  const fromTable = Array.isArray(l?.terminals) ? l.terminals.filter((t) => String(t?.device_id || "").trim()) : [];
+  if (fromTable.length) return fromTable;
+  const dev = String(l?.device_id || "").trim();
+  if (dev) {
+    return [{ device_id: dev, terminal_role: "primary", device_hostname: l.device_hostname || "" }];
+  }
+  return [];
+}
+
+function renderLicenseTerminalsBlock(l, productLine) {
+  const product = productLine || drawerProduct || "kafene";
+  const rows = licenseTerminalRows(l);
+  const btnLabel = product === "market" ? "Çaktivizo arkën" : "Hiq terminalin";
+  const max = Number(l.max_terminals) || 1;
+  const active =
+    l.active_terminal_count != null ? Number(l.active_terminal_count) : rows.length;
+  const head = `<p style="margin:0.35rem 0 0.5rem;font-size:0.88rem;color:var(--muted)">Terminale aktive: <strong>${esc(String(active))}</strong> / ${esc(String(max))}</p>`;
+  if (!rows.length) {
+    return `${head}<p style="margin:0;font-size:0.88rem;color:var(--muted)">Nuk ka terminal të regjistruar.</p>`;
+  }
+  const list = rows
+    .map((t) => {
+      const dev = String(t.device_id || "").trim();
+      const role = String(t.terminal_role || t.role || "").trim();
+      const host = String(t.device_hostname || "").trim();
+      const meta = [role, host].filter(Boolean).join(" · ");
+      return `<li style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;margin:0.35rem 0">
+        <code class="mono" style="font-size:0.82rem">${esc(dev)}</code>
+        ${meta ? `<span style="color:var(--muted);font-size:0.82rem">${esc(meta)}</span>` : ""}
+        <button type="button" class="btn btn-ghost btn-sm" style="border-color:#b45309;color:#b45309"
+          data-remove-terminal="${esc(l.id)}" data-device-id="${esc(dev)}" data-product="${esc(l.product_line || product)}">${esc(btnLabel)}</button>
+      </li>`;
+    })
+    .join("");
+  return `${head}<ul style="list-style:none;padding:0;margin:0">${list}</ul>`;
+}
+
 function renderLicenseEditBlocks(licenses, productLine = "kafene") {
   const product = productLine || drawerProduct || "kafene";
   return (licenses || [])
@@ -1064,6 +1100,10 @@ function renderLicenseEditBlocks(licenses, productLine = "kafene") {
           <label>Device ID (terminal)
             <input class="mono" data-lic-dev="${esc(l.id)}" value="${esc(l.device_id || "")}" placeholder="opsionale">
           </label>
+          <div class="detail-block" style="margin:0.5rem 0 0;padding:0.65rem;border:1px solid var(--border);border-radius:8px">
+            <h4 style="margin:0 0 0.35rem;font-size:0.95rem">Terminalet e regjistruara</h4>
+            ${renderLicenseTerminalsBlock(l, l.product_line || product)}
+          </div>
           <label>Skadon
             <input type="date" data-lic-exp="${esc(l.id)}" value="${esc(String(l.data_skadimit || "").slice(0, 10))}">
           </label>
@@ -1796,6 +1836,41 @@ function bindDrawerLicenseFix(root, clientId, productLine) {
         });
       } catch (ex) {
         showToast(ex.message || "Riaktivizimi dështoi", "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+  root.querySelectorAll("[data-remove-terminal]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const licId = btn.dataset.removeTerminal;
+      const deviceId = btn.dataset.deviceId;
+      const prod = btn.dataset.product || product;
+      const label = prod === "market" ? "arkën" : "terminalin";
+      if (
+        !confirm(
+          `Hiq ${label} ${deviceId}?\n\nLicenca (çelësi) mbetet — klienti mund ta aktivizojë në PC të re.`,
+        )
+      ) {
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await api(
+          `/api/super/dashboard/licenses/${encodeURIComponent(licId)}/terminals/${encodeURIComponent(deviceId)}${productQueryString(prod)}`,
+          {
+            method: "DELETE",
+            body: JSON.stringify({ product_line: prod }),
+          },
+        );
+        await afterLicenseAction(clientId, {
+          toast: prod === "market" ? "✅ Arka u çaktivizua" : "✅ Terminali u hoq",
+          licenseId: licId,
+          reloadDrawer: true,
+          product: prod,
+        });
+      } catch (ex) {
+        showToast(ex.message || "Heqja e terminalit dështoi", "err");
       } finally {
         btn.disabled = false;
       }

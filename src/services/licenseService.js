@@ -29,6 +29,7 @@ const {
   calcLicenseTotalPrice,
   insertTerminal,
   normalizeDeviceId,
+  removeTerminalBySuperAdmin,
 } = require("./licenseTerminalService");
 
 function enrichLicenseRowWithTerminals(lic, summary) {
@@ -1614,6 +1615,41 @@ async function unblockLicense(id) {
   return updateLicenseStatus(id, "aktive");
 }
 
+async function superAdminRemoveLicenseTerminal(licenseId, deviceId, product = "kafene") {
+  const { normalizeProductLine } = require("../utils/productLine");
+  const p = normalizeProductLine(product || "kafene");
+  const db = getSupabaseForProduct(p);
+  return removeTerminalBySuperAdmin(db, licenseId, deviceId);
+}
+
+/** Produkte me një device_id në licencë (pa license_terminals) — pastro lidhjen e PC-së së vjetër. */
+async function superAdminClearLicenseDeviceSlot(licenseId, deviceId, product) {
+  const id = String(licenseId || "").trim();
+  const want = normalizeDeviceId(deviceId);
+  if (!id || !want) {
+    const err = new Error("Mungon licenca ose device_id.");
+    err.code = "MISSING_PARAMS";
+    throw err;
+  }
+  const p = normalizeProductLine(product || "kafene");
+  if (p === "security") {
+    const { updateSecurityLicense } = require("../lib/securityAdminBridge");
+    const lic = await updateSecurityLicense(id, { device_id: "" });
+    return { ok: true, device_id: want, active_terminal_count: lic.device_id ? 1 : 0, mode: "security" };
+  }
+  if (p === "fiskale") {
+    const { updateFiskalizimLicense } = require("../lib/fiskalizimAdminBridge");
+    const lic = await updateFiskalizimLicense(id, { device_id: "" });
+    return { ok: true, device_id: want, active_terminal_count: lic.device_id ? 1 : 0, mode: "fiskale" };
+  }
+  if (p === "kontabilisti") {
+    const { updateKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
+    const lic = await updateKontabilistiLicense(id, { device_id: "" });
+    return { ok: true, device_id: want, active_terminal_count: lic.device_id ? 1 : 0, mode: "kontabilisti" };
+  }
+  throw new Error(`Produkti ${p} nuk mbështetet për pastrim device.`);
+}
+
 async function resetLicenseDevice(id) {
   const licenseId = String(id || "").trim();
   if (!licenseId) throw new Error("ID e liçencës mungon.");
@@ -2145,6 +2181,8 @@ module.exports = {
   blockLicense,
   unblockLicense,
   resetLicenseDevice,
+  superAdminRemoveLicenseTerminal,
+  superAdminClearLicenseDeviceSlot,
   requestFactoryResetForClient,
   requestWipeDataForLicense,
   revokeLicenseRemote,

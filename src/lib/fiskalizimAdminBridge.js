@@ -164,6 +164,7 @@ async function getFiskalizimClientDetail(id) {
       client_id: l.client_id || cid,
       celesi: l.license_key || l.celesi || "",
       license_key: l.license_key || l.celesi || "",
+      device_id: l.device_id || l.hardware_id || "",
       hardware_id: l.hardware_id || l.device_id || "",
       statusi: l.statusi || "aktive",
       data_skadimit: l.data_skadimit || null,

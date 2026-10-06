@@ -983,6 +983,13 @@ async function getClientDetail(clientId) {
       activated_at: l.last_activated_at || l.created_at,
       last_seen_at: licenseLastSeen(l),
       max_terminals: Number(l.max_terminals) || 1,
+      active_terminal_count: l.active_terminal_count,
+      terminals: (l.terminals || []).map((t) => ({
+        device_id: t.device_id || "",
+        terminal_role: t.terminal_role || t.role || "",
+        device_hostname: t.device_hostname || "",
+        last_seen_at: t.last_seen_at || null,
+      })),
     })),
     ai_usage: aiRow || {
       tokens_total: 0,

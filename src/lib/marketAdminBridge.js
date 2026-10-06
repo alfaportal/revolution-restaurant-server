@@ -301,6 +301,16 @@ async function deleteMarketLicense(id) {
   return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}`, { method: "DELETE" });
 }
 
+async function removeMarketLicenseTerminal(licenseId, deviceId) {
+  const lid = String(licenseId || "").trim();
+  const dev = String(deviceId || "").trim();
+  if (!lid || !dev) throw new Error("Mungon licenca ose device_id.");
+  return marketRequest(
+    `/dashboard/licenses/${encodeURIComponent(lid)}/terminals/${encodeURIComponent(dev)}`,
+    { method: "DELETE" },
+  );
+}
+
 async function revokeMarketLicense(id, { reason, hardware_id, hardwareId } = {}) {
   const lid = String(id || "").trim();
   if (!lid) throw new Error("Mungon ID e licencës MARKET.");
@@ -344,6 +354,7 @@ module.exports = {
   updateMarketClient,
   deleteMarketClient,
   deleteMarketLicense,
+  removeMarketLicenseTerminal,
   revokeMarketLicense,
   reactivateMarketLicense,
   setMarketClientOwnerPassword,

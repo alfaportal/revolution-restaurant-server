@@ -284,6 +284,16 @@ async function deleteHotelLicense(id) {
   return hotelRequest(`/dashboard/licenses/${encodeURIComponent(lid)}?product=hotel`, { method: "DELETE" });
 }
 
+async function removeHotelLicenseTerminal(licenseId, deviceId) {
+  const lid = String(licenseId || "").trim();
+  const dev = String(deviceId || "").trim();
+  if (!lid || !dev) throw new Error("Mungon licenca ose device_id.");
+  return hotelRequest(
+    `/dashboard/licenses/${encodeURIComponent(lid)}/terminals/${encodeURIComponent(dev)}?product=hotel`,
+    { method: "DELETE" },
+  );
+}
+
 async function revokeHotelLicense(id, { reason, hardware_id, hardwareId } = {}) {
   const lid = String(id || "").trim();
   if (!lid) throw new Error("Mungon ID e licencës HOTEL.");
@@ -306,5 +316,6 @@ module.exports = {
   updateHotelClient,
   deleteHotelClient,
   deleteHotelLicense,
+  removeHotelLicenseTerminal,
   revokeHotelLicense,
 };
