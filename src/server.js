@@ -596,6 +596,8 @@ app.get(
     "/kontakt/",
     "/pajisjet",
     "/pajisjet/",
+    "/kafene",
+    "/kafene/",
     "/manuali",
     "/manuali/",
   ],

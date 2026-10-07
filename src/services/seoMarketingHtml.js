@@ -29,6 +29,12 @@ const PAGES = {
       "Si ta shkarkoni dhe instaloni Revolution POS në Windows. Setup zyrtar nga revolution-pos.com.",
     hash: "si-ta-ngarkoni",
   },
+  "/kafene": {
+    title: "KAFENE — Shkarko Setup për restorante dhe kafene | Revolution POS",
+    description:
+      "Shkarkoni KAFENE (Setup.exe) direkt nga revolution-pos.com — POS, kuzhinë, kamarier dhe panel pronari për Windows.",
+    hash: "si-ta-ngarkoni",
+  },
   "/si-funksionon": {
     title: "Si funksionon — Revolution POS",
     description:

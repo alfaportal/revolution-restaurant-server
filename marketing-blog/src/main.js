@@ -6,6 +6,13 @@ import { renderLegalPage } from "./pages/legalPage.js";
 import { integrated } from "./lib/base.js";
 
 onRoute("/", () => renderHome());
+/** Faqe produkti KAFENE — e njëjta ballina, seksioni shkarkim (slug klienti mbetet /kafene/emri/…). */
+onRoute("/kafene", () => {
+  renderHome();
+  requestAnimationFrame(() => {
+    document.getElementById("si-ta-ngarkoni")?.scrollIntoView({ behavior: "smooth" });
+  });
+});
 onRoute("/privacy", () => renderLegalPage("privacy"));
 onRoute("/terms", () => renderLegalPage("terms"));
 

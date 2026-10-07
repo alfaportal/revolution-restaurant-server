@@ -114,6 +114,7 @@ function marketingSitemapUrls() {
     { loc: `${origin}/`, changefreq: "weekly", priority: "1.0" },
     { loc: `${origin}/pse-ne`, changefreq: "monthly", priority: "0.8" },
     { loc: `${origin}/si-ta-ngarkoni`, changefreq: "monthly", priority: "0.8" },
+    { loc: `${origin}/kafene`, changefreq: "weekly", priority: "0.9" },
     { loc: `${origin}/si-funksionon`, changefreq: "monthly", priority: "0.8" },
     { loc: `${origin}/pakot`, changefreq: "weekly", priority: "0.8" },
     { loc: `${origin}/blog`, changefreq: "weekly", priority: "0.7" },
