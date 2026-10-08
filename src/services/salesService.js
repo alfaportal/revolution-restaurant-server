@@ -220,9 +220,10 @@ async function freeTableFromPos(body) {
 
   const { isRemoteActiveTableOrder, isPosDesktopDevice } = require("../lib/orderSource");
   const db = getSupabase();
+  const { isOrderAccepted } = require("../lib/salesOrderSelect");
   const { data: rows, error } = await db
     .from("sales_orders")
-    .select("id, device_id")
+    .select("id, device_id, status, accepted_at, accepted_by_waiter_name, ready_at, payment_status")
     .eq("client_id", license.client_id)
     .eq("table_number", tableNum)
     .in("status", ["ordered", "ready"]);
@@ -235,6 +236,11 @@ async function freeTableFromPos(body) {
     if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
     if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
+    const st = String(row.status || "").toLowerCase();
+    if (st === "ready") continue;
+    if (isOrderAccepted(row) && !row.ready_at) continue;
+    const ps = String(row.payment_status || "").toLowerCase();
+    if (ps === "paid" && st === "ordered" && !row.ready_at) continue;
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
@@ -277,7 +283,7 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
 
   let { data: existing } = await db
     .from("sales_orders")
-    .select("status, closed_at, ordered_at, items_json, accepted_at, accepted_by_waiter_name, accepted_by_waiter_id, local_order_id, device_id, id, total, waiter_name, waiter_id")
+    .select("status, closed_at, ordered_at, ready_at, items_json, accepted_at, accepted_by_waiter_name, accepted_by_waiter_id, local_order_id, device_id, id, total, waiter_name, waiter_id, payment_status")
     .eq("client_id", license.client_id)
     .eq("local_order_id", localOrderId)
     .eq("device_id", deviceId)
@@ -322,8 +328,8 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     && isPosDesktopDevice(deviceId)
     && existing
     && String(existing.status || "") === "ordered"
-    && isOrderAccepted(existing)
     && !existing.ready_at
+    && tableNum >= 1
   ) {
     finalStatus = "ordered";
     deferPosCloseForKitchen = true;
