@@ -190,7 +190,7 @@ router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackag
     const db = getSupabase();
     const { data: existing, error: loadErr } = await db
       .from("sales_orders")
-      .select("id, device_id, table_number, waiter_name, source_label, status")
+      .select("id, device_id, table_number, waiter_name, status")
       .eq("id", req.params.orderId)
       .eq("client_id", client.id)
       .maybeSingle();
