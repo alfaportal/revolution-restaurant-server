@@ -105,7 +105,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   const db = getSupabase();
   const { data: rows, error } = await db
     .from("sales_orders")
-    .select("id, local_order_id, device_id, ordered_at, accepted_at, accepted_by_waiter_name")
+    .select("id, local_order_id, device_id, ordered_at, created_at, status, ready_at, accepted_at, accepted_by_waiter_name")
     .eq("client_id", clientId)
     .eq("table_number", num)
     .in("status", ["ordered", "ready"]);
@@ -117,6 +117,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   /** Kuzhina duhet kohë për PRANO — mos anulo porosi të papranuara. */
   const KITCHEN_PENDING_MS = 30 * 60 * 1000;
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
+  const { isKitchenLifecycleActive } = require("../lib/kitchenOrderHold");
   let cancelled = 0;
   const keepDevice = String(except?.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
@@ -127,6 +128,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
     ) {
       continue;
     }
+    if (isKitchenLifecycleActive(row)) continue;
     if (isOrderAccepted(row)) continue;
     if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
@@ -225,13 +227,18 @@ async function freeTableFromPos(body) {
   const { isRemoteActiveTableOrder, isPosDesktopDevice } = require("../lib/orderSource");
   const db = getSupabase();
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
+  const { isKitchenLifecycleActive } = require("../lib/kitchenOrderHold");
   const { data: rows, error } = await db
     .from("sales_orders")
-    .select("id, device_id, status, accepted_at, accepted_by_waiter_name, ready_at, payment_status")
+    .select("id, device_id, status, accepted_at, accepted_by_waiter_name, ready_at, payment_status, ordered_at, created_at")
     .eq("client_id", license.client_id)
     .eq("table_number", tableNum)
     .in("status", ["ordered", "ready"]);
   if (error) throw error;
+
+  if ((rows || []).some(r => isKitchenLifecycleActive(r))) {
+    return { ok: true, cancelled: 0, kitchen_hold: true };
+  }
 
   const now = new Date().toISOString();
   const nowMs = Date.now();
@@ -239,6 +246,7 @@ async function freeTableFromPos(body) {
   let cancelled = 0;
   const keepDevice = String(body.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
+    if (isKitchenLifecycleActive(row)) continue;
     if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
     if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
@@ -292,7 +300,7 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
 
   let { data: existing } = await db
     .from("sales_orders")
-    .select("status, closed_at, ordered_at, ready_at, items_json, accepted_at, accepted_by_waiter_name, accepted_by_waiter_id, local_order_id, device_id, id, total, waiter_name, waiter_id, payment_status")
+    .select("status, closed_at, ordered_at, created_at, ready_at, items_json, accepted_at, accepted_by_waiter_name, accepted_by_waiter_id, local_order_id, device_id, id, total, waiter_name, waiter_id, payment_status, table_number")
     .eq("client_id", license.client_id)
     .eq("local_order_id", localOrderId)
     .eq("device_id", deviceId)
@@ -431,6 +439,15 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
       }
     }
   } else if (finalStatus === "cancelled") {
+    const { isKitchenLifecycleActive, isForceKitchenCancel } = require("../lib/kitchenOrderHold");
+    if (existing && isKitchenLifecycleActive(existing) && !isForceKitchenCancel(body)) {
+      console.warn("[sales] blocked cancel — kitchen hold", {
+        id: existing.id,
+        local_order_id: existing.local_order_id,
+        table_number: existing.table_number,
+      });
+      return existing;
+    }
     row.ordered_at = normalizePosOrderedAt(body.ordered_at || existing?.ordered_at, now);
     row.closed_at = now;
     row.ready_at = null;
