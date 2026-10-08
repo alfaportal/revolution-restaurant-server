@@ -205,13 +205,16 @@
     const name = foldText(it?.name || it?.emri || "");
     const cat = foldText(it?.category || it?.kategoria || "");
     const foodRe =
-      /\b(pizza|pica|pasta|mish|supa|supe|salat\w*|sallat\w*|sandwi\w*|hamburger|burger|nugget|qofte|wrap|rizotto|risotto|steak|fileto|skara|grill|zgar|qebap|kebab|byrek|burek|omlet\w*|patate|fries|sushi|lasagn\w*|makaron|spaghetti|pule|chicken|toast|schnitzel|pjate|pjata|embel|desert|dessert|kapreze|caprese)\b/;
+      /\b(pizza|pica|pasta|mish|supa|supe|salat\w*|sallat\w*|sandwi\w*|hamburger|burger|nugget|qofte|wrap|rizotto|risotto|steak|fileto|skara|grill|zgar|qebap|kebab|byrek|burek|omlet\w*|patate|fries|sushi|lasagn\w*|makaron|spaghetti|pule|chicken|toast|schnitzel|pjate|pjata|embel|desert|dessert|kapreze|caprese|mengjes|krosan|croissant)\b/;
     if (
       foodRe.test(name) ||
       name.includes("sallat") ||
       name.includes("salat") ||
       name.includes("pizza") ||
-      name.includes("kapreze")
+      name.includes("kapreze") ||
+      name.includes("krosan") ||
+      name.includes("croissant") ||
+      (name.includes("tas") && name.includes("fruta"))
     ) {
       return true;
     }
@@ -221,7 +224,10 @@
       cat.includes("food") ||
       cat.includes("kuzhin") ||
       cat.includes("sallat") ||
-      cat.includes("embels")
+      cat.includes("embels") ||
+      cat.includes("mengjes") ||
+      cat.includes("salata") ||
+      cat.includes("pizza")
     ) {
       return true;
     }
@@ -242,14 +248,9 @@
   }
 
   function filterKitchenViewOrders(orders) {
-    // Vetëm ushqim — çdo pije / unknown hiqet nga ekrani i kuzhinës
-    return (orders || [])
-      .map((o) => {
-        const items = normalizeOrderItems(o.items_json).filter((it) => isFoodLikeItem(it));
-        if (!items.length) return null;
-        return { ...o, items_json: items };
-      })
-      .filter(Boolean);
+    // API /api/kds/.../orders (listKitchenOrders) filtron tashmë artikujt e kuzhinës —
+    // mos ripërsërit filtrimin e vjetër këtu (p.sh. «Mëngjes» / Krosan humbnin nga heuristika).
+    return (orders || []).filter((o) => normalizeOrderItems(o.items_json).length > 0);
   }
 
   function renderOrders(orders, cancelledOrders) {

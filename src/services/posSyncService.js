@@ -17,6 +17,29 @@ function extractCategories(body) {
   return Array.isArray(body.categories) ? body.categories : [];
 }
 
+function normalizeCategoryRoute(route) {
+  const r = String(route || "").trim().toLowerCase();
+  if (r === "kitchen" || r === "kuzhine" || r === "kuzhinë" || r === "ushqim" || r === "food") {
+    return "kitchen";
+  }
+  return "bar";
+}
+
+function mapCategoryRows(categories) {
+  return categories
+    .map((c, i) => ({
+      name: String(c.name || c).trim(),
+      sort_order: Number(c.sort_order ?? i) || i,
+      route: normalizeCategoryRoute(c.route),
+    }))
+    .filter(c => c.name);
+}
+
+function isMissingRouteColumnError(error) {
+  return /route/i.test(String(error?.message || error || ""))
+    && /column|schema cache/i.test(String(error?.message || error || ""));
+}
+
 function extractStaff(body) {
   if (Array.isArray(body.staff)) return body.staff;
   if (Array.isArray(body.kamarieret)) return body.kamarieret;
@@ -139,24 +162,45 @@ async function mergeCategoriesFromPosSupabase(db, clientId, categories) {
   );
   let maxSort = (existing || []).reduce((m, c) => Math.max(m, Number(c.sort_order) || 0), -1);
 
-  const toInsert = [];
-  for (let i = 0; i < categories.length; i += 1) {
-    const name = String(categories[i].name || categories[i] || "").trim();
+  for (const row of categories) {
+    const name = String(row.name || "").trim();
     if (!name) continue;
     const key = name.toLowerCase();
-    if (byName.has(key)) continue;
+    const sortOrder = Number(row.sort_order) || 0;
+    const route = normalizeCategoryRoute(row.route);
+    if (byName.has(key)) {
+      let upd = await db
+        .from("pos_categories")
+        .update({ sort_order: sortOrder, route })
+        .eq("client_id", clientId)
+        .eq("name", name);
+      if (upd.error && isMissingRouteColumnError(upd.error)) {
+        upd = await db
+          .from("pos_categories")
+          .update({ sort_order: sortOrder })
+          .eq("client_id", clientId)
+          .eq("name", name);
+      }
+      if (upd.error) throw upd.error;
+      continue;
+    }
     maxSort += 1;
-    toInsert.push({
+    const insRow = {
       client_id: clientId,
       name,
       sort_order: maxSort,
-    });
+      route,
+    };
+    let ins = await db.from("pos_categories").insert(insRow);
+    if (ins.error && isMissingRouteColumnError(ins.error)) {
+      ins = await db.from("pos_categories").insert({
+        client_id: clientId,
+        name,
+        sort_order: maxSort,
+      });
+    }
+    if (ins.error) throw ins.error;
     byName.set(key, { name, sort_order: maxSort });
-  }
-
-  if (toInsert.length) {
-    const { error } = await db.from("pos_categories").insert(toInsert);
-    if (error) throw error;
   }
 
   const { count, error: countErr } = await db
@@ -190,13 +234,33 @@ async function mergeCategoriesFromPosPg(client, clientId, catRows) {
     const name = String(c.name || "").trim();
     if (!name) continue;
     const key = name.toLowerCase();
-    if (byName.has(key)) continue;
-    maxSort += 1;
-    await client.query(
-      `INSERT INTO pos_categories (client_id, name, sort_order) VALUES ($1, $2, $3)`,
-      [clientId, name, maxSort],
-    );
-    byName.set(key, { name, sort_order: maxSort });
+    const sortOrder = Number(c.sort_order) || maxSort + 1;
+    const route = normalizeCategoryRoute(c.route);
+    try {
+      await client.query(
+        `INSERT INTO pos_categories (client_id, name, sort_order, route)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (client_id, name) DO UPDATE SET
+           sort_order = EXCLUDED.sort_order,
+           route = EXCLUDED.route`,
+        [clientId, name, sortOrder, route],
+      );
+    } catch (err) {
+      if (!isMissingRouteColumnError(err)) throw err;
+      if (byName.has(key)) {
+        await client.query(
+          `UPDATE pos_categories SET sort_order = $3 WHERE client_id = $1 AND name = $2`,
+          [clientId, name, sortOrder],
+        );
+        continue;
+      }
+      maxSort += 1;
+      await client.query(
+        `INSERT INTO pos_categories (client_id, name, sort_order) VALUES ($1, $2, $3)`,
+        [clientId, name, maxSort],
+      );
+    }
+    byName.set(key, { name, sort_order: sortOrder });
   }
 
   const { rows: catCountRows } = await client.query(
@@ -371,12 +435,7 @@ async function syncCatalogFromPosSupabase(license, body) {
   await db.from("pos_settings").upsert(settingsRow);
 
   const categories = extractCategories(body);
-  const catRows = categories
-    .map((c, i) => ({
-      name: String(c.name || c).trim(),
-      sort_order: Number(c.sort_order ?? i) || i,
-    }))
-    .filter(c => c.name);
+  const catRows = mapCategoryRows(categories);
   const { catCount, categoriesPreserved } = await mergeCategoriesFromPosSupabase(
     db,
     clientId,
@@ -461,12 +520,7 @@ async function syncCatalogFromPosTransactional(license, body) {
   const menuItems = extractMenuItems(body);
   const staff = extractStaff(body);
 
-  const catRows = categories
-    .map((c, i) => ({
-      name: String(c.name || c).trim(),
-      sort_order: Number(c.sort_order ?? i) || i,
-    }))
-    .filter(c => c.name);
+  const catRows = mapCategoryRows(categories);
 
   return withPgTransaction(async client => {
     const { rows: existingMenuRows } = await client.query(

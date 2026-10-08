@@ -678,15 +678,19 @@ router.post("/online-orders/acknowledge", licenseApiKeyOptional, async (req, res
       ? req.body.order_ids
       : (req.body.order_id ? [req.body.order_id] : []);
     const pin = String(req.body.pin || req.body.waiter_pin || "").trim();
+    const { resolveWaiterForPosAction, isPosAuthenticatedBody } = require("../services/onlineOrdersService");
 
-    let handler = null;
-    if (pin) {
-      handler = await verifyWaiterPin(resolved.clientId, pin);
-    } else {
-      return res.status(400).json({
-        ok: false,
-        gabim: "Vendosni PIN-in e kamarierit që e pranon porosinë.",
+    let handler;
+    try {
+      handler = await resolveWaiterForPosAction(resolved.clientId, {
+        pin,
+        pos_authenticated: isPosAuthenticatedBody(req.body),
+        waiter_id: req.body.waiter_id,
+        waiter_name: req.body.waiter_name || req.body.accepted_by,
       });
+    } catch (e) {
+      const status = e.code === "MISSING_PIN" || e.code === "MISSING_WAITER" ? 400 : 500;
+      return res.status(status).json({ ok: false, gabim: e.message });
     }
 
     const result = await acknowledgeBarOrders(resolved.clientId, rawIds, {
@@ -734,7 +738,14 @@ router.post("/online-orders/refuse", licenseApiKeyOptional, async (req, res) => 
       return res.status(400).json({ ok: false, gabim: "Zgjidhni porosinë." });
     }
 
-    const result = await refusePendingOnlineOrder(resolved.clientId, orderId, { pin, reason });
+    const { isPosAuthenticatedBody } = require("../services/onlineOrdersService");
+    const result = await refusePendingOnlineOrder(resolved.clientId, orderId, {
+      pin,
+      reason,
+      pos_authenticated: isPosAuthenticatedBody(req.body),
+      waiter_id: req.body.waiter_id,
+      waiter_name: req.body.waiter_name || req.body.refused_by,
+    });
     console.log("[online-orders/refuse] OK", {
       clientId: resolved.clientId,
       orderId,

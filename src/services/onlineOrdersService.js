@@ -8,7 +8,7 @@ const {
 } = require("./kdsService");
 const { isCustomerBarOrder, isBarMobileOrder, orderSourceLabel } = require("../lib/orderSource");
 const { isOrderAccepted } = require("../lib/salesOrderSelect");
-const { verifyWaiterPin } = require("./waiterPinService");
+const { verifyWaiterPin, getWaiterById, getWaiterByName } = require("./waiterPinService");
 const { getSupabase } = require("../db");
 
 function formatOrderForPos(row) {
@@ -76,7 +76,38 @@ async function countPendingOnlineOrders(clientId) {
   return orders.length;
 }
 
-async function refusePendingOnlineOrder(clientId, orderId, { pin = "", reason = "" } = {}) {
+function isPosAuthenticatedBody(body = {}) {
+  const v = body.pos_authenticated;
+  return v === true || v === 1 || v === "1" || v === "true";
+}
+
+/** PIN 4-shifror ose kamarier i identifikuar nga POS (sesion + emër). */
+async function resolveWaiterForPosAction(clientId, { pin = "", pos_authenticated, waiter_id, waiter_name } = {}) {
+  const pinTrim = String(pin || "").trim();
+  if (/^\d{4}$/.test(pinTrim)) {
+    return verifyWaiterPin(clientId, pinTrim);
+  }
+  if (pos_authenticated) {
+    const wId = String(waiter_id || "").trim();
+    const wName = String(waiter_name || "").trim();
+    if (wId) {
+      const byId = await getWaiterById(clientId, wId);
+      if (byId) return byId;
+    }
+    if (wName) {
+      const byName = await getWaiterByName(clientId, wName);
+      if (byName) return byName;
+    }
+    const err = new Error("Kamarieri nuk u gjet në cloud — kontrolloni emrin te Kamarierët.");
+    err.code = "MISSING_WAITER";
+    throw err;
+  }
+  const err = new Error("Vendosni PIN-in e kamarierit.");
+  err.code = "MISSING_PIN";
+  throw err;
+}
+
+async function refusePendingOnlineOrder(clientId, orderId, opts = {}) {
   const id = String(orderId || "").trim();
   if (!id) {
     const err = new Error("Mungon porosia.");
@@ -84,14 +115,8 @@ async function refusePendingOnlineOrder(clientId, orderId, { pin = "", reason = 
     throw err;
   }
 
-  const pinTrim = String(pin || "").trim();
-  if (!pinTrim) {
-    const err = new Error("Vendosni PIN-in e kamarierit që e refuzon porosinë.");
-    err.code = "MISSING_PIN";
-    throw err;
-  }
-
-  const handler = await verifyWaiterPin(clientId, pinTrim);
+  const reason = String(opts.reason || opts.refuse_reason || "").trim();
+  const handler = await resolveWaiterForPosAction(clientId, opts);
   const { refuseBarOrderWithGrace } = require("./kdsService");
   const order = await refuseBarOrderWithGrace(clientId, id, {
     waiterId: handler.id,
@@ -149,4 +174,6 @@ module.exports = {
   countPendingOnlineOrders,
   acceptPendingOnlineOrders,
   refusePendingOnlineOrder,
+  resolveWaiterForPosAction,
+  isPosAuthenticatedBody,
 };

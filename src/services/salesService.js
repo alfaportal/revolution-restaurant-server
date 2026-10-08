@@ -309,6 +309,12 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     && finalStatus === "ordered"
     && JSON.stringify(normalizeItems(existing.items_json)) !== JSON.stringify(items);
 
+  const posWaiterAccepted =
+    body.pos_waiter_accepted === true
+    || body.pos_waiter_accepted === 1
+    || body.pos_waiter_accepted === "1"
+    || body.pos_waiter_accepted === "true";
+
   const keepKey = { local_order_id: localOrderId, device_id: deviceId };
   // Takeaway/delivery (PUBLIC, table 0) — mos prek kanalet e tjera. QR në T fizike = si kamarier (pastron POS stale).
   const skipSiblingCancel = deviceId === WEB_PUBLIC || tableNum < 1;
@@ -346,10 +352,36 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
       : normalizePosOrderedAt(body.ordered_at || existing?.ordered_at, now);
     row.closed_at = row.ordered_at;
     row.ready_at = null;
-    if (itemsChanged) {
-      row.accepted_at = null;
-      row.accepted_by_waiter_name = null;
-      row.accepted_by_waiter_id = null;
+    if (itemsChanged && !posWaiterAccepted) {
+      const { isOrderAccepted } = require("../lib/salesOrderSelect");
+      const keepAcceptance =
+        body.pos_keep_acceptance === true
+        || body.pos_keep_acceptance === 1
+        || body.pos_keep_acceptance === "1"
+        || body.pos_keep_acceptance === "true";
+      const hadAccept = isOrderAccepted(existing);
+      if (keepAcceptance && hadAccept) {
+        row.accepted_at = existing.accepted_at;
+        row.accepted_by_waiter_name = existing.accepted_by_waiter_name;
+        row.accepted_by_waiter_id = existing.accepted_by_waiter_id;
+      } else {
+        row.accepted_at = null;
+        row.accepted_by_waiter_name = null;
+        row.accepted_by_waiter_id = null;
+      }
+    }
+    if (posWaiterAccepted) {
+      const accName = String(
+        body.accepted_by_waiter_name || body.waiter_name || existing?.accepted_by_waiter_name || "",
+      ).trim();
+      const accId = String(
+        body.accepted_by_waiter_id || body.waiter_id || existing?.accepted_by_waiter_id || "",
+      ).trim();
+      if (accName) {
+        row.accepted_by_waiter_name = accName;
+        row.accepted_at = body.accepted_at || now;
+        if (accId) row.accepted_by_waiter_id = accId;
+      }
     }
   } else if (finalStatus === "cancelled") {
     row.ordered_at = normalizePosOrderedAt(body.ordered_at || existing?.ordered_at, now);
@@ -417,7 +449,18 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
 
   if (finalStatus === "ordered" || finalStatus === "cancelled" || finalStatus === "ready" || finalStatus === "closed") {
     const { isCustomerChannelDevice } = require("../lib/orderSource");
-    const skipKdsPing = isCustomerChannelDevice(deviceId) && finalStatus === "ordered";
+    const skipKdsPing =
+      isCustomerChannelDevice(deviceId)
+      && finalStatus === "ordered"
+      && !posWaiterAccepted
+      && !row.accepted_at
+      && !String(row.accepted_by_waiter_name || "").trim()
+      && !(
+        body.pos_keep_acceptance === true
+        || body.pos_keep_acceptance === 1
+        || body.pos_keep_acceptance === "1"
+        || body.pos_keep_acceptance === "true"
+      );
     if (!skipKdsPing) {
       try {
         const kds = require("./kdsEvents");

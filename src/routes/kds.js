@@ -157,6 +157,22 @@ router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackag
   try {
     const client = req.kitchenClient;
     const { acceptBarOrder } = require("../services/kdsService");
+    const { isQrTablePosWaiterAcceptOrder } = require("../lib/orderSource");
+    const { getSupabase } = require("../db");
+    const db = getSupabase();
+    const { data: existing, error: loadErr } = await db
+      .from("sales_orders")
+      .select("id, device_id, table_number, waiter_name, source_label, status")
+      .eq("id", req.params.orderId)
+      .eq("client_id", client.id)
+      .maybeSingle();
+    if (loadErr) throw loadErr;
+    if (existing && isQrTablePosWaiterAcceptOrder(existing)) {
+      return res.status(403).json({
+        ok: false,
+        gabim: "Porosia QR e tavolinës pranohet nga kamarieri në POS — jo nga kuzhina/banaku.",
+      });
+    }
     const handler = await resolveWaiterForBarView(client.id, req);
     const order = await acceptBarOrder(client.id, req.params.orderId, {
       waiterId: handler?.id || null,

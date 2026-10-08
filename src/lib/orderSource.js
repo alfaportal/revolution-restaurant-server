@@ -96,6 +96,18 @@ function isDirectCustomerKitchenOrder(order) {
   return isCustomerBarOrder(order);
 }
 
+/** QR tavolinë — pranimi vetëm në POS (kamarier), jo KDS/banak/kuzhinë. */
+function isQrTablePosWaiterAcceptOrder(order) {
+  if (isStaffWaiterOrder(order)) return false;
+  const device = String(order?.device_id || "").trim().toUpperCase();
+  const tableNum = Number(order?.table_number) || 0;
+  if (tableNum <= 0) return false;
+  if (device === WEB_KIOSK) return true;
+  if (isKioskWaiterName(order?.waiter_name)) return true;
+  const label = String(order?.source_label || order?.waiter_name || "").toLowerCase();
+  return /qr|tavolin|kiosk/.test(label);
+}
+
 module.exports = {
   WEB_WAITER,
   WEB_KIOSK,
@@ -112,4 +124,5 @@ module.exports = {
   isRemoteActiveTableOrder,
   isPosDesktopDevice,
   isDirectCustomerKitchenOrder,
+  isQrTablePosWaiterAcceptOrder,
 };

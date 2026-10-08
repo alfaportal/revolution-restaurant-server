@@ -100,7 +100,10 @@ function isFoodItemName(name) {
     f.includes("burger") ||
     f.includes("pasta") ||
     f.includes("byrek") ||
-    f.includes("burek")
+    f.includes("burek") ||
+    f.includes("krosan") ||
+    f.includes("croissant") ||
+    (f.includes("tas") && f.includes("fruta"))
   ) {
     return true;
   }

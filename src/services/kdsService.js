@@ -297,6 +297,18 @@ function isBanakOrder(order) {
   return !device.startsWith("WEB-");
 }
 
+function normalizeCategoryRoute(route) {
+  const r = String(route || "").trim().toLowerCase();
+  return r === "kitchen" || r === "kuzhine" || r === "kuzhinë" || r === "ushqim" || r === "food"
+    ? "kitchen"
+    : "bar";
+}
+
+function isMissingRouteColumnError(error) {
+  return /route/i.test(String(error?.message || error || ""))
+    && /column|schema cache/i.test(String(error?.message || error || ""));
+}
+
 async function loadCategoryLookup(clientId) {
   const key = String(clientId);
   const cached = categoryCache.get(key);
@@ -320,7 +332,23 @@ async function loadCategoryLookup(clientId) {
     if (row.local_id != null && cat) byLocalId.set(String(row.local_id), cat);
   }
 
-  const lookup = { byName, byLocalId };
+  const routeByCategory = new Map();
+  try {
+    const { data: cats, error: catErr } = await db
+      .from("pos_categories")
+      .select("name, route")
+      .eq("client_id", clientId);
+    if (catErr) throw catErr;
+    for (const c of cats || []) {
+      const n = String(c.name || "").trim().toLowerCase();
+      if (!n) continue;
+      routeByCategory.set(n, normalizeCategoryRoute(c.route));
+    }
+  } catch (err) {
+    if (!isMissingRouteColumnError(err)) throw err;
+  }
+
+  const lookup = { byName, byLocalId, routeByCategory };
   categoryCache.set(key, { at: Date.now(), lookup });
   return lookup;
 }
@@ -328,19 +356,23 @@ async function loadCategoryLookup(clientId) {
 function resolveItemCategory(item, lookup) {
   const inline = String(item.category || item.kategoria || "").trim();
   if (inline) return inline;
-  const name = String(item.name || "").trim().toLowerCase();
-  if (name && lookup.byName.has(name)) return lookup.byName.get(name);
   const menuId = item.menu_id ?? item.menu_item_id ?? item.local_id ?? item.id;
   if (menuId != null && lookup.byLocalId.has(String(menuId))) {
     return lookup.byLocalId.get(String(menuId));
   }
+  const name = String(item.name || "").trim().toLowerCase();
+  if (name && lookup.byName.has(name)) return lookup.byName.get(name);
   return "";
 }
 
 function isKitchenItem(item, lookup) {
   const name = String(item?.name || item?.emri || "");
   const cat = resolveItemCategory(item, lookup);
-  // Vetëm ushqim i qartë — TË GJITHA pijet + unknown → JO te kuzhina
+  const catKey = String(cat || "").trim().toLowerCase();
+  if (catKey && lookup?.routeByCategory?.has(catKey)) {
+    return lookup.routeByCategory.get(catKey) === "kitchen";
+  }
+  // Fallback kur route nuk është sinkronizuar ende në cloud
   return isKitchenRouteItem(name, cat);
 }
 
