@@ -54,9 +54,16 @@ async function resolveKitchenStaff(clientId, req) {
   return null;
 }
 
-/** Ekrani i kuzhinës (?key=) — pa PIN, identitet «Kuzhina». */
+/** Ekrani i kuzhinës (?key=) — pa PIN; emri «Kuzhina», pa UUID në accepted_by_waiter_id. */
 function kitchenDisplayStaff() {
-  return { id: "KITCHEN-DISPLAY", name: "Kuzhina" };
+  return { id: null, name: "Kuzhina", refusalActorId: "kitchen-display" };
+}
+
+function refusalActorIdForStaff(staff) {
+  if (!staff) return "kitchen-display";
+  const id = String(staff.id || "").trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return id;
+  return String(staff.refusalActorId || "kitchen-display").trim() || "kitchen-display";
 }
 
 async function resolveWaiterForBarView(clientId, req) {
@@ -209,7 +216,7 @@ router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackag
     }
     if (!handler) handler = kitchenDisplayStaff();
     const order = await acceptBarOrder(client.id, req.params.orderId, {
-      waiterId: handler.id,
+      waiterId: handler.id || null,
       waiterName: handler.name,
     });
     res.json({ ok: true, order, accepted_by: handler?.name || "Kuzhina" });
@@ -239,7 +246,7 @@ router.post("/:slug/orders/:orderId/refuse", resolveKitchenClient, requirePackag
     const { refuseBarOrderWithGrace } = require("../services/kdsService");
     const reason = String(req.body?.reason || req.body?.refuse_reason || "").trim();
     const order = await refuseBarOrderWithGrace(client.id, orderId, {
-      waiterId: waiter.id,
+      waiterId: refusalActorIdForStaff(waiter),
       waiterName: waiter.name,
       reason,
     });

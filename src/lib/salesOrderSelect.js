@@ -1,5 +1,12 @@
 /** Fallback kur migrimi 021 (accepted_by_*) nuk është ekzekutuar ende në Supabase. */
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function coerceAcceptanceWaiterId(waiterId) {
+  const s = String(waiterId || "").trim();
+  return UUID_RE.test(s) ? s : null;
+}
+
 function isMissingAcceptanceColumnError(error) {
   return /accepted_by|accepted_at/i.test(String(error?.message || error || ""));
 }
@@ -35,17 +42,16 @@ async function updateOrdersAcceptance(db, { clientId, orderIds, waiterId = null,
 
   const now = new Date().toISOString();
   const name = String(waiterName || "").trim();
+  const acceptWaiterId = coerceAcceptanceWaiterId(waiterId);
+  const withName = name ? { accepted_by_waiter_name: name } : {};
+  const withId = acceptWaiterId ? { accepted_by_waiter_id: acceptWaiterId } : {};
   const strategies = [
     {
-      patch: {
-        accepted_at: now,
-        accepted_by_waiter_id: waiterId,
-        accepted_by_waiter_name: name,
-      },
+      patch: { accepted_at: now, ...withId, ...withName },
       filterAcceptedNull: true,
     },
     {
-      patch: { accepted_by_waiter_id: waiterId, accepted_by_waiter_name: name },
+      patch: { ...withId, ...withName },
       filterAcceptedNull: false,
     },
     {
