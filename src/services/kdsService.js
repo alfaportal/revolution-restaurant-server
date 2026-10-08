@@ -271,7 +271,7 @@ async function fetchOrderedSales(clientId) {
       .from("sales_orders")
       .select(select)
       .eq("client_id", clientId)
-      .eq("status", "ordered")
+      .in("status", ["ordered", "ready"])
       .order("ordered_at", { ascending: true, nullsFirst: false })
       .limit(200);
   }
@@ -766,10 +766,13 @@ async function cancelBarOrders(clientId, orderIds, { force = false, reason = "un
   const skippedGrace = [];
   let toCancel = ids;
 
+  const { isKitchenLifecycleActive } = require("../lib/kitchenOrderHold");
+  const skippedHold = [];
+
   if (!force) {
     const { data: rows, error: fetchErr } = await db
       .from("sales_orders")
-      .select("id, status, refused_at, order_expires_at, refused_by_waiter_ids")
+      .select("id, status, refused_at, order_expires_at, refused_by_waiter_ids, ordered_at, created_at, ready_at")
       .eq("client_id", clientId)
       .in("id", ids);
 
@@ -778,6 +781,14 @@ async function cancelBarOrders(clientId, orderIds, { force = false, reason = "un
     if (!fetchErr && rows?.length) {
       toCancel = [];
       for (const row of rows) {
+        if (isKitchenLifecycleActive(row)) {
+          console.log("[cancelBarOrders] SKIPPED - kitchen hold", {
+            orderId: row.id,
+            reason,
+          });
+          skippedHold.push(row.id);
+          continue;
+        }
         const norm = normalizeRefusalFields(row);
         if (isInRefusalGrace(norm)) {
           console.log("[cancelBarOrders] SKIPPED - order in grace period", {
@@ -794,11 +805,26 @@ async function cancelBarOrders(clientId, orderIds, { force = false, reason = "un
         }
       }
     }
+  } else {
+    const { data: rows, error: fetchErr } = await db
+      .from("sales_orders")
+      .select("id, status, ordered_at, created_at, ready_at")
+      .eq("client_id", clientId)
+      .in("id", ids);
+    if (!fetchErr && rows?.length) {
+      toCancel = rows
+        .filter(r => String(r.status || "") === "ordered")
+        .map(r => r.id);
+    }
   }
 
   if (!toCancel.length) {
-    console.log("[cancelBarOrders] nothing to cancel", { skipped_grace: skippedGrace, reason });
-    return { count: 0, ids: [], skipped_grace: skippedGrace };
+    console.log("[cancelBarOrders] nothing to cancel", {
+      skipped_grace: skippedGrace,
+      skipped_hold: skippedHold,
+      reason,
+    });
+    return { count: 0, ids: [], skipped_grace: skippedGrace, skipped_hold: skippedHold };
   }
 
   let cancelled = [];
@@ -828,7 +854,12 @@ async function cancelBarOrders(clientId, orderIds, { force = false, reason = "un
   if (cancelled.length) {
     notifyKitchenUpdate(clientId, { order_ids: cancelled, status: "cancelled" });
   }
-  return { count: cancelled.length, ids: cancelled, skipped_grace: skippedGrace };
+  return {
+    count: cancelled.length,
+    ids: cancelled,
+    skipped_grace: skippedGrace,
+    skipped_hold: skippedHold,
+  };
 }
 
 async function listRecentlyCancelledOrders(clientId, windowSec = 30) {

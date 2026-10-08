@@ -166,7 +166,7 @@ async function expireStalePosSyncOrders(clientId) {
   try {
     const { data, error } = await db
       .from("sales_orders")
-      .select("id, table_number, device_id, ordered_at, pos_synced_at")
+      .select("id, table_number, device_id, ordered_at, created_at, ready_at, status, pos_synced_at")
       .eq("client_id", clientId)
       .in("status", ["ordered", "ready"])
       .gte("table_number", 1);
@@ -190,9 +190,11 @@ async function expireStalePosSyncOrders(clientId) {
     rows = (data || []).map(r => ({ ...r, pos_synced_at: r.closed_at }));
   }
 
+  const { isKitchenLifecycleActive } = require("../lib/kitchenOrderHold");
   const freedTables = new Set();
   for (const row of rows) {
     if (!isPosDesktopDevice(row.device_id)) continue;
+    if (isKitchenLifecycleActive(row)) continue;
     const touch = row.pos_synced_at || row.ordered_at;
     if (!touch || new Date(touch).getTime() > cutoffMs) continue;
 

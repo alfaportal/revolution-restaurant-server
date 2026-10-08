@@ -790,6 +790,16 @@ router.post("/online-orders/cancel", licenseApiKeyOptional, async (req, res) => 
           message: "Porosia në grace period pas REFUZO — mbetet aktive për kamarierët e tjerë.",
         });
       }
+      if (result.skipped_hold?.length) {
+        return res.json({
+          ok: true,
+          cancelled: 0,
+          order_ids: [],
+          skipped_hold: result.skipped_hold,
+          kitchen_hold: true,
+          message: "Porosia në radhë të kuzhinës — mbetet deri PRANO/Gati.",
+        });
+      }
       return res.json({
         ok: false,
         cancelled: 0,
