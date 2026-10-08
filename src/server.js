@@ -120,8 +120,11 @@ function proxyUpstreamPath(req, product) {
   const role = parts[2] || "";
   if (product === "hotel") {
     if (role === "owner") return `/owner/login${qs}`;
-    if (role === "recepsion") return `/waiter/${slug}${qs}`;
+    if (role === "kamarier") return `/${slug}/kamarier${qs}`;
+    if (role === "recepsion") return `/${slug}/recepsion${qs}`;
     if (role === "sherbimi") return `/kitchen/${slug}${qs}`;
+    if (role === "bar") return `/bar/${slug}${qs}`;
+    if (role === "kuzhina") return `/kitchen/${slug}${qs}`;
     return `/r/${slug}${qs}`;
   }
   if (product === "security") {
