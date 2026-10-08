@@ -105,13 +105,15 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   const db = getSupabase();
   const { data: rows, error } = await db
     .from("sales_orders")
-    .select("id, local_order_id, device_id")
+    .select("id, local_order_id, device_id, ordered_at")
     .eq("client_id", clientId)
     .eq("table_number", num)
     .in("status", ["ordered", "ready"]);
   if (error) throw error;
 
   const now = new Date().toISOString();
+  const nowMs = Date.now();
+  const FRESH_ORDER_MS = 3 * 60 * 1000;
   let cancelled = 0;
   const keepDevice = String(except?.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
@@ -125,6 +127,10 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
     if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
     if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
+    const touch = row.ordered_at ? new Date(row.ordered_at).getTime() : 0;
+    if (rowDevice === keepDevice && touch && nowMs - touch < FRESH_ORDER_MS) {
+      continue;
+    }
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
