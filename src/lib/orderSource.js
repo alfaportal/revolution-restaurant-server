@@ -89,11 +89,19 @@ function isPosDesktopDevice(deviceId) {
   return !d.startsWith("WEB-");
 }
 
-/** Porosi nga klienti (QR, kiosk, web) — kuzhina/banaku i shikon vetëm pas «Dërgo» nga POS. */
+/** Porosi nga klienti (QR, kiosk, web) — përdoret për banak/online, jo si filtër i përgjithshëm i kuzhinës. */
 function isDirectCustomerKitchenOrder(order) {
   if (isPosDesktopDevice(order?.device_id)) return false;
   if (isStaffWaiterOrder(order)) return false;
   return isCustomerBarOrder(order);
+}
+
+/**
+ * Kuzhina NUK lidhet me tavolinën — vetëm QR në tavolinë fizike pret «Dërgo/Prano» POS.
+ * Takeaway, delivery dhe faqja publike (WEB-PUBLIC) shfaqen direkt te KDS.
+ */
+function isKitchenGatedByPosAccept(order) {
+  return isQrTablePosWaiterAcceptOrder(order);
 }
 
 /** QR tavolinë — pranimi vetëm në POS (kamarier), jo KDS/banak/kuzhinë. */
@@ -124,5 +132,6 @@ module.exports = {
   isRemoteActiveTableOrder,
   isPosDesktopDevice,
   isDirectCustomerKitchenOrder,
+  isKitchenGatedByPosAccept,
   isQrTablePosWaiterAcceptOrder,
 };

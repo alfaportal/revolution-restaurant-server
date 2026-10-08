@@ -1,7 +1,14 @@
 const { getClientById, normalizeItems } = require("./salesService");
 const { getSupabase } = require("../db");
 const { notifyKitchenUpdate } = require("./kdsEvents");
-const { isBarMobileOrder, isKioskWaiterName, isDirectCustomerKitchenOrder, isStaffWaiterOrder, WEB_KIOSK, WEB_PUBLIC } = require("../lib/orderSource");
+const {
+  isBarMobileOrder,
+  isKioskWaiterName,
+  isKitchenGatedByPosAccept,
+  isStaffWaiterOrder,
+  WEB_KIOSK,
+  WEB_PUBLIC,
+} = require("../lib/orderSource");
 const { kdsOrderedAtInstant } = require("../lib/posOrderedAt");
 const { isDrinkCategory, isDrinkItemName, isKitchenRouteItem } = require("../lib/menuGroups");
 const { selectWithAcceptanceFallback, updateOrdersAcceptance, normalizeAcceptanceFields, isMissingAcceptanceColumnError } = require("../lib/salesOrderSelect");
@@ -422,7 +429,7 @@ async function listBarOrders(clientId) {
   return result;
 }
 
-/** Kuzhina KDS — vetëm artikuj ushqimi (rruga /kitchen/ në link) */
+/** Kuzhina KDS — ushqim (POS, takeaway, public, tavolinë); jo lifecycle tavoline. */
 async function listKitchenOrders(clientId) {
   let orders = await fetchOrderedSales(clientId);
   orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(clientId));
@@ -430,7 +437,9 @@ async function listKitchenOrders(clientId) {
   const result = [];
 
   for (const order of orders) {
-    if (isDirectCustomerKitchenOrder(order) && !order.accepted_at && !order.accepted_by_waiter_name) continue;
+    if (isKitchenGatedByPosAccept(order) && !order.accepted_at && !order.accepted_by_waiter_name) {
+      continue;
+    }
     const items = normalizeItems(order.items_json).filter(it => isKitchenItem(it, lookup));
     const mapped = mapOrderWithItems(order, items);
     if (mapped) result.push(mapped);
@@ -854,7 +863,6 @@ async function listKitchenCancelledOrders(clientId, windowSec = 30) {
   const lookup = await loadCategoryLookup(clientId);
   const result = [];
   for (const order of orders) {
-    if (isDirectCustomerKitchenOrder(order)) continue;
     const items = normalizeItems(order.items_json).filter((it) => isKitchenItem(it, lookup));
     const mapped = mapOrderWithItems(order, items);
     if (mapped) result.push({ ...mapped, cancelled: true });
@@ -862,7 +870,7 @@ async function listKitchenCancelledOrders(clientId, windowSec = 30) {
   return result;
 }
 
-/** Tavolina me ushqim «gati» — njoftim te kamarieri (POS poll). */
+/** Ushqim «gati» — njoftim te kamarieri (POS poll); T + takeaway/public, jo «lirim tavoline». */
 async function listReadyDineInOrders(clientId) {
   const db = getSupabase();
   const { data, error } = await db
@@ -872,7 +880,6 @@ async function listReadyDineInOrders(clientId) {
     )
     .eq("client_id", clientId)
     .eq("status", "ready")
-    .gte("table_number", 1)
     .order("ready_at", { ascending: false })
     .limit(40);
   if (error) throw error;
@@ -880,7 +887,6 @@ async function listReadyDineInOrders(clientId) {
   const lookup = await loadCategoryLookup(clientId);
   const result = [];
   for (const order of data || []) {
-    if (isDirectCustomerKitchenOrder(order)) continue;
     const allItems = normalizeItems(order.items_json);
     const kitchenItems = allItems.filter(it => isKitchenItem(it, lookup));
     const items = kitchenItems.length ? kitchenItems : allItems;

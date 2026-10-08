@@ -115,15 +115,17 @@
     return { icon: "🖥️", label: "POS" };
   }
 
-  function tableLabel(order) {
+  function orderHeadLabel(order) {
     const device = String(order.device_id || "").toUpperCase();
-    if (device === "WEB-PUBLIC") {
+    const tn = Number(order.table_number) || 0;
+    if (device === "WEB-PUBLIC" || tn < 1) {
       const w = String(order.waiter_name || "").toLowerCase();
       if (w.startsWith("delivery")) return "Delivery";
       if (w.startsWith("takeaway")) return "Takeaway";
-      return "Online";
+      if (device === "WEB-PUBLIC") return "Online";
+      return String(order.waiter_name || "").trim() || "Porosi";
     }
-    return `T${order.table_number || "?"}`;
+    return `T${tn}`;
   }
 
   function renderOrderItem(it) {
@@ -282,7 +284,7 @@
         <article class="order-ticket cancelled" data-id="${o.id}">
           <div class="ticket-cancelled-banner">E ANULLUAR ❌</div>
           <div class="ticket-head">
-            <div class="ticket-table">${escapeHtml(tableLabel(o))}</div>
+            <div class="ticket-table">${escapeHtml(orderHeadLabel(o))}</div>
             <div class="ticket-time">${formatTime(o.ordered_at || o.created_at)}</div>
           </div>
           <div class="ticket-waiter">${src.icon} ${src.label} · 👤 <strong>${escapeHtml(o.waiter_name || "—")}</strong></div>
@@ -323,7 +325,7 @@
         <article class="order-ticket${isNew ? " new" : ""}${accepted ? " accepted" : " pending"}" data-id="${o.id}">
           <div class="ticket-source">${src.icon} ${src.label}</div>
           <div class="ticket-head">
-            <div class="ticket-table">${escapeHtml(tableLabel(o))}</div>
+            <div class="ticket-table">${escapeHtml(orderHeadLabel(o))}</div>
             <div class="ticket-time">${formatTime(o.ordered_at || o.created_at)}<br><small>${elapsed(o.ordered_at || o.created_at)}</small></div>
           </div>
           <div class="ticket-waiter">👤 <strong>${escapeHtml(o.waiter_name || "—")}</strong></div>
@@ -554,7 +556,7 @@
     const srcName = String(o.waiter_name || "").trim();
     const srcText = `${src.icon} ${src.label}${srcName ? ` · ${escapeHtml(srcName)}` : ""}`;
     document.getElementById("accept-modal-source").innerHTML = srcText;
-    document.getElementById("accept-modal-table").textContent = tableLabel(o);
+    document.getElementById("accept-modal-table").textContent = orderHeadLabel(o);
     document.getElementById("accept-modal-items").innerHTML =
       (o.items_json || []).map(renderOrderItem).join("") || "<li>—</li>";
     document.getElementById("accept-modal-total").textContent = formatEuro(orderTotal(o));
@@ -596,7 +598,7 @@
     }).join("");
     const now = new Date();
     const meta = [
-      `Tavolina: ${tableLabel(o)}`,
+      `Porosia: ${orderHeadLabel(o)}`,
       acceptedBy ? `Kamarieri: ${escapeHtml(acceptedBy)}` : "",
       `Data: ${now.toLocaleDateString("sq-AL")}  Ora: ${now.toLocaleTimeString("sq-AL", { hour: "2-digit", minute: "2-digit" })}`,
     ].filter(Boolean);

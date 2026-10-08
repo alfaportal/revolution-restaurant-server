@@ -338,7 +338,6 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     && existing
     && String(existing.status || "") === "ordered"
     && !existing.ready_at
-    && tableNum >= 1
   ) {
     finalStatus = "ordered";
     deferPosCloseForKitchen = true;
