@@ -424,7 +424,8 @@ async function listBarOrders(clientId) {
 
 /** Kuzhina KDS — vetëm artikuj ushqimi (rruga /kitchen/ në link) */
 async function listKitchenOrders(clientId) {
-  const orders = await fetchOrderedSales(clientId);
+  let orders = await fetchOrderedSales(clientId);
+  orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(clientId));
   const lookup = await loadCategoryLookup(clientId);
   const result = [];
 
@@ -861,6 +862,40 @@ async function listKitchenCancelledOrders(clientId, windowSec = 30) {
   return result;
 }
 
+/** Tavolina me ushqim «gati» — njoftim te kamarieri (POS poll). */
+async function listReadyDineInOrders(clientId) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("sales_orders")
+    .select(
+      "id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, ready_at, device_id, status, accepted_by_waiter_name",
+    )
+    .eq("client_id", clientId)
+    .eq("status", "ready")
+    .gte("table_number", 1)
+    .order("ready_at", { ascending: false })
+    .limit(40);
+  if (error) throw error;
+
+  const lookup = await loadCategoryLookup(clientId);
+  const result = [];
+  for (const order of data || []) {
+    if (isDirectCustomerKitchenOrder(order)) continue;
+    const allItems = normalizeItems(order.items_json);
+    const kitchenItems = allItems.filter(it => isKitchenItem(it, lookup));
+    const items = kitchenItems.length ? kitchenItems : allItems;
+    const mapped = mapOrderWithItems(order, items);
+    if (mapped) {
+      result.push({
+        ...mapped,
+        ready_at: order.ready_at,
+        status: "ready",
+      });
+    }
+  }
+  return result;
+}
+
 module.exports = {
   getClientForKitchen,
   listKitchenOrders,
@@ -871,6 +906,7 @@ module.exports = {
   listRecentlyCancelledOrders,
   listBarCancelledOrders,
   listKitchenCancelledOrders,
+  listReadyDineInOrders,
   acceptBarOrder,
   refuseBarOrderWithGrace,
   filterWaiterAcceptOrders,

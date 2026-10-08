@@ -263,7 +263,7 @@
     }
     if (hasNew && knownIds.size) {
       playNewOrderSound();
-      showToast(waiterMode ? "Porosi e re" : "Porosi e re — pranoni me PIN", "info");
+      showToast("Porosi e re — pranoni ose refuzoni", "info");
     }
 
     updateAlarmState(active);
@@ -300,19 +300,20 @@
       const items = (o.items_json || []).map(renderOrderItem).join("");
       const accepted = !!(o.accepted_at || o.accepted_by_waiter_name);
       const acceptor = String(o.accepted_by_waiter_name || "").trim();
+      const inGrace = !!(o.refused_at && o.order_expires_at && new Date(o.order_expires_at).getTime() > Date.now());
       const acceptLine = accepted
         ? `<div class="ticket-waiter ticket-accepted">✅ Pranuar nga: <strong>${escapeHtml(acceptor || "—")}</strong></div>`
-        : `<div class="ticket-waiter ticket-pending">⏳ Në pritje${waiterMode ? "" : " — pranoni me PIN"}</div>`;
+        : inGrace
+          ? `<div class="ticket-waiter ticket-pending">⏳ Refuzuar — pritje 2 min (mund ta pranoni)</div>`
+          : `<div class="ticket-waiter ticket-pending">⏳ Në pritje — pranoni ose refuzoni</div>`;
       let actions;
       if (accepted) {
-        actions = `<button type="button" class="btn-ready" data-ready="${o.id}">Gati ✅</button>`;
-      } else if (waiterMode) {
+        actions = `<button type="button" class="btn-ready" data-ready="${o.id}">Gati ✅ — njofto kamarierin</button>`;
+      } else {
         actions = `<div class="ticket-actions">
           <button type="button" class="btn-ready btn-accept" data-accept="${o.id}">PRANO ✅</button>
           <button type="button" class="btn-ready btn-refuse" data-refuse="${o.id}">REFUZO ✖</button>
         </div>`;
-      } else {
-        actions = `<button type="button" class="btn-ready btn-accept" data-accept="${o.id}">Prano ✅</button>`;
       }
       return `
         <article class="order-ticket${isNew ? " new" : ""}${accepted ? " accepted" : " pending"}" data-id="${o.id}">
@@ -462,7 +463,6 @@
   }
 
   async function refuseOrder(orderId, btn) {
-    if (!waiterMode) return;
     const reason = await pickRefuseReason();
     if (reason == null) return;
     if (btn) { btn.disabled = true; btn.textContent = "Duke u përpunuar..."; }
@@ -483,7 +483,10 @@
       }
       handledOrderIds.add(orderId);
       closeAcceptModal();
-      showToast("Porosia kaloi te kamarierët e tjerë — 2 minuta.", "info");
+      showToast(
+        waiterMode ? "Porosia kaloi te kamarierët e tjerë — 2 minuta." : "Porosia u refuzua nga kuzhina.",
+        "info",
+      );
       await fetchOrders();
     } catch (e) {
       showToast(e.message || "Gabim.", "error");

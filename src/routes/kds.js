@@ -4,6 +4,7 @@ const { requirePackageFeature } = require("../middleware/packageTier");
 const {
   listKitchenOrders,
   listKitchenCancelledOrders,
+  listReadyDineInOrders,
   listRecentlyCancelledOrders,
   markKitchenOrderReady,
   fetchOrderedSales,
@@ -23,7 +24,7 @@ const {
 } = require("../services/publicPageService");
 const { getPublicAppOrigin } = require("../lib/publicOrigin");
 const { getStaffBrandingForClient } = require("../lib/staffBranding");
-const { getWaiterByWebToken, getWaiterById, getWaiterByName } = require("../services/waiterPinService");
+const { getWaiterByWebToken, getWaiterById, getWaiterByName, verifyWaiterPin } = require("../services/waiterPinService");
 const { getAssignmentState } = require("../services/waiterTablesService");
 
 const router = express.Router();
@@ -39,7 +40,25 @@ async function resolveWaiterFromToken(clientId, req) {
   return getWaiterByWebToken(clientId, token);
 }
 
-/** Telefon (?w=), POS (?waiter_id / ?waiter_name + key). */
+/** Telefon (?w=), POS (?waiter_id / ?waiter_name), ose PIN opsional në body. */
+async function resolveKitchenStaff(clientId, req) {
+  const fromView = await resolveWaiterForBarView(clientId, req);
+  if (fromView?.id) return fromView;
+
+  const pin = String(req.body?.pin || req.body?.waiter_pin || "").trim();
+  if (/^\d{4}$/.test(pin)) {
+    const waiter = await verifyWaiterPin(clientId, pin);
+    if (waiter) return waiter;
+    throw new Error("PIN i gabuar.");
+  }
+  return null;
+}
+
+/** Ekrani i kuzhinës (?key=) — pa PIN, identitet «Kuzhina». */
+function kitchenDisplayStaff() {
+  return { id: "KITCHEN-DISPLAY", name: "Kuzhina" };
+}
+
 async function resolveWaiterForBarView(clientId, req) {
   const fromToken = await resolveWaiterFromToken(clientId, req);
   if (fromToken?.id) return fromToken;
@@ -78,6 +97,15 @@ router.get("/:slug/bar/tables/live", resolveKitchenClient, requirePackageFeature
   try {
     const live = await getLiveTablesForOwner(req.kitchenClient.id);
     res.json({ ok: true, ...live });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.get("/:slug/bar/orders/ready", resolveKitchenClient, requirePackageFeature("kds"), async (req, res) => {
+  try {
+    const orders = await listReadyDineInOrders(req.kitchenClient.id);
+    res.json({ ok: true, orders });
   } catch (e) {
     res.status(500).json({ ok: false, gabim: e.message });
   }
@@ -173,10 +201,16 @@ router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackag
         gabim: "Porosia QR e tavolinës pranohet nga kamarieri në POS — jo nga kuzhina/banaku.",
       });
     }
-    const handler = await resolveWaiterForBarView(client.id, req);
+    let handler;
+    try {
+      handler = await resolveKitchenStaff(client.id, req);
+    } catch (pe) {
+      return res.status(400).json({ ok: false, gabim: pe.message });
+    }
+    if (!handler) handler = kitchenDisplayStaff();
     const order = await acceptBarOrder(client.id, req.params.orderId, {
-      waiterId: handler?.id || null,
-      waiterName: handler?.name || "Kuzhina",
+      waiterId: handler.id,
+      waiterName: handler.name,
     });
     res.json({ ok: true, order, accepted_by: handler?.name || "Kuzhina" });
   } catch (e) {
@@ -195,10 +229,13 @@ router.post("/:slug/orders/:orderId/refuse", resolveKitchenClient, requirePackag
   });
   try {
     const client = req.kitchenClient;
-    const waiter = await resolveWaiterForBarView(client.id, req);
-    if (!waiter?.id) {
-      return res.status(400).json({ ok: false, gabim: "Mungon identifikimi i kamarierit." });
+    let waiter;
+    try {
+      waiter = await resolveKitchenStaff(client.id, req);
+    } catch (pe) {
+      return res.status(400).json({ ok: false, gabim: pe.message });
     }
+    if (!waiter?.id) waiter = kitchenDisplayStaff();
     const { refuseBarOrderWithGrace } = require("../services/kdsService");
     const reason = String(req.body?.reason || req.body?.refuse_reason || "").trim();
     const order = await refuseBarOrderWithGrace(client.id, orderId, {
