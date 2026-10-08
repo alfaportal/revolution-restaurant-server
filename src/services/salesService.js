@@ -467,7 +467,10 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
         || body.pos_keep_acceptance === "1"
         || body.pos_keep_acceptance === "true"
       );
-    if (!skipKdsPing) {
+    const { isPosDesktopDevice } = require("../lib/orderSource");
+    const skipPosClosedKdsPing =
+      finalStatus === "closed" && isPosDesktopDevice(deviceId);
+    if (!skipKdsPing && !skipPosClosedKdsPing) {
       try {
         const kds = require("./kdsEvents");
         const tableNum = Number(data?.table_number ?? body.table_number) || 0;
