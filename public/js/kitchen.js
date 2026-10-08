@@ -329,8 +329,11 @@
         : inGrace
           ? `<div class="ticket-waiter ticket-pending">⏳ Refuzuar — pritje 2 min (mund ta pranoni)</div>`
           : `<div class="ticket-waiter ticket-pending">⏳ Në pritje — pranoni ose refuzoni</div>`;
+      const isReady = String(o.status || "").toLowerCase() === "ready" || !!o.ready_at;
       let actions;
-      if (accepted) {
+      if (isReady) {
+        actions = `<div class="ticket-waiter ticket-accepted"><small>✅ Gati — kamarieri njoftohet</small></div>`;
+      } else if (accepted) {
         actions = `<button type="button" class="btn-ready" data-ready="${o.id}">Gati ✅ — njofto kamarierin</button>`;
       } else {
         actions = `<div class="ticket-actions">

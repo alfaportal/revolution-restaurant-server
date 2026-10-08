@@ -258,7 +258,7 @@ function mergeOrdersById(primary, extra) {
 async function fetchOrderedSales(clientId) {
   const db = getSupabase();
   const base =
-    "id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, created_at, local_order_id, device_id, pos_synced_at";
+    "id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, created_at, local_order_id, device_id, pos_synced_at, status, ready_at";
   const refusalExtra = ", refused_at, order_expires_at, refused_by_waiter_ids";
 
   async function runQuery(withAcceptance, withRefusal) {
@@ -271,7 +271,7 @@ async function fetchOrderedSales(clientId) {
       .from("sales_orders")
       .select(select)
       .eq("client_id", clientId)
-      .in("status", ["ordered", "ready"])
+      .eq("status", "ordered")
       .order("ordered_at", { ascending: true, nullsFirst: false })
       .limit(200);
   }
@@ -697,19 +697,57 @@ async function markKitchenOrderReady(clientId, orderId) {
   const db = getSupabase();
   const now = new Date().toISOString();
   const patch = { status: "ready", ready_at: now };
-  const { data, error } = await db
+
+  const { data: existing, error: loadErr } = await db
     .from("sales_orders")
-    .update(patch)
+    .select("id, status, ready_at, payment_status, accepted_at, accepted_by_waiter_name")
     .eq("id", orderId)
     .eq("client_id", clientId)
-    .eq("status", "ordered")
-    .select()
-    .single();
+    .maybeSingle();
+  if (loadErr) throw loadErr;
+  if (!existing) throw new Error("Porosia nuk u gjet.");
 
-  if (error) throw error;
-  if (!data) throw new Error("Porosia nuk u gjet ose është përfunduar.");
+  const st = String(existing.status || "").toLowerCase();
+  if (st === "ready" && existing.ready_at) {
+    return existing;
+  }
+  if (st === "cancelled") {
+    throw new Error("Porosia është anuluar.");
+  }
+
+  const tryUpdate = async (statusFilter) => {
+    let q = db
+      .from("sales_orders")
+      .update(patch)
+      .eq("id", orderId)
+      .eq("client_id", clientId);
+    if (Array.isArray(statusFilter)) {
+      q = q.in("status", statusFilter);
+    } else if (statusFilter) {
+      q = q.eq("status", statusFilter);
+    }
+    return q.select();
+  };
+
+  let { data: updated, error: updErr } = await tryUpdate(["ordered"]);
+  if (updErr) throw updErr;
+
+  if (!updated?.length && st === "closed" && String(existing.payment_status || "").toLowerCase() === "paid") {
+    ({ data: updated, error: updErr } = await tryUpdate(["closed"]));
+    if (updErr) throw updErr;
+  }
+
+  const row = updated?.[0];
+  if (!row) {
+    throw new Error(
+      st === "closed"
+        ? "Porosia është mbyllur — rifreskoni kuzhinën ose kontrolloni cloud sync."
+        : "Porosia nuk u shënua si Gati — rifreskoni listën.",
+    );
+  }
+
   notifyKitchenUpdate(clientId, { order_id: orderId, status: "ready" });
-  return data;
+  return row;
 }
 
 async function acknowledgeBarOrders(clientId, orderIds, { waiterId = null, waiterName = "" } = {}) {
