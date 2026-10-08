@@ -105,7 +105,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   const db = getSupabase();
   const { data: rows, error } = await db
     .from("sales_orders")
-    .select("id, local_order_id, device_id, ordered_at")
+    .select("id, local_order_id, device_id, ordered_at, accepted_at, accepted_by_waiter_name")
     .eq("client_id", clientId)
     .eq("table_number", num)
     .in("status", ["ordered", "ready"]);
@@ -114,6 +114,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   const now = new Date().toISOString();
   const nowMs = Date.now();
   const FRESH_ORDER_MS = 3 * 60 * 1000;
+  const { isOrderAccepted } = require("../lib/salesOrderSelect");
   let cancelled = 0;
   const keepDevice = String(except?.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
@@ -124,6 +125,7 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
     ) {
       continue;
     }
+    if (isOrderAccepted(row)) continue;
     if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
     if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
@@ -311,6 +313,22 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     finalStatus = prevItems === nextItems ? "ready" : "ordered";
   }
 
+  const { isPosDesktopDevice } = require("../lib/orderSource");
+  const { isOrderAccepted } = require("../lib/salesOrderSelect");
+  /** Pagesë POS por kuzhina ende nuk ka shtypur «Gati» — mbaj ordered në cloud. */
+  let deferPosCloseForKitchen = false;
+  if (
+    status === "closed"
+    && isPosDesktopDevice(deviceId)
+    && existing
+    && String(existing.status || "") === "ordered"
+    && isOrderAccepted(existing)
+    && !existing.ready_at
+  ) {
+    finalStatus = "ordered";
+    deferPosCloseForKitchen = true;
+  }
+
   const itemsChanged = !!existing
     && finalStatus === "ordered"
     && JSON.stringify(normalizeItems(existing.items_json)) !== JSON.stringify(items);
@@ -347,7 +365,6 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
   const pmRaw = String(body.payment_method || "cash").trim().toLowerCase();
   row.payment_method = ["karte", "kartë", "card", "kart"].includes(pmRaw) ? "karte" : "cash";
 
-  const { isPosDesktopDevice } = require("../lib/orderSource");
   if (isPosDesktopDevice(deviceId) && ["ordered", "ready"].includes(finalStatus)) {
     row.pos_synced_at = now;
   }
@@ -358,8 +375,13 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
       : normalizePosOrderedAt(body.ordered_at || existing?.ordered_at, now);
     row.closed_at = row.ordered_at;
     row.ready_at = null;
-    if (itemsChanged && !posWaiterAccepted) {
-      const { isOrderAccepted } = require("../lib/salesOrderSelect");
+    if (deferPosCloseForKitchen && existing) {
+      row.payment_status = "paid";
+      row.paid_at = now;
+      row.accepted_at = existing.accepted_at;
+      row.accepted_by_waiter_name = existing.accepted_by_waiter_name;
+      row.accepted_by_waiter_id = existing.accepted_by_waiter_id;
+    } else if (itemsChanged && !posWaiterAccepted) {
       const keepAcceptance =
         body.pos_keep_acceptance === true
         || body.pos_keep_acceptance === 1

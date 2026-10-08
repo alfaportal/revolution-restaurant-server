@@ -165,7 +165,8 @@
     const active = pending.length > 0;
     headerEl?.classList.toggle("alarm-pulse", active);
     if (active && !alarmTimer) {
-      alarmTimer = setInterval(() => playNewOrderSound(), 12000);
+      playNewOrderSound();
+      alarmTimer = setInterval(() => playNewOrderSound(), 8000);
     } else if (!active && alarmTimer) {
       clearInterval(alarmTimer);
       alarmTimer = null;
@@ -302,7 +303,7 @@
       const acceptor = String(o.accepted_by_waiter_name || "").trim();
       const inGrace = !!(o.refused_at && o.order_expires_at && new Date(o.order_expires_at).getTime() > Date.now());
       const acceptLine = accepted
-        ? `<div class="ticket-waiter ticket-accepted">✅ Pranuar nga: <strong>${escapeHtml(acceptor || "—")}</strong></div>`
+        ? `<div class="ticket-waiter ticket-accepted">✅ Pranuar nga: <strong>${escapeHtml(acceptor || "—")}</strong><br><small>👨‍🍳 Në përgatitje — mbetet këtu deri «Gati»</small></div>`
         : inGrace
           ? `<div class="ticket-waiter ticket-pending">⏳ Refuzuar — pritje 2 min (mund ta pranoni)</div>`
           : `<div class="ticket-waiter ticket-pending">⏳ Në pritje — pranoni ose refuzoni</div>`;
@@ -509,7 +510,12 @@
         btn.textContent = "Gati ✅";
         return;
       }
-      showToast("Porosia u shënua si gati.", "success");
+      showToast(
+        "Gati — kamarieri njoftohet në panel POS me zile (T" +
+          (data.order?.table_number || "?") +
+          "). Karta hiqet nga kuzhina.",
+        "success",
+      );
       await fetchOrders();
     } catch (e) {
       showToast(e.message || "Gabim.", "error");
