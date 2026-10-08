@@ -114,6 +114,8 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
   const now = new Date().toISOString();
   const nowMs = Date.now();
   const FRESH_ORDER_MS = 3 * 60 * 1000;
+  /** Kuzhina duhet kohë për PRANO — mos anulo porosi të papranuara. */
+  const KITCHEN_PENDING_MS = 30 * 60 * 1000;
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
   let cancelled = 0;
   const keepDevice = String(except?.device_id || "").trim().toUpperCase();
@@ -130,7 +132,9 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
     if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
     const touch = row.ordered_at ? new Date(row.ordered_at).getTime() : 0;
-    if (rowDevice === keepDevice && touch && nowMs - touch < FRESH_ORDER_MS) {
+    const ageMs = touch ? nowMs - touch : 0;
+    if (!isOrderAccepted(row) && (!touch || ageMs < KITCHEN_PENDING_MS)) continue;
+    if (rowDevice === keepDevice && touch && ageMs < FRESH_ORDER_MS) {
       continue;
     }
     const { error: updErr } = await db
@@ -230,6 +234,8 @@ async function freeTableFromPos(body) {
   if (error) throw error;
 
   const now = new Date().toISOString();
+  const nowMs = Date.now();
+  const KITCHEN_PENDING_MS = 30 * 60 * 1000;
   let cancelled = 0;
   const keepDevice = String(body.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
@@ -241,6 +247,9 @@ async function freeTableFromPos(body) {
     if (isOrderAccepted(row) && !row.ready_at) continue;
     const ps = String(row.payment_status || "").toLowerCase();
     if (ps === "paid" && st === "ordered" && !row.ready_at) continue;
+    const touch = row.ordered_at ? new Date(row.ordered_at).getTime() : 0;
+    const ageMs = touch ? nowMs - touch : 0;
+    if (st === "ordered" && !isOrderAccepted(row) && (!touch || ageMs < KITCHEN_PENDING_MS)) continue;
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
