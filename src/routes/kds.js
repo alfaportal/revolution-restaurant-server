@@ -173,7 +173,7 @@ router.get("/:slug/orders", resolveKitchenClient, requirePackageFeature("kds"), 
     const client = req.kitchenClient;
     // Ekrani /kitchen/ — vetëm artikuj ushqimi (jo pije të barit)
     const orders = await listKitchenOrders(client.id);
-    const cancelled = await listKitchenCancelledOrders(client.id);
+    const cancelled = await listKitchenCancelledOrders(client.id, 0);
     const branding = await getStaffBrandingForClient(client, req.params.slug);
     res.json({
       ok: true,

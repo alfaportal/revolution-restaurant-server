@@ -357,7 +357,12 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
   const keepKey = { local_order_id: localOrderId, device_id: deviceId };
   // Takeaway/delivery (PUBLIC, table 0) — mos prek kanalet e tjera. QR në T fizike = si kamarier (pastron POS stale).
   const skipSiblingCancel = deviceId === WEB_PUBLIC || tableNum < 1;
-  if (tableNum >= 1 && ["ordered", "ready", "closed", "cancelled"].includes(finalStatus) && !skipSiblingCancel) {
+  // Mos anulo tavolinën e kuzhinës kur vjen pagesë/mbyllje (closed) — vetëm ordered/ready pastrojnë «ghost» WEB.
+  if (
+    tableNum >= 1
+    && (finalStatus === "ordered" || finalStatus === "ready")
+    && !skipSiblingCancel
+  ) {
     await cancelOtherActiveOrdersForTable(license.client_id, tableNum, keepKey);
   }
 

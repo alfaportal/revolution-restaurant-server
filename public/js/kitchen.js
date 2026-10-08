@@ -272,15 +272,10 @@
     countEl.textContent = n === 1 ? "1 porosi" : `${n} porosi`;
     syncEl.textContent = `Rifreskuar: ${formatTime(new Date())}`;
 
-    if (!active.length && !cancelled.length) {
-      gridEl.innerHTML = "";
-      emptyEl.classList.remove("hidden");
-      knownIds = new Set();
-      return;
-    }
-
-    emptyEl.classList.add("hidden");
-    const cancelledHtml = cancelled.map(o => {
+    const cancelledVisible = cancelled.filter(
+      o => knownIds.has(o.id) && (o.accepted_at || o.accepted_by_waiter_name),
+    );
+    const cancelledHtmlVisible = cancelledVisible.map(o => {
       const src = sourceMeta(o);
       const items = (o.items_json || []).map(renderOrderItem).join("");
       return `
@@ -295,7 +290,15 @@
         </article>`;
     }).join("");
 
-    gridEl.innerHTML = cancelledHtml + active.map(o => {
+    if (!active.length && !cancelledVisible.length) {
+      gridEl.innerHTML = "";
+      emptyEl.classList.remove("hidden");
+      knownIds = new Set();
+      return;
+    }
+
+    emptyEl.classList.add("hidden");
+    gridEl.innerHTML = cancelledHtmlVisible + active.map(o => {
       const isNew = !knownIds.has(o.id);
       const src = sourceMeta(o);
       const items = (o.items_json || []).map(renderOrderItem).join("");
