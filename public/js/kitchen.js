@@ -115,17 +115,34 @@
     return { icon: "🖥️", label: "POS" };
   }
 
+  function shortOrderRef(order) {
+    const local = String(order.local_order_id || "").trim();
+    if (local && /^\d+$/.test(local)) return local;
+    const id = String(order.id || "").trim();
+    if (id.length >= 6) return id.replace(/-/g, "").slice(0, 8);
+    return local || "?";
+  }
+
+  function isQrKioskOrder(order) {
+    const device = String(order.device_id || "").toUpperCase();
+    if (device === "WEB-KIOSK") return true;
+    const w = String(order.waiter_name || "").toLowerCase();
+    return w.startsWith("tavolin") || w.includes("kiosk") || w.includes("qr");
+  }
+
+  /** Titulli i kartës — Porosi #… / Takeaway / QR; pa «T3» (kuzhina ≠ tavolina). */
   function orderHeadLabel(order) {
+    const ref = shortOrderRef(order);
     const device = String(order.device_id || "").toUpperCase();
     const tn = Number(order.table_number) || 0;
-    if (device === "WEB-PUBLIC" || tn < 1) {
+    if (device === "WEB-PUBLIC" || (tn < 1 && !isQrKioskOrder(order) && device !== "WEB-WAITER")) {
       const w = String(order.waiter_name || "").toLowerCase();
-      if (w.startsWith("delivery")) return "Delivery";
-      if (w.startsWith("takeaway")) return "Takeaway";
-      if (device === "WEB-PUBLIC") return "Online";
-      return String(order.waiter_name || "").trim() || "Porosi";
+      if (w.startsWith("delivery")) return `Delivery #${ref}`;
+      if (w.startsWith("takeaway")) return `Takeaway #${ref}`;
+      if (device === "WEB-PUBLIC") return `Online #${ref}`;
     }
-    return `T${tn}`;
+    if (isQrKioskOrder(order)) return `Porosi QR #${ref}`;
+    return `Porosi #${ref}`;
   }
 
   function renderOrderItem(it) {
@@ -515,10 +532,9 @@
         btn.textContent = "Gati ✅";
         return;
       }
+      const lbl = data.order ? orderHeadLabel(data.order) : "Porosia";
       showToast(
-        "Gati — kamarieri njoftohet në panel POS me zile (T" +
-          (data.order?.table_number || "?") +
-          "). Karta hiqet nga kuzhina.",
+        `Gati — kamarieri njoftohet me zile (${lbl}). Karta hiqet nga kuzhina.`,
         "success",
       );
       await fetchOrders();
