@@ -390,6 +390,16 @@ function proxyToKontabilisti(req, res) {
 }
 
 app.use("/security", proxyToSecurity);
+/** Link i gabuar pa /hotel/{slug}/ — ridrejto te forma e saktë. */
+app.get("/recepsion/:slug", (req, res) => {
+  const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  res.redirect(302, `/hotel/${encodeURIComponent(req.params.slug)}/recepsion${qs}`);
+});
+app.get("/hotel/recepsion/:slug", (req, res) => {
+  const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  res.redirect(302, `/hotel/${encodeURIComponent(req.params.slug)}/recepsion${qs}`);
+});
+
 /** Panel pronari hotel — gjithmonë /owner/panel (jo /hotel/owner/panel në shfletues). */
 app.get("/hotel/owner/panel", (_req, res) => res.redirect(302, "/owner/panel"));
 app.get("/hotel/owner/login", (_req, res) => res.redirect(302, "/owner/login"));
