@@ -431,6 +431,9 @@ async function syncCatalogFromPosSupabase(license, body) {
   if (fiscalOperator) settingsRow.fiscal_operator_name = fiscalOperator;
   if (fiscalModel) settingsRow.fiscal_device_model = fiscalModel;
   if (body.fiscal_enabled != null) settingsRow.fiscal_enabled = Boolean(body.fiscal_enabled);
+  if (body.staff_local_links && typeof body.staff_local_links === "object") {
+    settingsRow.staff_local_links = body.staff_local_links;
+  }
 
   await db.from("pos_settings").upsert(settingsRow);
 

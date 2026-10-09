@@ -74,6 +74,8 @@ const {
 const { buildTablesFromAreas } = require("../lib/tableLayout");
 const { getAssignmentState, setWaiterTables } = require("../services/waiterTablesService");
 const { ensureKitchenCredentials, buildClientWebLinks, buildWaiterUrl, buildWaiterKitchenUrl } = require("../lib/kitchenAccess");
+const { buildOwnerWaiterLinks } = require("../lib/restaurantStaffLinks");
+const { getSupabase } = require("../db");
 const { featuresForTier } = require("../lib/packages");
 const { listKioskQrCodes, listTableQrMeta, getTableQrCode, getTableQrPng, qrPrintHtml, singleQrPrintHtml, tableMenuUrl } = require("../services/kioskQrService");
 const {
@@ -233,9 +235,29 @@ router.get("/client", async (req, res) => {
     const base = getPublicAppOrigin();
     const features = featuresForTier(client?.package_tier);
     const built = buildClientWebLinks(base, client, client?.package_tier);
+
+    let staffLocal = {};
+    try {
+      const db = getSupabase();
+      const { data: posRow } = await db
+        .from("pos_settings")
+        .select("staff_local_links")
+        .eq("client_id", client.id)
+        .maybeSingle();
+      staffLocal = posRow?.staff_local_links && typeof posRow.staff_local_links === "object"
+        ? posRow.staff_local_links
+        : {};
+    } catch {
+      staffLocal = {};
+    }
+
+    const waiterLinks = buildOwnerWaiterLinks(base, client, staffLocal);
     const links = {
       owner: built.owner_url || null,
-      waiter: built.waiter_url || null,
+      waiter: waiterLinks.waiter_cloud || built.waiter_url || null,
+      waiter_cloud: waiterLinks.waiter_cloud || built.waiter_url || null,
+      waiter_wifi: waiterLinks.waiter_wifi || null,
+      waiter_hostname_urls: waiterLinks.waiter_hostname_urls || [],
       kitchen: built.kitchen_url || null,
       bar: built.bar_url || null,
       kiosk: built.kiosk_url || built.menu_url || null,
