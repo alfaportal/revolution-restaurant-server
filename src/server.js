@@ -293,6 +293,16 @@ function proxyToHotel(req, res) {
       res.status(502).send("Hotel upstream nuk përgjigjet");
     }
   });
+  const isSlowOwnerApi = /\/owner\/api\/ai-assistant\//.test(upstreamPath);
+  proxyReq.setTimeout(isSlowOwnerApi ? 120_000 : 60_000, () => {
+    proxyReq.destroy();
+    if (!res.headersSent) {
+      res.status(504).json({
+        ok: false,
+        gabim: "Hotel server nuk u përgjigj në kohë. Provoni përsëri.",
+      });
+    }
+  });
   req.pipe(proxyReq);
 }
 
