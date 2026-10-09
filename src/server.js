@@ -180,15 +180,15 @@ function hotelUpstreamPath(req) {
   if (parts.length >= 2) {
     const slug = parts[0];
     const seg = parts[1];
+    if (seg === "kamarier" && parts[2] === "manifest.json") {
+      return `/waiter/${encodeURIComponent(slug)}/manifest.json${qs}`;
+    }
     if (seg === "kamarier" || seg === "recepsion") {
       return `/waiter/${encodeURIComponent(slug)}${qs}`;
     }
     if (seg === "kuzhina") return `/kitchen/${encodeURIComponent(slug)}${qs}`;
     if (seg === "bar") return `/bar/${encodeURIComponent(slug)}${qs}`;
     if (seg === "owner") return `/${encodeURIComponent(slug)}/owner${qs}`;
-    if (seg === "kamarier" && parts[2] === "manifest.json") {
-      return `/waiter/${encodeURIComponent(slug)}/manifest.json${qs}`;
-    }
   }
 
   if (parts[0] === "hotel" && parts[1]) {
