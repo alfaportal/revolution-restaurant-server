@@ -263,6 +263,12 @@ function proxyToKontabilisti(req, res) {
   req.pipe(proxyReq);
 }
 
+/** Hyrje e njëjtë pronari për të gjithë — hoteli autentifikohet përmes /hotel/api por faqja është /owner/login */
+app.get("/hotel/owner/login", (req, res) => {
+  const qs = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+  res.redirect(302, `/owner/login${qs}`);
+});
+
 app.use("/security", proxyToSecurity);
 app.use("/hotel", proxyToHotel);
 app.use("/market", proxyToMarket);
