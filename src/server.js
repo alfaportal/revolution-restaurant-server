@@ -169,6 +169,13 @@ function hotelUpstreamPath(req) {
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
   const parts = (req.path || "").split("/").filter(Boolean);
 
+  /** /hotel/api/... — mos e mapo si /menu/{slug}/{tavolinë} (QR menu JSON). */
+  if (parts[0] === "api") {
+    let path = req.path || "/";
+    if (!path.startsWith("/")) path = `/${path}`;
+    return `${path}${qs}`;
+  }
+
   if (parts[0] === "menu" && parts[1]) {
     const table = parts[2] || "1";
     return `/menu/${encodeURIComponent(parts[1])}/${table}${qs}`;
@@ -182,6 +189,9 @@ function hotelUpstreamPath(req) {
     const seg = parts[1];
     if (seg === "kamarier" && parts[2] === "manifest.json") {
       return `/waiter/${encodeURIComponent(slug)}/manifest.json${qs}`;
+    }
+    if (seg === "recepsion" && parts[2] === "manifest.json") {
+      return `/recepsion/${encodeURIComponent(slug)}/manifest.json${qs}`;
     }
     if (seg === "kamarier") {
       return `/waiter/${encodeURIComponent(slug)}${qs}`;
