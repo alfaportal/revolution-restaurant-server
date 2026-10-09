@@ -466,7 +466,7 @@
 
       <div class="card" style="margin-top:1rem">
         <div class="card-title">Stafi — kamarierë dhe kuzhinierë</div>
-        <p class="links-hint">Secili punonjës (kamarier, recepsionist, housekeeping) merr linkun personal për tablet. Kopjoni dhe dërgojeni te punëtori.</p>
+        <p class="links-hint">Secili punonjës merr link personal. <strong>Kamarierët</strong> duhet PIN <strong>6-shifror</strong> (i njëjti si Hotel PC) për hyrje në tablet — ose sinkronizoni nga Admin → Cloud.</p>
         <div class="filter-row menu-add-row">
           <div>
             <label for="staff-add-name">Emri</label>
@@ -480,6 +480,10 @@
               <option value="housekeeping">Housekeeping</option>
               <option value="kitchen">Kuzhinier</option>
             </select>
+          </div>
+          <div id="staff-add-pin-wrap">
+            <label for="staff-add-pin">PIN kamarier (6 shifra)</label>
+            <input type="password" id="staff-add-pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="p.sh. 123456">
           </div>
           <button type="button" class="btn btn-primary btn-sm" id="btn-staff-add">Shto staf</button>
         </div>
