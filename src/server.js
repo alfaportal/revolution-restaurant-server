@@ -269,9 +269,12 @@ function proxyToHotel(req, res) {
         let body = Buffer.concat(chunks).toString("utf8");
         if (isHtml) {
           body = rewriteHotelProxyHtml(body, slug);
+          delete outHeaders["content-length"];
+          delete outHeaders["Content-Length"];
         } else if (isManifest) {
           body = rewriteHotelManifestJson(body, slug, qs);
           delete outHeaders["content-length"];
+          delete outHeaders["Content-Length"];
         }
         res.writeHead(proxyRes.statusCode || 502, outHeaders);
         res.end(body);
