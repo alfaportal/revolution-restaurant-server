@@ -101,7 +101,12 @@
       else if (data.client_type === "bar") iconEl.textContent = "🍹";
       else if (data.client_type === "market" || data.client_type === "dyqan") iconEl.textContent = "🛒";
       else if (data.client_type === "restorant") iconEl.textContent = "🍽️";
+      else if (data.client_type === "hotel") iconEl.textContent = "🏨";
       else iconEl.textContent = "🏪";
+    }
+
+    function ownerPanelHref() {
+      return ownerPortalFromStorage() === "hotel" ? "/hotel/owner/panel" : "/owner/panel";
     }
 
     async function loadBrandingForEmail(email) {
@@ -166,7 +171,7 @@
           if (res.ok) localStorage.setItem("owner_portal", "hotel");
         }
         if (res.ok) {
-          location.href = "/owner/panel";
+          location.href = ownerPanelHref();
           return;
         }
         localStorage.removeItem("owner_token");
@@ -268,7 +273,10 @@
         } else {
           localStorage.removeItem("owner_portal");
         }
-        location.href = "/owner/panel";
+        location.href =
+          data.portal === "hotel" || data.product_line === "hotel"
+            ? "/hotel/owner/panel"
+            : "/owner/panel";
       } catch (err) {
         showError(err.message);
       }

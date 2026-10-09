@@ -5,6 +5,7 @@
  */
 const { featuresForTier } = require("./packages");
 const { normalizeClientTipi, MARKET_TIPI, HOTEL_TIPI } = require("../utils/businessTipi");
+const { stripLegacyKitchenSlugSuffix } = require("./kitchenSlug");
 
 /** DB tipi → segment URL (shembuj: fast_food → fastfood, klub_nate → klub) */
 const DB_TIPI_TO_URL = {
@@ -185,8 +186,17 @@ function buildRoleUrl(baseUrl, urlTipi, slug, role, { query = {}, table } = {}) 
   return withQuery(`${base}${path}`, query);
 }
 
+function publicKitchenSlugForClient(client) {
+  const raw = String(client?.kitchen_slug || client?.id || "").trim();
+  if (!raw) return raw;
+  if (tipiCategory(urlTipiSegment(client)) === "hotel") {
+    return stripLegacyKitchenSlugSuffix(raw) || raw;
+  }
+  return raw;
+}
+
 function buildStaffUrl(baseUrl, client, role, { webToken = "" } = {}) {
-  const slug = client?.kitchen_slug || client?.id;
+  const slug = publicKitchenSlugForClient(client);
   const key = client?.kitchen_key || "";
   const urlTipi = urlTipiSegment(client);
   if (!slug) return "";
@@ -213,12 +223,15 @@ function appendPosStaffLinks(links, baseUrl, urlTipi, slug, features, keyQuery) 
 function buildClientWebLinks(baseUrl, client, packageTier) {
   const features = featuresForTier(packageTier);
   const urlTipi = urlTipiSegment(client);
-  const slug = client?.kitchen_slug || client?.id;
+  const cat = tipiCategory(urlTipi);
+  const slug =
+    cat === "hotel"
+      ? publicKitchenSlugForClient(client)
+      : client?.kitchen_slug || client?.id;
   const key = client?.kitchen_key || "";
   const links = {};
   if (!slug) return links;
 
-  const cat = tipiCategory(urlTipi);
   const keyQuery = key ? { key } : {};
 
   if (cat === "pos") {

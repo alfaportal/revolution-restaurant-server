@@ -137,6 +137,12 @@ function registerProductPageRoutes(app, ctx) {
     if (!allowsPosStaffRoutes(req.tipiCategory)) {
       return res.status(404).type("html").send(notFoundHtml());
     }
+    if (req.tipiCategory === "hotel") {
+      return res.redirect(
+        302,
+        `/hotel/${encodeURIComponent(req.params.slug)}/kamarier${querySuffix(req)}`,
+      );
+    }
     serveWaiterPage(req, res, publicDir);
   });
 
@@ -201,7 +207,10 @@ function registerProductPageRoutes(app, ctx) {
   /** HOTEL — recepsion, sherbimi (HTML lokal; hotel cloud proxy për /hotel/*) */
   app.get("/:tipi/:slug/recepsion", resolve, (req, res) => {
     if (req.tipiCategory !== "hotel") return res.status(404).type("html").send(notFoundHtml());
-    serveWaiterPage(req, res, publicDir);
+    return res.redirect(
+      302,
+      `/hotel/${encodeURIComponent(req.params.slug)}/recepsion${querySuffix(req)}`,
+    );
   });
 
   app.get("/:tipi/:slug/sherbimi", resolve, (req, res) => {
@@ -257,12 +266,31 @@ function registerProductPageRoutes(app, ctx) {
   async function legacyRedirectWithClient(req, res, pathname) {
     const slug = req.params.slug;
     let urlTipi = "kafene";
+    let client = null;
     if (slug) {
       try {
-        const client = await getClientBySlugOrId(slug);
+        client = await getClientBySlugOrId(slug);
         if (client) urlTipi = urlTipiSegment(client);
       } catch {
         /* default kafene */
+      }
+    }
+    const cat = client ? tipiCategory(urlTipi) : "hotel";
+    if (!client || cat === "hotel") {
+      const parts = String(pathname || req.path || "").split("/").filter(Boolean);
+      const q = querySuffix(req);
+      const enc = encodeURIComponent(String(slug || "").trim());
+      if (parts[0] === "waiter" && parts[1]) {
+        if (parts[2] === "manifest.json") {
+          return res.redirect(302, `/hotel/${enc}/kamarier/manifest.json${q}`);
+        }
+        return res.redirect(302, `/hotel/${enc}/kamarier${q}`);
+      }
+      if (parts[0] === "kitchen" && parts[1]) {
+        return res.redirect(302, `/hotel/${enc}/kuzhina${q}`);
+      }
+      if (parts[0] === "bar" && parts[1]) {
+        return res.redirect(302, `/hotel/${enc}/bar${q}`);
       }
     }
     const target = legacyRedirectTarget(pathname || req.path, querySuffix(req), urlTipi);

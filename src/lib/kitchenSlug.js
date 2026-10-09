@@ -4,6 +4,17 @@
 const KITCHEN_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_KITCHEN_SLUG_LEN = 3;
 const MAX_KITCHEN_SLUG_LEN = 48;
+/** Sufiks i vjetër në URL (6 hex) — hiqet nga linket publike hotel. */
+const LEGACY_KITCHEN_SLUG_HEX_SUFFIX = /-[a-f0-9]{6}$/i;
+
+function stripLegacyKitchenSlugSuffix(raw) {
+  const s = String(raw || "").trim().toLowerCase();
+  if (!s || !LEGACY_KITCHEN_SLUG_HEX_SUFFIX.test(s)) return s;
+  const base = s.replace(LEGACY_KITCHEN_SLUG_HEX_SUFFIX, "");
+  if (base.length < MIN_KITCHEN_SLUG_LEN) return s;
+  if (!KITCHEN_SLUG_RE.test(base)) return s;
+  return base;
+}
 
 function slugifyFromEmri(emri) {
   const base = String(emri || "lokal")
@@ -112,6 +123,8 @@ async function updateClientKitchenSlug(db, clientId, rawSlug) {
 
 module.exports = {
   KITCHEN_SLUG_RE,
+  LEGACY_KITCHEN_SLUG_HEX_SUFFIX,
+  stripLegacyKitchenSlugSuffix,
   MIN_KITCHEN_SLUG_LEN,
   MAX_KITCHEN_SLUG_LEN,
   slugifyFromEmri,

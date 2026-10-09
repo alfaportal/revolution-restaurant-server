@@ -70,6 +70,11 @@ const {
 } = require("./services/seoPublicPageHtml");
 const { renderMarketingHtml } = require("./services/seoMarketingHtml");
 const { registerProductPageRoutes } = require("./routes/productPages");
+const {
+  rewriteHotelProxyHtml,
+  rewriteHotelManifestJson,
+} = require("./lib/hotelGatewayRewrite");
+const { stripLegacyKitchenSlugSuffix } = require("./lib/kitchenSlug");
 
 const pkg = require("../package.json");
 const ADMIN_PATH = adminPanelPath();
@@ -181,6 +186,9 @@ function hotelUpstreamPath(req) {
     if (seg === "kuzhina") return `/kitchen/${encodeURIComponent(slug)}${qs}`;
     if (seg === "bar") return `/bar/${encodeURIComponent(slug)}${qs}`;
     if (seg === "owner") return `/${encodeURIComponent(slug)}/owner${qs}`;
+    if (seg === "kamarier" && parts[2] === "manifest.json") {
+      return `/waiter/${encodeURIComponent(slug)}/manifest.json${qs}`;
+    }
   }
 
   if (parts[0] === "hotel" && parts[1]) {
@@ -190,6 +198,18 @@ function hotelUpstreamPath(req) {
   let path = req.path || "/";
   if (!path.startsWith("/")) path = `/${path}`;
   return `${path}${qs}`;
+}
+
+function hotelPageSlugFromPath(reqPath) {
+  const parts = String(reqPath || "").split("/").filter(Boolean);
+  let raw = "";
+  if (parts.length >= 2 && (parts[1] === "kamarier" || parts[1] === "recepsion")) {
+    raw = decodeURIComponent(parts[0]);
+  } else if (parts[0] === "waiter" && parts[1]) {
+    raw = decodeURIComponent(parts[1]);
+  }
+  if (!raw) return "";
+  return stripLegacyKitchenSlugSuffix(raw) || raw;
 }
 
 function proxyToHotel(req, res) {
@@ -204,15 +224,43 @@ function proxyToHotel(req, res) {
       headers,
     },
     (proxyRes) => {
-      const headers = { ...proxyRes.headers };
-      const ct = String(headers["content-type"] || "");
-      if (/text\/html/i.test(ct) && !/charset=/i.test(ct)) {
-        headers["content-type"] = ct.includes(";")
+      const outHeaders = { ...proxyRes.headers };
+      const ct = String(outHeaders["content-type"] || "");
+      const isHtml = /text\/html/i.test(ct);
+      const isManifest = /manifest\+json/i.test(ct);
+      const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+      const slug =
+        hotelPageSlugFromPath(req.path) || hotelPageSlugFromPath(upstreamPath);
+
+      if (isHtml && !/charset=/i.test(ct)) {
+        outHeaders["content-type"] = ct.includes(";")
           ? `${ct}; charset=utf-8`
           : `${ct || "text/html"}; charset=utf-8`;
       }
-      res.writeHead(proxyRes.statusCode || 502, headers);
-      proxyRes.pipe(res);
+
+      if (!isHtml && !isManifest) {
+        res.writeHead(proxyRes.statusCode || 502, outHeaders);
+        proxyRes.pipe(res);
+        return;
+      }
+
+      const chunks = [];
+      proxyRes.on("data", (chunk) => chunks.push(chunk));
+      proxyRes.on("end", () => {
+        if (res.headersSent) return;
+        let body = Buffer.concat(chunks).toString("utf8");
+        if (isHtml) {
+          body = rewriteHotelProxyHtml(body, slug);
+        } else if (isManifest) {
+          body = rewriteHotelManifestJson(body, slug, qs);
+          delete outHeaders["content-length"];
+        }
+        res.writeHead(proxyRes.statusCode || 502, outHeaders);
+        res.end(body);
+      });
+      proxyRes.on("error", () => {
+        if (!res.headersSent) res.status(502).send("Hotel upstream nuk përgjigjet");
+      });
     },
   );
   proxyReq.on("error", () => {
@@ -304,9 +352,22 @@ function proxyToKontabilisti(req, res) {
 }
 
 app.use("/security", proxyToSecurity);
-/** /owner/* shërbhet nga ky server — jo proxy te hotel. */
-app.get("/hotel/owner/panel", (_req, res) => res.redirect(302, "/owner/panel"));
-app.get("/hotel/owner/login", (_req, res) => res.redirect(302, "/owner/login"));
+/** /owner/login|register|setup = gateway; panel hotel = /hotel/owner/panel (proxy), si /security/pronari. */
+app.use("/hotel", (req, res, next) => {
+  const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  const parts = (req.path || "").split("/").filter(Boolean);
+  if (!parts.length || !parts[0]) return next();
+  const rawSlug = decodeURIComponent(parts[0]);
+  const clean = stripLegacyKitchenSlugSuffix(rawSlug);
+  if (clean && clean !== rawSlug) {
+    const tail = parts.slice(1).join("/");
+    return res.redirect(
+      302,
+      `/hotel/${encodeURIComponent(clean)}${tail ? `/${tail}` : ""}${qs}`,
+    );
+  }
+  next();
+});
 app.use("/hotel", proxyToHotel);
 app.use("/market", proxyToMarket);
 app.use("/fiskalizim", proxyToFiskalizim);
@@ -789,9 +850,8 @@ app.get("/owner/register", (_req, res) => {
 });
 
 app.get("/owner/panel", (req, res) => {
-  const portal = String(req.cookies?.owner_portal || "").trim();
-  if (portal === "hotel") {
-    return sendOwnerHtml(res, "panel-hotel.html");
+  if (String(req.cookies?.owner_portal || "").trim() === "hotel") {
+    return res.redirect(302, "/hotel/owner/panel");
   }
   sendOwnerHtml(res, "panel.html");
 });
