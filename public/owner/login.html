@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>Hyrje ΓÇö Revolution POS Pronar</title>
+  <title>Hyrje — Revolution POS Pronar</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,11 +17,11 @@
   <div class="login-wrap">
     <div class="login-card">
       <div class="owner-login-brand">
-        <div class="owner-login-icon" id="login-icon">≡ƒÅ¬</div>
+        <div class="owner-login-icon" id="login-icon">🏪</div>
         <h1 id="login-heading">Paneli i pronarit</h1>
         <h2 id="login-biz-name" class="owner-login-biz hidden"></h2>
-        <p id="login-sub">Shitjet, raportet dhe tavolinat live ΓÇö nga telefoni.</p>
-        <p class="owner-login-note">Kjo hyrje ├½sht├½ vet├½m p├½r pronar├½t. Kamarier├½t dhe admini POS p├½rdorin aplikacionin n├½ kompjuter.</p>
+        <p id="login-sub">Shitjet, raportet dhe tavolinat live — nga telefoni.</p>
+        <p class="owner-login-note">Kjo hyrje është vetëm për pronarët. Kamarierët dhe admini POS përdorin aplikacionin në kompjuter.</p>
       </div>
       <div id="login-error" class="alert alert-error hidden"></div>
       <div id="login-info" class="alert alert-ok hidden"></div>
@@ -29,28 +29,27 @@
       <form id="form-login" class="owner-auth-form">
         <label for="email">Email i pronarit</label>
         <input type="email" id="email" required autocomplete="username" placeholder="pronari@email.com">
-        <label for="password">Fjal├½kalimi</label>
-        <input type="password" id="password" required autocomplete="current-password" placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó">
-        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Hyr n├½ panel</button>
-        <button type="button" id="btn-forgot" class="btn btn-ghost owner-forgot-link">Harrove fjal├½kalimin?</button>
+        <label for="password">Fjalëkalimi</label>
+        <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Hyr në panel</button>
+        <button type="button" id="btn-forgot" class="btn btn-ghost owner-forgot-link">Harrove fjalëkalimin?</button>
         <a href="/owner/register" id="link-owner-register" class="btn btn-ghost owner-forgot-link hidden" style="display:none">Regjistrohu me kod</a>
       </form>
 
       <form id="form-reset" class="owner-auth-form hidden">
-        <p class="owner-reset-hint">Vendos kodin nga email dhe fjal├½kalimin e ri (min. 6 karaktere).</p>
+        <p class="owner-reset-hint">Vendos kodin nga email dhe fjalëkalimin e ri (min. 6 karaktere).</p>
         <label for="reset-code">Kodi nga email</label>
         <input type="text" id="reset-code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
-        <label for="reset-password">Fjal├½kalimi i ri</label>
+        <label for="reset-password">Fjalëkalimi i ri</label>
         <input type="password" id="reset-password" autocomplete="new-password" minlength="6" placeholder="min. 6 karaktere">
-        <label for="reset-password2">P├½rs├½rit fjal├½kalimin</label>
-        <input type="password" id="reset-password2" autocomplete="new-password" minlength="6" placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó">
+        <label for="reset-password2">Përsërit fjalëkalimin</label>
+        <input type="password" id="reset-password2" autocomplete="new-password" minlength="6" placeholder="••••••••">
         <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Ruaj dhe hyr</button>
-        <button type="button" id="btn-back-login" class="btn btn-ghost owner-forgot-link">ΓåÉ Kthehu te hyrja</button>
+        <button type="button" id="btn-back-login" class="btn btn-ghost owner-forgot-link">← Kthehu te hyrja</button>
       </form>
     </div>
   </div>
   <script>
-    /* Laptiopi i Ketujemit: fshi cache t├½ vjet├½r t├½ panelit q├½ bllokonte hyrjen */
     (async function clearStaleOwnerCache() {
       try {
         if ("serviceWorker" in navigator) {
@@ -76,7 +75,7 @@
         bar: "Bar",
         market: "Market",
         dyqan: "Dyqan",
-        tjeter: "Tjet├½r",
+        tjeter: "Tjetër",
       };
       return labels[tipi] || "";
     }
@@ -88,20 +87,20 @@
       const name = (data.client_name || "").trim();
       if (!name) {
         bizEl.classList.add("hidden");
-        subEl.textContent = "Shitjet, raportet dhe tavolinat live ΓÇö nga telefoni.";
+        subEl.textContent = "Shitjet, raportet dhe tavolinat live — nga telefoni.";
         return;
       }
       bizEl.textContent = name;
       bizEl.classList.remove("hidden");
       const typeLbl = clientTypeLabel(data.client_type);
       subEl.textContent = typeLbl
-        ? `${typeLbl} ┬╖ shitjet dhe raportet tuaja`
-        : "Shitjet, raportet dhe tavolinat live ΓÇö nga telefoni.";
-      if (data.client_type === "kafene") iconEl.textContent = "Γÿò";
-      else if (data.client_type === "bar") iconEl.textContent = "≡ƒì╣";
-      else if (data.client_type === "market" || data.client_type === "dyqan") iconEl.textContent = "≡ƒ¢Æ";
-      else if (data.client_type === "restorant") iconEl.textContent = "≡ƒì╜∩╕Å";
-      else iconEl.textContent = "≡ƒÅ¬";
+        ? `${typeLbl} · shitjet dhe raportet tuaja`
+        : "Shitjet, raportet dhe tavolinat live — nga telefoni.";
+      if (data.client_type === "kafene") iconEl.textContent = "☕";
+      else if (data.client_type === "bar") iconEl.textContent = "🍹";
+      else if (data.client_type === "market" || data.client_type === "dyqan") iconEl.textContent = "🛒";
+      else if (data.client_type === "restorant") iconEl.textContent = "🍽️";
+      else iconEl.textContent = "🏪";
     }
 
     async function loadBrandingForEmail(email) {
@@ -203,7 +202,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.gabim || "Gabim");
         setMode("reset");
-        showInfo(data.message || "Kontrollo emailin p├½r kodin e rivendosjes.");
+        showInfo(data.message || "Kontrollo emailin për kodin e rivendosjes.");
       } catch (err) {
         showError(err.message);
       }
@@ -227,18 +226,18 @@
         const data = await res.json();
         if (!res.ok) {
           if (data.code === "WRONG_PORTAL") {
-            showError(data.gabim || "Ky email nuk ├½sht├½ p├½r k├½t├½ hyrje.");
+            showError(data.gabim || "Ky email nuk është për këtë hyrje.");
             return;
           }
           if (data.code === "PENDING_SETUP") {
             showError(
-              "Llogaria nuk ├½sht├½ aktivizuar ende. Hapni linkun e ftes├½s nga emaili (Aktivizo llogarin├½), pastaj hyni k├½tu.",
+              "Llogaria nuk është aktivizuar ende. Hapni linkun e ftesës nga emaili (Aktivizo llogarinë), pastaj hyni këtu.",
             );
             return;
           }
           if (data.password_reset_sent || data.code === "PASSWORD_RESET_SENT") {
             setMode("reset");
-            showInfo(data.gabim || "Kodi u d├½rgua n├½ email.");
+            showInfo(data.gabim || "Kodi u dërgua në email.");
             return;
           }
           throw new Error(data.gabim || "Gabim");
@@ -262,11 +261,11 @@
         return;
       }
       if (pw.length < MIN_PASSWORD) {
-        showError(`Fjal├½kalimi min. ${MIN_PASSWORD} karaktere.`);
+        showError(`Fjalëkalimi min. ${MIN_PASSWORD} karaktere.`);
         return;
       }
       if (pw !== pw2) {
-        showError("Fjal├½kalimet nuk p├½rputhen.");
+        showError("Fjalëkalimet nuk përputhen.");
         return;
       }
       try {

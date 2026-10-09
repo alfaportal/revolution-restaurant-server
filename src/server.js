@@ -180,7 +180,7 @@ function hotelUpstreamPath(req) {
     }
     if (seg === "kuzhina") return `/kitchen/${encodeURIComponent(slug)}${qs}`;
     if (seg === "bar") return `/bar/${encodeURIComponent(slug)}${qs}`;
-    if (seg === "owner") return `/owner/login${qs}`;
+    if (seg === "owner") return `/${encodeURIComponent(slug)}/owner${qs}`;
   }
 
   if (parts[0] === "hotel" && parts[1]) {
@@ -204,7 +204,14 @@ function proxyToHotel(req, res) {
       headers,
     },
     (proxyRes) => {
-      res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+      const headers = { ...proxyRes.headers };
+      const ct = String(headers["content-type"] || "");
+      if (/text\/html/i.test(ct) && !/charset=/i.test(ct)) {
+        headers["content-type"] = ct.includes(";")
+          ? `${ct}; charset=utf-8`
+          : `${ct || "text/html"}; charset=utf-8`;
+      }
+      res.writeHead(proxyRes.statusCode || 502, headers);
       proxyRes.pipe(res);
     },
   );
@@ -297,6 +304,9 @@ function proxyToKontabilisti(req, res) {
 }
 
 app.use("/security", proxyToSecurity);
+/** /owner/* shërbhet nga ky server — jo proxy te hotel. */
+app.get("/hotel/owner/panel", (_req, res) => res.redirect(302, "/owner/panel"));
+app.get("/hotel/owner/login", (_req, res) => res.redirect(302, "/owner/login"));
 app.use("/hotel", proxyToHotel);
 app.use("/market", proxyToMarket);
 app.use("/fiskalizim", proxyToFiskalizim);
@@ -760,20 +770,26 @@ app.get("/panel", (_req, res) => {
   res.status(404).type("text/plain").send("Not found");
 });
 
+function sendOwnerHtml(res, filename) {
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.sendFile(path.join(__dirname, "../public/owner", filename));
+}
+
 app.get("/owner/login", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/owner/login.html"));
+  sendOwnerHtml(res, "login.html");
 });
 
 app.get("/owner/setup", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/owner/setup.html"));
+  sendOwnerHtml(res, "setup.html");
 });
 
 app.get("/owner/register", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/owner/register.html"));
+  sendOwnerHtml(res, "register.html");
 });
 
 app.get("/owner/panel", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/owner/panel.html"));
+  sendOwnerHtml(res, "panel.html");
 });
 
 app.get(["/waiter", "/waiter/"], (_req, res) => {
