@@ -106,7 +106,7 @@
     }
 
     function ownerPanelHref() {
-      return ownerPortalFromStorage() === "hotel" ? "/hotel/owner/panel" : "/owner/panel";
+      return "/owner/panel";
     }
 
     async function loadBrandingForEmail(email) {
@@ -273,10 +273,7 @@
         } else {
           localStorage.removeItem("owner_portal");
         }
-        location.href =
-          data.portal === "hotel" || data.product_line === "hotel"
-            ? "/hotel/owner/panel"
-            : "/owner/panel";
+        location.href = "/owner/panel";
       } catch (err) {
         showError(err.message);
       }
@@ -311,7 +308,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.gabim || "Gabim");
         localStorage.setItem("owner_token", data.token);
-        location.href = "/owner/panel";
+        location.href = ownerPanelHref();
       } catch (err) {
         showError(err.message);
       }

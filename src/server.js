@@ -352,7 +352,10 @@ function proxyToKontabilisti(req, res) {
 }
 
 app.use("/security", proxyToSecurity);
-/** /owner/login|register|setup = gateway; panel hotel = /hotel/owner/panel (proxy), si /security/pronari. */
+/** Panel pronari hotel — gjithmonë /owner/panel (jo /hotel/owner/panel në shfletues). */
+app.get("/hotel/owner/panel", (_req, res) => res.redirect(302, "/owner/panel"));
+app.get("/hotel/owner/login", (_req, res) => res.redirect(302, "/owner/login"));
+/** /owner/login|register|setup = gateway; stafi/API hotel = /hotel/* proxy. */
 app.use("/hotel", (req, res, next) => {
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
   const parts = (req.path || "").split("/").filter(Boolean);
@@ -851,7 +854,7 @@ app.get("/owner/register", (_req, res) => {
 
 app.get("/owner/panel", (req, res) => {
   if (String(req.cookies?.owner_portal || "").trim() === "hotel") {
-    return res.redirect(302, "/hotel/owner/panel");
+    return sendOwnerHtml(res, "panel-hotel.html");
   }
   sendOwnerHtml(res, "panel.html");
 });
