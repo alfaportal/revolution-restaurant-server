@@ -70,6 +70,7 @@
 
     function clientTypeLabel(tipi) {
       const labels = {
+        hotel: "Hotel",
         kafene: "Kafene",
         restorant: "Restorant",
         bar: "Bar",
@@ -139,21 +140,40 @@
       hideAlerts();
     }
 
+    function ownerPortalFromStorage() {
+      return localStorage.getItem("owner_portal") === "hotel" ? "hotel" : "restaurant";
+    }
+
+    function ownerMeUrl() {
+      return ownerPortalFromStorage() === "hotel"
+        ? "/hotel/api/auth/owner/me"
+        : "/api/auth/owner/me";
+    }
+
     (async () => {
       const token = localStorage.getItem("owner_token");
       if (!token) return;
       try {
-        const res = await fetch("/api/auth/owner/me", {
+        let res = await fetch(ownerMeUrl(), {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         });
+        if (!res.ok && ownerPortalFromStorage() === "restaurant") {
+          res = await fetch("/hotel/api/auth/owner/me", {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
+          });
+          if (res.ok) localStorage.setItem("owner_portal", "hotel");
+        }
         if (res.ok) {
           location.href = "/owner/panel";
           return;
         }
         localStorage.removeItem("owner_token");
+        localStorage.removeItem("owner_portal");
       } catch {
         localStorage.removeItem("owner_token");
+        localStorage.removeItem("owner_portal");
       }
     })();
 
@@ -243,6 +263,11 @@
           throw new Error(data.gabim || "Gabim");
         }
         localStorage.setItem("owner_token", data.token);
+        if (data.portal === "hotel" || data.product_line === "hotel") {
+          localStorage.setItem("owner_portal", "hotel");
+        } else {
+          localStorage.removeItem("owner_portal");
+        }
         location.href = "/owner/panel";
       } catch (err) {
         showError(err.message);

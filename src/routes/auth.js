@@ -22,7 +22,8 @@ const {
   MIN_PASSWORD,
 } = require("../services/ownerPasswordReset");
 const { buildOwnerAuthContext } = require("../services/ownerGroupService");
-const { issueOwnerSession } = require("../lib/ownerSession");
+const { issueOwnerSession, OWNER_COOKIE_OPTS } = require("../lib/ownerSession");
+const { hotelOwnerLogin, hotelOwnerBranding } = require("../lib/hotelOwnerBridge");
 
 const router = express.Router();
 
@@ -113,6 +114,22 @@ router.post("/owner/login", async (req, res) => {
 
     const user = await findUserByEmail(email);
     if (!user) {
+      const hotel = await hotelOwnerLogin(email, password);
+      if (hotel.status === 200 && hotel.body?.ok && hotel.body?.token) {
+        res.cookie("owner_token", hotel.body.token, OWNER_COOKIE_OPTS);
+        res.cookie("owner_portal", "hotel", OWNER_COOKIE_OPTS);
+        return res.json({
+          ok: true,
+          token: hotel.body.token,
+          portal: "hotel",
+          product_line: "hotel",
+          user: hotel.body.user || null,
+        });
+      }
+      const status = hotel.status >= 400 && hotel.status < 600 ? hotel.status : 401;
+      if (hotel.body?.gabim) {
+        return res.status(status).json(hotel.body);
+      }
       return res.status(401).json({ gabim: "Kredencialet janë të gabuara." });
     }
 
@@ -125,6 +142,18 @@ router.post("/owner/login", async (req, res) => {
 
     const ok = await verifyUserPassword(user, password);
     if (!ok) {
+      const hotel = await hotelOwnerLogin(email, password);
+      if (hotel.status === 200 && hotel.body?.ok && hotel.body?.token) {
+        res.cookie("owner_token", hotel.body.token, OWNER_COOKIE_OPTS);
+        res.cookie("owner_portal", "hotel", OWNER_COOKIE_OPTS);
+        return res.json({
+          ok: true,
+          token: hotel.body.token,
+          portal: "hotel",
+          product_line: "hotel",
+          user: hotel.body.user || null,
+        });
+      }
       const body = await handleOwnerWrongPassword(user, email);
       return res.status(401).json(body);
     }
@@ -147,12 +176,16 @@ router.post("/owner/login", async (req, res) => {
 
     clearFailCount(email);
 
+    res.clearCookie("owner_portal");
+
     const authPayload = await buildOwnerAuthContext(user, { clientId: user.client_id });
     const token = issueOwnerSession(res, authPayload);
 
     res.json({
       ok: true,
       token,
+      portal: "restaurant",
+      product_line: "restaurant",
       user: {
         id: user.id,
         emri: user.emri,
@@ -175,11 +208,16 @@ router.post("/logout", (_req, res) => {
 
 router.get("/owner/branding", async (req, res) => {
   try {
-    const branding = await getOwnerLoginBranding(req.query.email);
-    if (!branding.ok) {
-      return res.json({ ok: false });
+    const email = String(req.query.email || "").trim();
+    const branding = await getOwnerLoginBranding(email);
+    if (branding.ok) {
+      return res.json({ ok: true, ...branding });
     }
-    res.json({ ok: true, ...branding });
+    const hotel = await hotelOwnerBranding(email);
+    if (hotel.status === 200 && hotel.body?.ok) {
+      return res.json({ ok: true, ...hotel.body, portal: "hotel" });
+    }
+    return res.json({ ok: false });
   } catch (e) {
     res.status(500).json({ ok: false, gabim: e.message });
   }
@@ -256,6 +294,7 @@ router.post("/owner/register", async (req, res) => {
 
 router.post("/owner/logout", (_req, res) => {
   res.clearCookie("owner_token");
+  res.clearCookie("owner_portal");
   res.json({ ok: true });
 });
 

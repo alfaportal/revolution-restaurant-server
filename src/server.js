@@ -788,7 +788,11 @@ app.get("/owner/register", (_req, res) => {
   sendOwnerHtml(res, "register.html");
 });
 
-app.get("/owner/panel", (_req, res) => {
+app.get("/owner/panel", (req, res) => {
+  const portal = String(req.cookies?.owner_portal || "").trim();
+  if (portal === "hotel") {
+    return sendOwnerHtml(res, "panel-hotel.html");
+  }
   sendOwnerHtml(res, "panel.html");
 });
 
