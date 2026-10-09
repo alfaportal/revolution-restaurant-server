@@ -159,8 +159,41 @@ function proxyToSecurity(req, res) {
   req.pipe(proxyReq);
 }
 
+/** Pas mount /hotel — req.path = /{slug}/kamarier, /menu/..., /api/..., etj. */
+function hotelUpstreamPath(req) {
+  const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  const parts = (req.path || "").split("/").filter(Boolean);
+
+  if (parts[0] === "menu" && parts[1]) {
+    const table = parts[2] || "1";
+    return `/menu/${encodeURIComponent(parts[1])}/${table}${qs}`;
+  }
+  if (parts[0] === "waiter" && parts[1]) {
+    return `/waiter/${encodeURIComponent(parts[1])}${qs}`;
+  }
+
+  if (parts.length >= 2) {
+    const slug = parts[0];
+    const seg = parts[1];
+    if (seg === "kamarier" || seg === "recepsion") {
+      return `/waiter/${encodeURIComponent(slug)}${qs}`;
+    }
+    if (seg === "kuzhina") return `/kitchen/${encodeURIComponent(slug)}${qs}`;
+    if (seg === "bar") return `/bar/${encodeURIComponent(slug)}${qs}`;
+    if (seg === "owner") return `/owner/login${qs}`;
+  }
+
+  if (parts[0] === "hotel" && parts[1]) {
+    return proxyUpstreamPath(req, "hotel");
+  }
+
+  let path = req.path || "/";
+  if (!path.startsWith("/")) path = `/${path}`;
+  return `${path}${qs}`;
+}
+
 function proxyToHotel(req, res) {
-  const upstreamPath = proxyUpstreamPath(req, "hotel");
+  const upstreamPath = hotelUpstreamPath(req);
   const headers = { ...req.headers, host: HOTEL_UPSTREAM };
   const proxyReq = https.request(
     {
