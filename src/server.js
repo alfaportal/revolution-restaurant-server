@@ -183,8 +183,11 @@ function hotelUpstreamPath(req) {
     if (seg === "kamarier" && parts[2] === "manifest.json") {
       return `/waiter/${encodeURIComponent(slug)}/manifest.json${qs}`;
     }
-    if (seg === "kamarier" || seg === "recepsion") {
+    if (seg === "kamarier") {
       return `/waiter/${encodeURIComponent(slug)}${qs}`;
+    }
+    if (seg === "recepsion") {
+      return `/recepsion/${encodeURIComponent(slug)}${qs}`;
     }
     if (seg === "menu") {
       const table = parts[2] || "1";
