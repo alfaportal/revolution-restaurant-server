@@ -186,9 +186,18 @@ function hotelUpstreamPath(req) {
     if (seg === "kamarier" || seg === "recepsion") {
       return `/waiter/${encodeURIComponent(slug)}${qs}`;
     }
+    if (seg === "menu") {
+      const table = parts[2] || "1";
+      return `/menu/${encodeURIComponent(slug)}/${encodeURIComponent(table)}${qs}`;
+    }
+    if (seg === "takeaway") return `/${encodeURIComponent(slug)}/takeaway${qs}`;
     if (seg === "kuzhina") return `/kitchen/${encodeURIComponent(slug)}${qs}`;
     if (seg === "bar") return `/bar/${encodeURIComponent(slug)}${qs}`;
     if (seg === "owner") return `/${encodeURIComponent(slug)}/owner${qs}`;
+  }
+
+  if (parts.length === 1) {
+    return `/${encodeURIComponent(parts[0])}${qs}`;
   }
 
   if (parts[0] === "hotel" && parts[1]) {
@@ -203,10 +212,19 @@ function hotelUpstreamPath(req) {
 function hotelPageSlugFromPath(reqPath) {
   const parts = String(reqPath || "").split("/").filter(Boolean);
   let raw = "";
-  if (parts.length >= 2 && (parts[1] === "kamarier" || parts[1] === "recepsion")) {
+  const staffSeg = new Set(["kamarier", "recepsion", "bar", "kuzhina", "menu", "takeaway", "owner"]);
+  if (parts.length >= 2 && staffSeg.has(parts[1])) {
     raw = decodeURIComponent(parts[0]);
   } else if (parts[0] === "waiter" && parts[1]) {
     raw = decodeURIComponent(parts[1]);
+  } else if (parts[0] === "bar" && parts[1]) {
+    raw = decodeURIComponent(parts[1]);
+  } else if (parts[0] === "kitchen" && parts[1]) {
+    raw = decodeURIComponent(parts[1]);
+  } else if (parts[0] === "menu" && parts[1]) {
+    raw = decodeURIComponent(parts[1]);
+  } else if (parts.length === 1) {
+    raw = decodeURIComponent(parts[0]);
   }
   if (!raw) return "";
   return stripLegacyKitchenSlugSuffix(raw) || raw;
