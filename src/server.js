@@ -233,6 +233,8 @@ function hotelPageSlugFromPath(reqPath) {
 function proxyToHotel(req, res) {
   const upstreamPath = hotelUpstreamPath(req);
   const headers = { ...req.headers, host: HOTEL_UPSTREAM };
+  delete headers["accept-encoding"];
+  delete headers["Accept-Encoding"];
   const proxyReq = https.request(
     {
       hostname: HOTEL_UPSTREAM,
@@ -267,6 +269,8 @@ function proxyToHotel(req, res) {
       proxyRes.on("end", () => {
         if (res.headersSent) return;
         let body = Buffer.concat(chunks).toString("utf8");
+        delete outHeaders["transfer-encoding"];
+        delete outHeaders["Transfer-Encoding"];
         if (isHtml) {
           body = rewriteHotelProxyHtml(body, slug);
           delete outHeaders["content-length"];
