@@ -861,6 +861,14 @@ app.use((req, res, next) => {
   next();
 });
 
+/** Pronar hotel: SW nga upstream; kafene → static public/owner/sw.js */
+app.get("/owner/sw.js", (req, res, next) => {
+  if (String(req.cookies?.owner_portal || "").trim() !== "hotel") {
+    return next();
+  }
+  return proxyToHotel(req, res);
+});
+
 app.use(express.static(PUBLIC_DIR));
 
 /**
@@ -915,7 +923,7 @@ app.get("/owner/register", (_req, res) => {
 
 app.get("/owner/panel", (req, res) => {
   if (String(req.cookies?.owner_portal || "").trim() === "hotel") {
-    return sendOwnerHtml(res, "panel-hotel.html");
+    return proxyToHotel(req, res);
   }
   sendOwnerHtml(res, "panel.html");
 });
