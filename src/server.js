@@ -127,7 +127,7 @@ function proxyUpstreamPath(req, product) {
     if (role === "owner") return `/owner/login${qs}`;
     if (role === "kamarier") return `/${slug}/kamarier${qs}`;
     if (role === "recepsion") return `/${slug}/recepsion${qs}`;
-    if (role === "sherbimi") return `/kitchen/${slug}${qs}`;
+    if (role === "sherbimi") return `/sherbimi/${slug}${qs}`;
     if (role === "bar") return `/bar/${slug}${qs}`;
     if (role === "kuzhina") return `/kitchen/${slug}${qs}`;
     return `/r/${slug}${qs}`;
@@ -199,6 +199,9 @@ function hotelUpstreamPath(req) {
     if (seg === "recepsion") {
       return `/recepsion/${encodeURIComponent(slug)}${qs}`;
     }
+    if (seg === "sherbimi") {
+      return `/sherbimi/${encodeURIComponent(slug)}${qs}`;
+    }
     if (seg === "menu") {
       const table = parts[2] || "1";
       return `/menu/${encodeURIComponent(slug)}/${encodeURIComponent(table)}${qs}`;
@@ -225,7 +228,7 @@ function hotelUpstreamPath(req) {
 function hotelPageSlugFromPath(reqPath) {
   const parts = String(reqPath || "").split("/").filter(Boolean);
   let raw = "";
-  const staffSeg = new Set(["kamarier", "recepsion", "bar", "kuzhina", "menu", "takeaway", "owner"]);
+  const staffSeg = new Set(["kamarier", "recepsion", "sherbimi", "bar", "kuzhina", "menu", "takeaway", "owner"]);
   if (parts.length >= 2 && staffSeg.has(parts[1])) {
     raw = decodeURIComponent(parts[0]);
   } else if (parts[0] === "waiter" && parts[1]) {
