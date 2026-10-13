@@ -548,6 +548,10 @@ async function saveActivationEmail(license, email) {
   }
 }
 
+/** Meta e suksesit (last_validation_at, …) shkruhet më së shumti 1× / 5 min për pajisje; SELECT-i mbetet në çdo kërkesë. */
+const LICENSE_META_WRITE_MS = 5 * 60 * 1000;
+const licenseMetaWrittenAt = new Map();
+
 async function patchLicenseMeta(licenseId, patch) {
   const { db } = await dbForLicenseId(licenseId);
   let { error } = await db.from("licenses").update(patch).eq("id", licenseId);
@@ -774,7 +778,17 @@ async function validateLicense({
     successPatch.device_id = deviceId;
   }
 
-  await patchLicenseMeta(license.id, successPatch);
+  const metaWriteKey = `${license.id}|${deviceId}`;
+  const lastMetaWrite = licenseMetaWrittenAt.get(metaWriteKey) || 0;
+  const metaMustWrite =
+    Boolean(terminalAccess.is_new)
+    || claimsLicenseDevice
+    || (successPatch.hardware_id && isLicenseDevice && !normalizeHardwareIdStored(license.hardware_id || ""))
+    || String(license.last_validation_error || "") !== successPatch.last_validation_error;
+  if (metaMustWrite || Date.now() - lastMetaWrite >= LICENSE_META_WRITE_MS) {
+    await patchLicenseMeta(license.id, successPatch);
+    licenseMetaWrittenAt.set(metaWriteKey, Date.now());
+  }
   if (claimsLicenseDevice) license.device_id = deviceId;
   if (host && isLicenseDevice) license.device_hostname = host;
 

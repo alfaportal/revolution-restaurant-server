@@ -3,6 +3,10 @@ const { dbForLicenseId, getSupabaseForProduct } = require("../lib/productSupabas
 /** Pa shtim terminali të ri gjatë grace — vetëm mesazh. Overflow i ri = bllokim. */
 const TERMINAL_GRACE_MS = 2 * 60 * 60 * 1000;
 
+/** last_seen_at shkruhet më së shumti 1× / 5 min për pajisje (restart i serverit → shkrim në kërkesën e parë). */
+const TERMINAL_TOUCH_WRITE_MS = 5 * 60 * 1000;
+const terminalTouchWrittenAt = new Map();
+
 function normalizeDeviceId(deviceId) {
   return String(deviceId || "").trim().toUpperCase().replace(/\s+/g, "");
 }
@@ -425,11 +429,22 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
   }
 
   if (slotIndex >= 0) {
-    await touchTerminal(license.id, id, { hostname, ip });
+    const touchKey = `${license.id}|${id}`;
     const existing = terminals[slotIndex];
+    const metaChanged =
+      (hostname && String(hostname).trim().slice(0, 128) !== String(existing.device_hostname || ""))
+      || (ip && String(ip).trim().slice(0, 64) !== String(existing.last_ip || ""));
+    const lastTouch = terminalTouchWrittenAt.get(touchKey) || 0;
+    if (metaChanged || Date.now() - lastTouch >= TERMINAL_TOUCH_WRITE_MS) {
+      await touchTerminal(license.id, id, { hostname, ip });
+      terminalTouchWrittenAt.set(touchKey, Date.now());
+      terminals = await listTerminalsOrdered(license.id);
+      slotIndex = terminals.findIndex((t) => t.device_id === id);
+    }
+    const rowAfterTouch = terminals[slotIndex];
     if (
-      existing &&
-      !existing.terminal_role &&
+      rowAfterTouch &&
+      !rowAfterTouch.terminal_role &&
       normalizeDeviceId(license.device_id) === id &&
       !(terminals || []).some((t) => isPrimaryTerminalRole(t.terminal_role))
     ) {
@@ -439,10 +454,12 @@ async function resolveTerminalAccess(license, deviceId, hostname, ip, hardwareId
         .update({ terminal_role: PRIMARY_TERMINAL_ROLE })
         .eq("license_id", license.id)
         .eq("device_id", id);
+      terminals = await listTerminalsOrdered(license.id);
+      slotIndex = terminals.findIndex((t) => t.device_id === id);
     }
-    terminals = await listTerminalsOrdered(license.id);
-    slotIndex = terminals.findIndex((t) => t.device_id === id);
-    if (terminals.length <= maxTerminals) await clearTerminalLimitGrace(license.id);
+    if (terminals.length <= maxTerminals && license.terminal_limit_grace_at) {
+      await clearTerminalLimitGrace(license.id);
+    }
 
     const self = terminals[slotIndex];
     const isPrimarySelf = Boolean(self?.terminal_role && isPrimaryTerminalRole(self.terminal_role));

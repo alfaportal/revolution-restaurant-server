@@ -31,7 +31,8 @@ const { buildClientWebLinksList } = require("../lib/productUrls");
 const { getPublicAppOrigin } = require("../lib/publicOrigin");
 const { daysUntilTrialEnd } = require("../lib/trialDates");
 
-const PRESENCE_ONLINE_MS = 2 * 60 * 1000;
+/** > 5 min: last_validation_at / last_seen_at shkruhen 1× / 5 min (licenseService, licenseTerminalService). */
+const PRESENCE_ONLINE_MS = 6 * 60 * 1000;
 const PRESENCE_IDLE_MS = 10 * 60 * 1000;
 const EXPIRY_WARN_DAYS = 7;
 

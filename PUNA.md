@@ -1,5 +1,20 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-10-13 — Ulje ngarkese Supabase (KAFENE cloud — pa deploy)
+
+| Skedar | Ndryshim |
+|--------|----------|
+| `src/services/licenseService.js` | `patchLicenseMeta` + `last_heartbeat_at` — shkrim **1× / 5 min** për licencë+pajisje (si HOTEL); menjëherë për PC të re, `claimsLicenseDevice`, HW i ri, ndryshim `last_validation_error`. |
+| `src/services/licenseTerminalService.js` | `touchTerminal` **1× / 5 min**; `clearTerminalLimitGrace` vetëm kur ka grace; roli `arka1` i paplotësuar — UPDATE menjëherë. |
+| `src/lib/staffBranding.js` | Cache `pos_settings` **30 min** (pa base64 në memorie). |
+| `src/services/superAdminDashboardService.js` | 🟢 online **6 min** (idle 10 min i njëjtë). |
+
+**Provë:** `node --check` OK; mock Supabase — thirrja 1 ≈ 3 UPDATE, thirrjet 2–3 ≈ 1 UPDATE, pas 301s ≈ 3 UPDATE.
+
+**Desktop KAFENE** (Setup i ri): `restaurant-system/KAFENE` — login 2s lokal, admin tavolina `?cached=1` 3s, watcher `lastCloudPayload`.
+
+---
+
 ## 2026-10-10 — Fshirje `public/owner/panel-hotel.html`
 
 ### Audit (para fshirjes)
