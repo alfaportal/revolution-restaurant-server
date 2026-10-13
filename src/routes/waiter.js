@@ -12,13 +12,34 @@ const {
 
 const { getKitchenMenuItemPhoto } = require("../services/menuService");
 const { verifyKasaSessionToken } = require("../lib/kasaSession");
-const { getWaiterById } = require("../services/waiterPinService");
+const { getWaiterById, getWaiterByWebToken } = require("../services/waiterPinService");
 const { sendShiftCloseEmailForClient } = require("../services/shiftCloseEmailService");
 
 const router = express.Router();
 
 function extractWaiterToken(req) {
   return String(req.query.w || req.body?.web_token || "").trim().toLowerCase();
+}
+
+/** Kamarier web (?w=) ose waiter_id nga sesioni — për PRANO/REFUZO QR + takeaway. */
+async function resolveWebWaiterStaff(clientId, req) {
+  const token = extractWaiterToken(req);
+  if (token) {
+    const fromToken = await getWaiterByWebToken(clientId, token);
+    if (fromToken?.id) return fromToken;
+  }
+  const qId = String(req.query.waiter_id || req.body?.waiter_id || "").trim();
+  if (qId) {
+    const w = await getWaiterById(clientId, qId);
+    if (w?.id) return w;
+  }
+  throw new Error("Sesioni i kamarierit mungon — rifreskoni faqen ose hyni përsëri me PIN.");
+}
+
+function refusalActorIdForWaiter(waiter) {
+  const id = String(waiter?.id || "").trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return id;
+  return id || "waiter-web";
 }
 
 router.get("/:slug/menu/:itemId/photo", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {
@@ -116,6 +137,46 @@ router.post("/:slug/online-orders/accept", resolveKitchenClient, requirePackageF
     ok: false,
     gabim: "Porositë online pranohen vetëm nga kasa (KAFENE desktop).",
   });
+});
+
+/** PRANO porosi QR tavolinë / takeaway / publike — kamarier cloud (jo kuzhina). */
+router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {
+  try {
+    const client = req.kitchenClient;
+    const waiter = await resolveWebWaiterStaff(client.id, req);
+    const { acceptBarOrder } = require("../services/kdsService");
+    const order = await acceptBarOrder(client.id, req.params.orderId, {
+      waiterId: waiter.id,
+      waiterName: waiter.name,
+    });
+    res.json({ ok: true, order, accepted_by: waiter.name });
+  } catch (e) {
+    res.status(400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.post("/:slug/orders/:orderId/refuse", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {
+  try {
+    const client = req.kitchenClient;
+    const waiter = await resolveWebWaiterStaff(client.id, req);
+    const { refuseBarOrderWithGrace } = require("../services/kdsService");
+    const reason = String(req.body?.reason || req.body?.refuse_reason || "").trim();
+    const order = await refuseBarOrderWithGrace(client.id, req.params.orderId, {
+      waiterId: refusalActorIdForWaiter(waiter),
+      waiterName: waiter.name,
+      reason,
+    });
+    res.json({
+      ok: true,
+      order,
+      status: order.status,
+      grace_minutes: 2,
+      refuse_mode: "grace_v2",
+      refuse_reason: order.refuse_reason || reason || "",
+    });
+  } catch (e) {
+    res.status(400).json({ ok: false, gabim: e.message });
+  }
 });
 
 router.post("/:slug/kasa-session", resolveKitchenClient, requirePackageFeature("waiter"), async (req, res) => {

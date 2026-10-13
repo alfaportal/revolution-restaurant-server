@@ -205,7 +205,7 @@ router.post("/:slug/orders/:orderId/accept", resolveKitchenClient, requirePackag
     if (existing && isQrTablePosWaiterAcceptOrder(existing)) {
       return res.status(403).json({
         ok: false,
-        gabim: "Porosia QR e tavolinës pranohet nga kamarieri në POS — jo nga kuzhina/banaku.",
+        gabim: "Porosia QR e tavolinës pranohet nga kamarieri (cloud ose POS) — jo nga ekrani i kuzhinës/banakut.",
       });
     }
     let handler;

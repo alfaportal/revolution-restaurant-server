@@ -1116,7 +1116,7 @@
     handledAcceptIds.add(orderId);
     try {
       await api(
-        `/api/kds/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/accept${apiQuery()}`,
+        `/api/waiter/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/accept${apiQuery()}`,
         { method: "POST", body: JSON.stringify({}) },
       );
     } catch { /* pranim i heshtur — porosia e kamarierit */ }
@@ -1283,7 +1283,7 @@
     if (btn) { btn.disabled = true; btn.textContent = "…"; }
     try {
       const data = await api(
-        `/api/kds/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/accept${apiQuery()}`,
+        `/api/waiter/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/accept${apiQuery()}`,
         { method: "POST", body: JSON.stringify(acceptWaiterAuthBody()) },
       );
       handledAcceptIds.add(orderId);
@@ -1355,7 +1355,7 @@
     const reason = await pickRefuseReason();
     if (reason == null) return;
     if (btn) { btn.disabled = true; btn.textContent = "…"; }
-    const refuseUrl = `/api/kds/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/refuse${apiQuery()}`;
+    const refuseUrl = `/api/waiter/${encodeURIComponent(slug)}/orders/${encodeURIComponent(orderId)}/refuse${apiQuery()}`;
     console.log("[waiter] REFUZO click", { orderId, url: refuseUrl, reason });
     try {
       const body = { ...acceptWaiterAuthBody(), reason };
