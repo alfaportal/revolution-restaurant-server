@@ -358,6 +358,11 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
   const { isPosDesktopDevice } = require("../lib/orderSource");
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
   /** Pagesë POS por kuzhina ende nuk ka shtypur «Gati» — mbaj ordered në cloud. */
+  const waiterTableClose =
+    body.waiter_table_close === true
+    || body.waiter_table_close === 1
+    || body.waiter_table_close === "1"
+    || body.waiter_table_close === "true";
   let deferPosCloseForKitchen = false;
   if (
     status === "closed"
@@ -365,6 +370,7 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     && existing
     && String(existing.status || "") === "ordered"
     && !existing.ready_at
+    && !waiterTableClose
   ) {
     finalStatus = "ordered";
     deferPosCloseForKitchen = true;

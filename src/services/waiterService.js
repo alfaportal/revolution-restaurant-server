@@ -644,6 +644,8 @@ async function closeWaiterTable(clientId, body) {
     status: "closed",
     ordered_at: existing.ordered_at || now,
     closed_at: now,
+    // Mbyllje eksplicite nga telefoni — mos e shtyj «ordered» për kuzhinën (defer POS).
+    waiter_table_close: true,
   });
 
   if (saleResult.sale?.id) {
