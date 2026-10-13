@@ -348,6 +348,30 @@ router.get("/tables/live", async (req, res) => {
   }
 });
 
+/** Takeaway / faqe publike / QR në pritje — pa kitchen key (panel pronari). */
+router.get("/online-slots", async (req, res) => {
+  try {
+    const clientId = req.user.client_id;
+    const {
+      fetchOrderedSales,
+      fetchRefusalGraceOrders,
+      mergeOrdersById,
+      buildOnlineSlotLayout,
+    } = require("../services/kdsService");
+    let orders = await fetchOrderedSales(clientId);
+    orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(clientId));
+    const online_slots = buildOnlineSlotLayout(orders, {});
+    res.json({
+      ok: true,
+      online_slots,
+      online_zone_title: "POROSI ONLINE",
+      updated_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message });
+  }
+});
+
 router.get("/reports", async (req, res) => {
   try {
     const report = await getOwnerReport(

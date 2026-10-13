@@ -478,17 +478,17 @@ function renderOwnerOnlineSlotCard(slot) {
   </div>`;
 }
 
+function ownerSeesOnlineOrdersZone() {
+  return !!(
+    ownerPackageFeatures.kds
+    || ownerPackageFeatures.online_orders
+    || ownerPackageFeatures.website
+    || ownerPackageFeatures.kiosk
+  );
+}
+
 async function fetchOwnerOnlineSlots() {
-  const access = parseOwnerBarKdsAccess();
-  if (!access) {
-    return { slots: defaultOwnerOnlineSlots(), title: "POROSI ONLINE" };
-  }
-  const q = `?key=${encodeURIComponent(access.key)}`;
-  const res = await fetch(`/api/kds/${encodeURIComponent(access.slug)}/bar/orders${q}`, {
-    headers: { "x-kitchen-key": access.key },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.gabim || "Nuk u ngarkuan slotet online.");
+  const data = await api("/api/owner/online-slots");
   return {
     slots: Array.isArray(data.online_slots) && data.online_slots.length
       ? data.online_slots
@@ -503,7 +503,7 @@ async function loadLiveOnlineSlots() {
   const titleEl = document.getElementById("owner-online-title");
   if (!zone || !grid) return;
 
-  if (!ownerPackageFeatures.kds || !parseOwnerBarKdsAccess()) {
+  if (!ownerSeesOnlineOrdersZone()) {
     zone.classList.add("hidden");
     grid.innerHTML = "";
     return;
