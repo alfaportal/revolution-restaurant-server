@@ -246,13 +246,30 @@ async function freeTableFromPos(body) {
   const nowMs = Date.now();
   const KITCHEN_PENDING_MS = 30 * 60 * 1000;
   let cancelled = 0;
+  let closedRemote = 0;
   const keepDevice = String(body.device_id || "").trim().toUpperCase();
   for (const row of rows || []) {
     if (isKitchenLifecycleActive(row)) continue;
-    if (isRemoteActiveTableOrder(row.device_id)) continue;
     const rowDevice = String(row.device_id || "").trim().toUpperCase();
-    if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
+    const isRemote = isRemoteActiveTableOrder(row.device_id);
     const st = String(row.status || "").toLowerCase();
+
+    if (isRemote) {
+      const { error: updErr } = await db
+        .from("sales_orders")
+        .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
+        .eq("id", row.id);
+      if (!updErr) {
+        cancelled += 1;
+        closedRemote += 1;
+        console.log(
+          `[sales/table-free] T${tableNum} remote order ${String(row.id).slice(0, 8)} (${rowDevice}) -> cancelled`,
+        );
+      }
+      continue;
+    }
+
+    if (keepDevice && isPosDesktopDevice(keepDevice) && rowDevice !== keepDevice) continue;
     if (st === "ready") continue;
     if (isOrderAccepted(row) && !row.ready_at) continue;
     const ps = String(row.payment_status || "").toLowerCase();
@@ -547,10 +564,7 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
         || body.pos_keep_acceptance === "1"
         || body.pos_keep_acceptance === "true"
       );
-    const { isPosDesktopDevice } = require("../lib/orderSource");
-    const skipPosClosedKdsPing =
-      finalStatus === "closed" && isPosDesktopDevice(deviceId);
-    if (!skipKdsPing && !skipPosClosedKdsPing) {
+    if (!skipKdsPing) {
       try {
         const kds = require("./kdsEvents");
         const tableNum = Number(data?.table_number ?? body.table_number) || 0;
