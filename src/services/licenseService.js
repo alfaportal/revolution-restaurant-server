@@ -47,6 +47,37 @@ const LICENSE_CHILD_TABLES = [
   "license_remote_audit",
 ];
 
+/** FK te clients në prod (shpesh pa ON DELETE CASCADE) — rend: fëmijët para prindit. */
+const CLIENT_DELETE_TARGETS = [
+  ["order_refusal_events", "client_id"],
+  ["stock_alert_notifications", "client_id"],
+  ["ingredient_alert_notifications", "restaurant_id"],
+  ["daily_report_notifications", "restaurant_id"],
+  ["sales_orders", "client_id"],
+  ["fiscal_receipts", "client_id"],
+  ["daily_z_reports", "client_id"],
+  ["pos_menu_items", "client_id"],
+  ["pos_categories", "client_id"],
+  ["pos_staff", "client_id"],
+  ["pos_areas", "client_id"],
+  ["pos_waiter_tables", "client_id"],
+  ["pos_pending_purchases", "client_id"],
+  ["owner_expenses", "client_id"],
+  ["owner_activity_log", "client_id"],
+  ["terminal_pair_codes", "client_id"],
+  ["offline_notifications", "client_id"],
+  ["ai_waiter_ratings", "restaurant_id"],
+  ["ai_weekly_reports", "restaurant_id"],
+  ["ai_chat_history", "restaurant_id"],
+  ["ai_daily_reports", "restaurant_id"],
+  ["supply_suggestions", "restaurant_id"],
+  ["ai_usage_logs", "restaurant_id"],
+  ["ingredients", "restaurant_id"],
+  ["reservations", "restaurant_id"],
+  ["notification_settings", "restaurant_id"],
+  ["pos_settings", "client_id"],
+];
+
 function enrichLicenseRowWithTerminals(lic, summary) {
   const primary = pickPrimaryTerminal(summary.terminals);
   const displayDeviceId =
@@ -1399,24 +1430,41 @@ async function deleteLicensesForClient(db, clientId) {
 
 /** Fshin rreshta që mund të bllokojnë DELETE te clients (FK pa CASCADE në prod). */
 async function deleteClientDependentRows(db, clientId) {
-  const targets = [
-    ["offline_notifications", "client_id"],
-    ["ai_usage_logs", "restaurant_id"],
-    ["ingredients", "restaurant_id"],
-    ["reservations", "restaurant_id"],
-  ];
-  for (const [table, column] of targets) {
+  for (const [table, column] of CLIENT_DELETE_TARGETS) {
     const { error } = await db.from(table).delete().eq(column, clientId);
     if (!error) continue;
     if (!isMissingRelation(error)) throw error;
   }
 }
 
+async function deleteClientViaPg(clientId) {
+  const pool = getPgPool();
+  if (!pool) return false;
+  const cid = String(clientId || "").trim();
+  if (!cid) return false;
+  await withPgTransaction(async (client) => {
+    for (const [table, column] of CLIENT_DELETE_TARGETS) {
+      try {
+        await client.query(`DELETE FROM ${table} WHERE ${column} = $1::uuid`, [cid]);
+      } catch (e) {
+        if (!isMissingPgRelation(e)) throw e;
+      }
+    }
+  });
+  return true;
+}
+
 async function deleteClient(id, productHint) {
   const { db } = await dbForClientId(id, productHint);
+  try {
+    await deleteClientViaPg(id);
+  } catch (err) {
+    console.warn("[deleteClient] pg dependent purge:", err.message || err);
+  }
   await deleteClientDependentRows(db, id);
   await deleteLicensesForClient(db, id);
-  await db.from("users").delete().eq("client_id", id).eq("roli", "client_admin");
+  const { error: usersErr } = await db.from("users").delete().eq("client_id", id);
+  if (usersErr && !isMissingRelation(usersErr)) throw usersErr;
   const { error } = await db.from("clients").delete().eq("id", id);
   if (error) throw error;
   return { ok: true };

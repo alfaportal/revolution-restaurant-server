@@ -31,9 +31,24 @@ BEGIN
   DELETE FROM license_remote_audit
   WHERE license_id IN (SELECT id FROM licenses WHERE client_id = p_client_id);
   DELETE FROM licenses WHERE client_id = p_client_id;
+  DELETE FROM pos_settings WHERE client_id = p_client_id;
 END;
 $fn$;
 `;
+
+async function ensurePosSettingsCascade() {
+  const pool = getPgPool();
+  if (!pool) return false;
+  await pool.query(`
+    ALTER TABLE pos_settings DROP CONSTRAINT IF EXISTS pos_settings_client_id_fkey;
+  `);
+  await pool.query(`
+    ALTER TABLE pos_settings
+      ADD CONSTRAINT pos_settings_client_id_fkey
+      FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE;
+  `);
+  return true;
+}
 
 const GRANT_SQL = `
 GRANT EXECUTE ON FUNCTION public.admin_purge_client_licenses(uuid) TO service_role;
@@ -58,6 +73,7 @@ async function ensureAdminDeleteClientSql() {
   const pool = getPgPool();
   if (!pool) return false;
   await ensureLicenseTerminalsCascade();
+  await ensurePosSettingsCascade();
   await pool.query(FN_SQL);
   try {
     await pool.query(GRANT_SQL);
@@ -67,4 +83,8 @@ async function ensureAdminDeleteClientSql() {
   return true;
 }
 
-module.exports = { ensureAdminDeleteClientSql, ensureLicenseTerminalsCascade };
+module.exports = {
+  ensureAdminDeleteClientSql,
+  ensureLicenseTerminalsCascade,
+  ensurePosSettingsCascade,
+};
