@@ -689,8 +689,14 @@ router.post("/online-orders/acknowledge", licenseApiKeyOptional, async (req, res
         waiter_name: req.body.waiter_name || req.body.accepted_by,
       });
     } catch (e) {
-      const status = e.code === "MISSING_PIN" || e.code === "MISSING_WAITER" ? 400 : 500;
-      return res.status(status).json({ ok: false, gabim: e.message });
+      const posAuth = isPosAuthenticatedBody(req.body);
+      const fallbackName = String(req.body.waiter_name || req.body.accepted_by || "").trim();
+      if (posAuth && fallbackName) {
+        handler = { id: null, name: fallbackName };
+      } else {
+        const status = e.code === "MISSING_PIN" || e.code === "MISSING_WAITER" ? 400 : 500;
+        return res.status(status).json({ ok: false, gabim: e.message });
+      }
     }
 
     const result = await acknowledgeBarOrders(resolved.clientId, rawIds, {

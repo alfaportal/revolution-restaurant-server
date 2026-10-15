@@ -759,9 +759,10 @@
     const total = orderItemsTotal(o);
     const customer = escapeHtml(String(o.waiter_name || "").trim() || "Klient");
     const cardClass = pending ? "pending-online pending-cloud" : "accepted-online occupied";
+    const acceptorName = String(o.accepted_by_waiter_name || "").trim();
     const statusText = pending
       ? "Në pritje"
-      : escapeHtml(String(o.accepted_by_waiter_name || "Pranuar").trim() || "Pranuar");
+      : (acceptorName ? `E PRANUAR · ${escapeHtml(acceptorName)}` : "E PRANUAR");
     const stats = `<div class="table-stats">
         <span class="table-stat">${itemCount === 1 ? "1 artikull" : `${itemCount} artikuj`}</span>
         <span class="table-stat table-total">${formatEuro(total)}</span>
