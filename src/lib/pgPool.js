@@ -29,7 +29,9 @@ function getPgPool() {
   const envPath = path.join(__dirname, "../../.env");
   if (existsSync(envPath)) loadEnv({ path: envPath });
 
-  const url = normalizeDatabaseUrl(process.env.DATABASE_URL);
+  const url = normalizeDatabaseUrl(
+    process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || "",
+  );
   if (!url) return null;
 
   pool = new pg.Pool({

@@ -31,6 +31,21 @@ const {
   normalizeDeviceId,
   removeTerminalBySuperAdmin,
 } = require("./licenseTerminalService");
+const { getPgPool, withPgTransaction } = require("../lib/pgPool");
+
+/** Tabela me FK license_id — prod mund të mos ketë ON DELETE CASCADE. */
+const LICENSE_CHILD_TABLES = [
+  "license_terminals",
+  "license_email_notifications",
+  "trial_notifications",
+  "license_hardware_controls",
+  "license_terminal_revocations",
+  "terminal_pair_codes",
+  "terminal_relay_messages",
+  "terminal_relay_presence",
+  "terminal_relay_snapshots",
+  "license_remote_audit",
+];
 
 function enrichLicenseRowWithTerminals(lic, summary) {
   const primary = pickPrimaryTerminal(summary.terminals);
@@ -1280,7 +1295,87 @@ async function purgeLicenseDependencies(db, licenseId) {
   }
 }
 
+function isMissingPgRelation(err) {
+  const msg = String(err?.message || err || "");
+  return /does not exist|relation .* does not exist|undefined_table/i.test(msg);
+}
+
+function isMissingRpc(error) {
+  const msg = String(error?.message || error?.code || error?.details || "");
+  return /function.*does not exist|PGRST202|42883|admin_purge_client_licenses/i.test(msg);
+}
+
+async function deleteLicensesForClientViaRpc(db, clientId) {
+  const cid = String(clientId || "").trim();
+  if (!cid) return false;
+  const { error } = await db.rpc("admin_purge_client_licenses", { p_client_id: cid });
+  if (!error) return true;
+  if (isMissingRpc(error)) return false;
+  throw error;
+}
+
+async function deleteLicenseTerminalsRest(db, licenseIds) {
+  const ids = (licenseIds || []).filter(Boolean);
+  if (!ids.length) return;
+  await db.from("license_terminals").delete().in("license_id", ids);
+  const { data: rows, error: selErr } = await db
+    .from("license_terminals")
+    .select("id")
+    .in("license_id", ids);
+  if (selErr && !isMissingRelation(selErr)) throw selErr;
+  for (const row of rows || []) {
+    const { error } = await db.from("license_terminals").delete().eq("id", row.id);
+    if (error) throw error;
+  }
+  const { count, error: cntErr } = await db
+    .from("license_terminals")
+    .select("id", { count: "exact", head: true })
+    .in("license_id", ids);
+  if (cntErr && !isMissingRelation(cntErr)) throw cntErr;
+  if ((count || 0) > 0) {
+    throw new Error(
+      `Nuk u fshinë ${count} arka (license_terminals) — kontaktoni support ose provoni përsëri pas disa minutash.`,
+    );
+  }
+}
+
+/** Fshirje e sigurt përmes Postgres (Supabase REST ndonjëherë nuk heq FK child). */
+async function deleteLicensesForClientViaPg(clientId) {
+  const pool = getPgPool();
+  if (!pool) return false;
+  const cid = String(clientId || "").trim();
+  if (!cid) return false;
+
+  await withPgTransaction(async (client) => {
+    for (const table of LICENSE_CHILD_TABLES) {
+      try {
+        await client.query(
+          `DELETE FROM ${table} WHERE license_id IN (SELECT id FROM licenses WHERE client_id = $1::uuid)`,
+          [cid],
+        );
+      } catch (e) {
+        if (!isMissingPgRelation(e)) throw e;
+      }
+    }
+    await client.query(`DELETE FROM licenses WHERE client_id = $1::uuid`, [cid]);
+  });
+  return true;
+}
+
 async function deleteLicensesForClient(db, clientId) {
+  try {
+    if (await deleteLicensesForClientViaRpc(db, clientId)) return;
+  } catch (err) {
+    console.warn("[deleteLicensesForClient] rpc:", err.message || err);
+    if (!isMissingRpc(err)) throw err;
+  }
+
+  try {
+    if (await deleteLicensesForClientViaPg(clientId)) return;
+  } catch (err) {
+    console.warn("[deleteLicensesForClient] pg fallback to REST:", err.message || err);
+  }
+
   const { data: licenses, error: listErr } = await db
     .from("licenses")
     .select("id")
@@ -1288,11 +1383,7 @@ async function deleteLicensesForClient(db, clientId) {
   if (listErr && !isMissingRelation(listErr)) throw listErr;
   const licenseIds = (licenses || []).map((lic) => lic?.id).filter(Boolean);
   if (licenseIds.length) {
-    const { error: termErr } = await db
-      .from("license_terminals")
-      .delete()
-      .in("license_id", licenseIds);
-    if (termErr && !isMissingRelation(termErr)) throw termErr;
+    await deleteLicenseTerminalsRest(db, licenseIds);
   }
   for (const licId of licenseIds) {
     await purgeLicenseDependencies(db, licId);
@@ -1611,8 +1702,31 @@ async function updateLicense(id, body) {
   return data;
 }
 
+async function deleteLicenseViaPg(licenseId) {
+  const pool = getPgPool();
+  if (!pool) return false;
+  const lid = String(licenseId || "").trim();
+  if (!lid) return false;
+  await withPgTransaction(async (client) => {
+    for (const table of LICENSE_CHILD_TABLES) {
+      try {
+        await client.query(`DELETE FROM ${table} WHERE license_id = $1::uuid`, [lid]);
+      } catch (e) {
+        if (!isMissingPgRelation(e)) throw e;
+      }
+    }
+    await client.query(`DELETE FROM licenses WHERE id = $1::uuid`, [lid]);
+  });
+  return true;
+}
+
 async function deleteLicense(id) {
   const { db } = await dbForLicenseId(id);
+  try {
+    if (await deleteLicenseViaPg(id)) return { ok: true };
+  } catch (err) {
+    console.warn("[deleteLicense] pg fallback to REST:", err.message || err);
+  }
   const lic = await loadLicenseForRemoteControl(id).catch(() => null);
   const now = new Date().toISOString();
   if (lic?.id) {

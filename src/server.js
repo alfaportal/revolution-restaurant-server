@@ -468,7 +468,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     service: "revolution-restaurant-server",
     version: pkg.version || "1.0.0",
-    site_version: "2026-10-08-restaurant-server-v1.0.514-kafene-v1.0.503",
+    site_version: "2026-10-15-admin-delete-client-rpc-purge",
     git_commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
     git_branch: process.env.RAILWAY_GIT_BRANCH || null,
     time: new Date().toISOString(),
@@ -1022,6 +1022,18 @@ async function start() {
     }
   } catch (e) {
     console.warn("  ⚠️  Licenca hardware_id schema:", formatError(e));
+  }
+
+  try {
+    const { ensureAdminDeleteClientSql } = require("./lib/ensureAdminDeleteClientSql");
+    const delOk = await ensureAdminDeleteClientSql();
+    if (delOk) {
+      console.log("  ✅ Super Admin: admin_purge_client_licenses() SQL");
+    } else {
+      console.warn("  ⚠️  Fshirje klienti: vendosni DATABASE_URL/SUPABASE_DB_URL për purge SQL");
+    }
+  } catch (e) {
+    console.warn("  ⚠️  admin_purge_client_licenses:", formatError(e));
   }
 
   startLicenseExpiryCron();
