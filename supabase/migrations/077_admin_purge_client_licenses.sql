@@ -29,3 +29,6 @@ BEGIN
   DELETE FROM licenses WHERE client_id = p_client_id;
 END;
 $fn$;
+
+GRANT EXECUTE ON FUNCTION public.admin_purge_client_licenses(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_purge_client_licenses(uuid) TO authenticated;

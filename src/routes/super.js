@@ -521,14 +521,14 @@ router.delete(
       }).catch(() => {});
       return res.json({ ok: true, product_line: "kontabilisti" });
     }
-    await deleteClient(id);
+    await deleteClient(id, product);
     await logAdminActivity({
       ...activityFromReq(req),
       action: "client_delete",
       targetType: "client",
       targetId: id,
     }).catch(() => {});
-    res.json({ ok: true, product_line: "kafene" });
+    res.json({ ok: true, product_line: product === "furra" ? "furra" : "kafene" });
   }),
 );
 

@@ -35,11 +35,36 @@ END;
 $fn$;
 `;
 
-async function ensureAdminDeleteClientSql() {
+const GRANT_SQL = `
+GRANT EXECUTE ON FUNCTION public.admin_purge_client_licenses(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_purge_client_licenses(uuid) TO authenticated;
+`;
+
+async function ensureLicenseTerminalsCascade() {
   const pool = getPgPool();
   if (!pool) return false;
-  await pool.query(FN_SQL);
+  await pool.query(`
+    ALTER TABLE license_terminals DROP CONSTRAINT IF EXISTS license_terminals_license_id_fkey;
+  `);
+  await pool.query(`
+    ALTER TABLE license_terminals
+      ADD CONSTRAINT license_terminals_license_id_fkey
+      FOREIGN KEY (license_id) REFERENCES licenses(id) ON DELETE CASCADE;
+  `);
   return true;
 }
 
-module.exports = { ensureAdminDeleteClientSql };
+async function ensureAdminDeleteClientSql() {
+  const pool = getPgPool();
+  if (!pool) return false;
+  await ensureLicenseTerminalsCascade();
+  await pool.query(FN_SQL);
+  try {
+    await pool.query(GRANT_SQL);
+  } catch {
+    /* grant opsional */
+  }
+  return true;
+}
+
+module.exports = { ensureAdminDeleteClientSql, ensureLicenseTerminalsCascade };

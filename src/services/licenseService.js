@@ -1317,7 +1317,12 @@ async function deleteLicensesForClientViaRpc(db, clientId) {
 async function deleteLicenseTerminalsRest(db, licenseIds) {
   const ids = (licenseIds || []).filter(Boolean);
   if (!ids.length) return;
-  await db.from("license_terminals").delete().in("license_id", ids);
+  const { error: bulkErr } = await db.from("license_terminals").delete().in("license_id", ids);
+  if (bulkErr) throw bulkErr;
+  for (const licId of ids) {
+    const { error: oneErr } = await db.from("license_terminals").delete().eq("license_id", licId);
+    if (oneErr) throw oneErr;
+  }
   const { data: rows, error: selErr } = await db
     .from("license_terminals")
     .select("id")
