@@ -275,34 +275,43 @@ html, body {
 
 .tables-grid-area {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
   width: 100%;
 }
 
 .table-card {
-  min-height: 72px;
-  aspect-ratio: 1 / 1;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  border-radius: var(--radius);
-  border: 2px solid var(--border);
-  background: var(--card);
+  gap: 0.35rem;
+  border-radius: 14px;
+  border: 2px solid transparent;
   cursor: pointer;
   touch-action: manipulation;
-  padding: 0.5rem;
+  padding: 0.85rem 0.75rem;
   font-family: inherit;
-  color: inherit;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.table-card.free { border-color: var(--ok); background: #052e16; }
-.table-card.occupied { border-color: var(--danger); background: #450a0a; }
-.table-card.occupied.source-warn { border-color: var(--warn); background: #422006; }
-.table-card.reserved { border-color: #6366f1; box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35); }
-.table-card.reserved.free { background: #1e1b4b; }
+.table-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+
+.table-card:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.table-card.free { background: #2d8a4e; border-color: #2d8a4e; color: #fff; }
+.table-card.occupied { background: #ff6b35; border-color: #ff6b35; color: #fff; }
+.table-card.occupied.source-warn { background: #ff6b35; border-color: #ff6b35; }
+.table-card.reserved { background: #1e6b3c; border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(45, 138, 78, 0.35); }
+.table-card.reserved.free { background: #1e6b3c; }
 
 .table-reserve-icon {
   margin-left: 0.15rem;
@@ -315,17 +324,54 @@ html, body {
 }
 
 .table-card .num {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 800;
   line-height: 1;
+  color: #fff;
 }
 
 .table-card .meta {
-  font-size: 0.65rem;
-  color: var(--muted);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.85);
   text-align: center;
   line-height: 1.2;
   width: 100%;
+}
+
+.table-card-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.table-card-waiter {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.2;
+}
+
+.table-card-stat {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.table-card-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.2;
+}
+
+.table-card-source {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.2;
+  font-style: italic;
 }
 
 .waiter-online-zone {
@@ -336,8 +382,8 @@ html, body {
 
 .online-slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
   width: 100%;
 }
 
@@ -354,15 +400,16 @@ html, body {
 
 .online-slot-card.pending-online,
 .table-card.pending-cloud.pending-online {
-  border-color: #f97316;
-  background: #422006;
-  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.35);
+  background: #ea580c;
+  border-color: #ea580c;
+  color: #fff;
   animation: waiter-online-pulse 1.8s ease-in-out infinite;
 }
 
 .online-slot-card.accepted-online {
-  border-color: var(--danger);
-  background: #450a0a;
+  background: #ff6b35;
+  border-color: #ff6b35;
+  color: #fff;
 }
 
 .table-status-pill.pending-online-pill {
@@ -371,8 +418,8 @@ html, body {
 }
 
 .online-slot-hint {
-  font-size: 0.62rem;
-  color: #fed7aa;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.85);
   text-align: center;
   line-height: 1.15;
   max-width: 100%;
@@ -382,11 +429,12 @@ html, body {
 }
 
 .online-slot-action {
-  font-size: 0.58rem;
-  color: #fdba74;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.75);
   text-align: center;
   line-height: 1.2;
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
+  font-style: italic;
 }
 
 .online-slot-action.muted {
@@ -657,7 +705,12 @@ html, body {
 .menu-item strong,
 .menu-item span,
 .table-card .num,
-.table-card .meta {
+.table-card .meta,
+.table-card-name,
+.table-card-waiter,
+.table-card-stat,
+.table-card-status,
+.table-card-source {
   pointer-events: none;
 }
 
@@ -1453,11 +1506,23 @@ html, body {
 @media (max-width: 600px) {
   .tables-grid-area,
   .online-slots-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
-  .table-card .num {
-    font-size: 1.25rem;
+  .table-card {
+    min-height: 90px;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .table-card-name {
+    font-size: 0.95rem;
+  }
+
+  .table-card-waiter,
+  .table-card-stat,
+  .table-card-status {
+    font-size: 0.72rem;
   }
 }
 

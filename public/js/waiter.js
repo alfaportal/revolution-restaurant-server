@@ -669,37 +669,32 @@
 
   function renderTableCard(t) {
     const reserved = Boolean(t.reserved || t.reservation);
-    const lock = reserved ? '<span class="table-reserve-icon" aria-hidden="true">🔒</span>' : "";
-    const reserveMeta = t.reservation
-      ? `<span class="table-reserve-meta">${escapeHtml(t.reservation.time)} · ${t.reservation.guests}p</span>`
-      : "";
+    const lock = reserved ? ' 🔒' : "";
     const cardClass = [t.status, reserved ? "reserved" : ""].filter(Boolean).join(" ");
     const isOccupied = t.status === "occupied";
     const itemCount = tableItemQtyTotal(t);
+    const waiterName = isOccupied ? escapeHtml(String(t.waiter_name || "").trim()) : "";
+    const total = isOccupied ? formatEuro(t.order_total || tableBillTotal(t.number)) : "";
     const source = isOccupied ? inferTableOrderSource(t) : null;
-    const statusPill = isOccupied
-      ? '<span class="table-status-pill occupied">E zënë</span>'
-      : reserved
-        ? '<span class="table-status-pill reserved">Rezervuar</span>'
-        : '<span class="table-status-pill free">E lirë</span>';
-    const sourceBadge = source
-      ? `<span class="table-source-badge source-${source.code}">${source.icon} ${source.label}</span>`
-      : "";
-    const stats = isOccupied
-      ? `<div class="table-stats">
-          <span class="table-stat">${itemCount === 1 ? "1 artikull" : `${itemCount} artikuj`}</span>
-          <span class="table-stat table-total">${formatEuro(t.order_total || tableBillTotal(t.number))}</span>
-        </div>`
-      : reserved
-        ? `<div class="table-stats">${reserveMeta}</div>`
-        : "";
+
+    let inner = `<div class="table-card-name">Tavolina ${t.number}${lock}</div>`;
+    if (isOccupied) {
+      if (waiterName) inner += `<div class="table-card-waiter">${waiterName}</div>`;
+      inner += `<div class="table-card-stat">${itemCount} artikuj · ${total}</div>`;
+      if (source) inner += `<div class="table-card-source">${source.label}</div>`;
+    } else if (reserved) {
+      const rm = t.reservation
+        ? `${escapeHtml(t.reservation.time)} · ${t.reservation.guests}p`
+        : "Rezervuar";
+      inner += `<div class="table-card-status">Rezervuar</div>`;
+      inner += `<div class="table-card-source">${rm}</div>`;
+    } else {
+      inner += `<div class="table-card-status">Lirë</div>`;
+    }
 
     return `
       <button type="button" class="table-card ${cardClass}" data-table="${t.number}">
-        <div class="num">T${t.number}${lock}</div>
-        ${statusPill}
-        ${sourceBadge}
-        <div class="meta">${stats}</div>
+        ${inner}
       </button>`;
   }
 
@@ -748,8 +743,8 @@
     const label = escapeHtml(slot.label || `Online ${slot.slot}`);
     if (slot.status === "free" || !slot.order) {
       return `<button type="button" class="online-slot-card table-card free" data-online-slot="${slot.slot}" disabled tabindex="-1">
-        <div class="num online-slot-label">${label}</div>
-        <span class="table-status-pill free">Lirë</span>
+        <div class="table-card-name">${label}</div>
+        <div class="table-card-status">Lirë</div>
       </button>`;
     }
     const o = slot.order;
@@ -763,18 +758,24 @@
     const statusText = pending
       ? "Në pritje"
       : (acceptorName ? `E PRANUAR · ${escapeHtml(acceptorName)}` : "E PRANUAR");
-    const stats = `<div class="table-stats">
-        <span class="table-stat">${itemCount === 1 ? "1 artikull" : `${itemCount} artikuj`}</span>
-        <span class="table-stat table-total">${formatEuro(total)}</span>
-      </div>`;
+
+    let inner = `<div class="table-card-name">${label}</div>`;
+    if (pending) {
+      inner += `<div class="table-card-waiter">${statusText}</div>`;
+    } else {
+      inner += `<div class="table-card-waiter">${customer}</div>`;
+    }
+    inner += `<div class="table-card-stat">${itemCount} artikuj · ${formatEuro(total)}</div>`;
+    inner += `<div class="table-card-source">${src.label}</div>`;
+    if (pending) {
+      inner += `<div class="online-slot-action">Kliko → PRANO / REFUZO</div>`;
+    } else {
+      inner += `<div class="online-slot-action">Kliko → Cash / Kartë</div>`;
+    }
+
     return `<button type="button" class="online-slot-card table-card ${cardClass}"
         data-online-slot="${slot.slot}" data-order-id="${escapeHtml(o.id)}"${pending ? ' data-online-pending="1"' : ' data-online-accepted="1"'}>
-      <div class="num online-slot-label">${label}</div>
-      <span class="table-status-pill ${pending ? "pending-online-pill" : "occupied"}">${statusText}</span>
-      <span class="table-source-badge source-warn">${src.icon} ${src.label}</span>
-      <div class="meta">${stats}</div>
-      <div class="online-slot-hint">${customer}</div>
-      ${pending ? '<div class="online-slot-action">Kliko → PRANO / REFUZO</div>' : '<div class="online-slot-action">Kliko → Cash / Kartë</div>'}
+      ${inner}
     </button>`;
   }
 
