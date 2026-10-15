@@ -3271,7 +3271,7 @@ document.getElementById("btn-staff-add")?.addEventListener("click", async () => 
     } catch {
       /* poll — mos nxirr jashtë */
     }
-  }, 3000);
+  }, 15_000);
 
   /* Pakoja nga Naseri (PATCH) — AI + linqe, pa restart (12s) */
   setInterval(() => {

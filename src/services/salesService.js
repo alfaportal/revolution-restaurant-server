@@ -151,11 +151,18 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
 
 const STALE_POS_SYNC_MS = 24 * 60 * 60 * 1000;
 const EXPIRE_STARTUP_GRACE_MS = 90 * 1000;
+const STALE_EXPIRE_THROTTLE_MS = 10 * 60 * 1000;
 const _salesServiceStartedAt = Date.now();
+const _staleExpireLastRunByClient = new Map();
 
 /** Anulon porositë POS në cloud pa heartbeat — tavolina kthehet «e lirë» pas 2 min. */
 async function expireStalePosSyncOrders(clientId) {
   if (Date.now() - _salesServiceStartedAt < EXPIRE_STARTUP_GRACE_MS) return;
+  const cid = String(clientId || "").trim();
+  if (!cid) return;
+  const last = _staleExpireLastRunByClient.get(cid) || 0;
+  if (Date.now() - last < STALE_EXPIRE_THROTTLE_MS) return;
+  _staleExpireLastRunByClient.set(cid, Date.now());
 
   const { isPosDesktopDevice } = require("../lib/orderSource");
   const db = getSupabase();

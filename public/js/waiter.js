@@ -45,8 +45,8 @@
 
   let syncInProgress = false;
   let waiterEventSource = null;
-  const POLL_SSE_CONNECTED_MS = 5000;
-  const POLL_SSE_DISCONNECTED_MS = 3000;
+  const POLL_SSE_CONNECTED_MS = 30_000;
+  const POLL_SSE_DISCONNECTED_MS = 45_000;
   const MENU_BOOTSTRAP_MS = 60000;
   let sseRefreshTimer = null;
   let menuBootstrapTimer = null;

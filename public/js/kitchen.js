@@ -707,5 +707,5 @@
 
   fetchOrders();
   connectSse();
-  setInterval(fetchOrders, 5000);
+  setInterval(fetchOrders, 15_000);
 })();

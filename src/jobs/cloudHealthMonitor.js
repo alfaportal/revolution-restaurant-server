@@ -5,7 +5,7 @@ const { appendSystemFailure } = require("../services/systemFailureLog");
 let lastDbOk = null;
 
 async function runCloudHealthCheck() {
-  const result = await testSupabaseConnection();
+  const result = await testSupabaseConnection({ bypassCache: true });
   const ok = !!result.ok;
 
   if (lastDbOk === null) {

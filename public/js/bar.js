@@ -128,5 +128,5 @@
 
   fetchLiveTables();
   connectSse();
-  setInterval(fetchLiveTables, 5000);
+  setInterval(fetchLiveTables, 15_000);
 })();

@@ -1,6 +1,6 @@
 const { expireRefusedOrders } = require("../services/kdsService");
 
-const INTERVAL_MS = 30_000;
+const INTERVAL_MS = 120_000;
 
 function startRefusedOrdersExpiryJob() {
   const run = () => {
