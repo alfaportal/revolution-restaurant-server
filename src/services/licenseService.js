@@ -1257,6 +1257,41 @@ function isMissingRelation(error) {
   );
 }
 
+/** Fshin varësitë e një licence (FK pa CASCADE në Supabase prod). */
+async function purgeLicenseDependencies(db, licenseId) {
+  const id = String(licenseId || "").trim();
+  if (!id) return;
+  const tables = [
+    "license_terminals",
+    "license_email_notifications",
+    "trial_notifications",
+    "license_hardware_controls",
+    "license_terminal_revocations",
+    "terminal_pair_codes",
+    "terminal_relay_messages",
+    "terminal_relay_presence",
+    "terminal_relay_snapshots",
+  ];
+  for (const table of tables) {
+    const { error } = await db.from(table).delete().eq("license_id", id);
+    if (!error) continue;
+    if (!isMissingRelation(error)) throw error;
+  }
+}
+
+async function deleteLicensesForClient(db, clientId) {
+  const { data: licenses, error: listErr } = await db
+    .from("licenses")
+    .select("id")
+    .eq("client_id", clientId);
+  if (listErr && !isMissingRelation(listErr)) throw listErr;
+  for (const lic of licenses || []) {
+    if (lic?.id) await purgeLicenseDependencies(db, lic.id);
+  }
+  const { error: licErr } = await db.from("licenses").delete().eq("client_id", clientId);
+  if (licErr && !isMissingRelation(licErr)) throw licErr;
+}
+
 /** Fshin rreshta që mund të bllokojnë DELETE te clients (FK pa CASCADE në prod). */
 async function deleteClientDependentRows(db, clientId) {
   const targets = [
@@ -1280,9 +1315,7 @@ async function deleteClient(id, productHint) {
   } catch (err) {
     console.warn("[deleteClient] factory reset flag:", err?.message || err);
   }
-  // Licencat e klientit — fshi para rreshtit të klientit (FK)
-  const { error: licErr } = await db.from("licenses").delete().eq("client_id", id);
-  if (licErr && !isMissingRelation(licErr)) throw licErr;
+  await deleteLicensesForClient(db, id);
   await db.from("users").delete().eq("client_id", id).eq("roli", "client_admin");
   const { error } = await db.from("clients").delete().eq("id", id);
   if (error) throw error;
@@ -1594,6 +1627,7 @@ async function deleteLicense(id) {
       console.warn("[deleteLicense] wipe flag:", err?.message || err);
     }
   }
+  await purgeLicenseDependencies(db, id);
   const { error } = await db.from("licenses").delete().eq("id", id);
   if (error) throw error;
   return { ok: true };
