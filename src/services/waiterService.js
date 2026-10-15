@@ -201,19 +201,9 @@ async function buildWaiterTableLayout(clientId, { webToken = "" } = {}) {
   const reservations = await listWaiterReservations(clientId);
   const layoutWithReservations = attachReservationsToLayout(layout, reservations);
 
-  let tables = layoutWithReservations.tables;
-  let areasOut = layoutWithReservations.areas;
-  if (assigned_waiter?.id) {
-    const { getAssignmentState } = require("./waiterTablesService");
-    const assignState = await getAssignmentState(clientId);
-    if (assignState.hasAny) {
-      const allowed = new Set(assignState.byWaiter.get(assigned_waiter.id) || []);
-      tables = tables.filter(t => allowed.has(Number(t.number)));
-      areasOut = areasOut
-        .map(a => ({ ...a, tables: a.tables.filter(t => allowed.has(Number(t.number))) }))
-        .filter(a => a.tables.length);
-    }
-  }
+  const tables = layoutWithReservations.tables;
+  const areasOut = layoutWithReservations.areas;
+  // Krejt kamarierët shohin krejt tavolinat — situata e lokalit, jo vetëm "të vetat"
 
   return {
     tables,

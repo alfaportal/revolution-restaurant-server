@@ -305,7 +305,7 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
   assertLicenseUsable(license);
 
   const deviceId = String(body.device_id || license.device_id || "").trim().toUpperCase();
-  const { WEB_KIOSK, WEB_PUBLIC } = require("../lib/orderSource");
+  const { WEB_KIOSK, WEB_PUBLIC, WEB_WAITER } = require("../lib/orderSource");
   const rawItems = Array.isArray(body.items) ? body.items : JSON.parse(body.items_json || "[]");
   let items = normalizeItems(rawItems);
   let total = Number(body.total) || items.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -346,6 +346,22 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     }
   }
 
+  // Kur POS dërgon push, ruaj artikujt e shtuar nga kamarieri cloud (telefon)
+  // POS dërgon vetëm artikujt lokal — cloud mund të ketë më shumë (shtuar nga telefoni)
+  const { isPosDesktopDevice } = require("../lib/orderSource");
+  if (existing && isPosDesktopDevice(deviceId) && status === "ordered") {
+    const existingNorm = normalizeItems(existing.items_json);
+    for (const cloudItem of existingNorm) {
+      const inPos = items.find(
+        it => it.name === cloudItem.name && Number(it.price) === Number(cloudItem.price),
+      );
+      if (!inPos) {
+        items.push({ ...cloudItem });
+      }
+    }
+    total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  }
+
   let finalStatus = status;
   if (existing?.status === "closed" && status === "ordered") {
     finalStatus = "closed";
@@ -354,8 +370,6 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
     const nextItems = JSON.stringify(items);
     finalStatus = prevItems === nextItems ? "ready" : "ordered";
   }
-
-  const { isPosDesktopDevice } = require("../lib/orderSource");
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
   /** Pagesë POS por kuzhina ende nuk ka shtypur «Gati» — mbaj ordered në cloud. */
   const waiterTableClose =
@@ -554,6 +568,22 @@ async function upsertSaleFromPos(body, { defaultStatus = "closed" } = {}) {
 
   if (willMutateDineInItems) {
     touchTableOrderLock(license.client_id, tableNum, tableLockActor);
+  }
+
+  // Kur tavolina mbyllet (closed), anulo porositë sibling (WEB-WAITER etj.) në të njëjtën tavolinë
+  if (finalStatus === "closed" && tableNum >= 1 && data?.id) {
+    try {
+      const closeNow = new Date().toISOString();
+      await db
+        .from("sales_orders")
+        .update({ status: "cancelled", closed_at: closeNow, total: 0, ready_at: null })
+        .eq("client_id", license.client_id)
+        .eq("table_number", tableNum)
+        .in("status", ["ordered", "ready"])
+        .neq("id", data.id);
+    } catch (sibErr) {
+      console.warn("[sales] cancel siblings on table close:", sibErr.message);
+    }
   }
 
   if (finalStatus === "ordered" || finalStatus === "cancelled" || finalStatus === "ready" || finalStatus === "closed") {
