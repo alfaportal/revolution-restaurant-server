@@ -350,6 +350,19 @@ async function submitPhysicalTableWebOrder(clientId, opts = {}) {
     if (opts.waiter) {
       assertWaiterOnTable(existing, opts.waiter, tableNumber);
     }
+
+    const existingIsPosOwned = existing && isPosDesktopDevice(existing.device_id);
+    if (existingIsPosOwned) {
+      return _submitWebWaiterItemsOnPosTable(clientId, {
+        tableNumber,
+        newItems,
+        waiterName: String(opts.waiterName || "").trim(),
+        waiterId: opts.waiterId,
+        waiter: opts.waiter,
+        license,
+      });
+    }
+
     items = existing ? mergeOrderItems(existing.items_json, newItems) : newItems;
     localOrderId = existing?.local_order_id || `web-${uuidv4()}`;
     orderedAt = existing?.ordered_at || now;
@@ -386,6 +399,124 @@ async function submitPhysicalTableWebOrder(clientId, opts = {}) {
   }
 
   return { sale, newItems, tableNumber, total, deviceId: effectiveDeviceId };
+}
+
+/**
+ * Kur tavolina ka porosi aktive nga POS desktop, web kamarieri krijon rresht WEB-WAITER
+ * të veçantë me VETËM artikujt e rinj. POS e importon përmes online-orders-watcher →
+ * importCloudOrderToLocal → bashkon lokalisht → pushon me çelësin e rreshtit WEB-WAITER.
+ * Kështu POS-i nuk e mbishkruan shtesën e kamarierit kur pushon artikujt e vet.
+ */
+async function _submitWebWaiterItemsOnPosTable(clientId, { tableNumber, newItems, waiterName, waiterId, waiter, license }) {
+  const now = new Date().toISOString();
+  const db = getSupabase();
+
+  const { data: existingWebRow } = await db
+    .from("sales_orders")
+    .select("id, local_order_id, device_id, items_json, ordered_at")
+    .eq("client_id", clientId)
+    .eq("table_number", tableNumber)
+    .eq("device_id", WEB_WAITER)
+    .in("status", ["ordered", "ready"])
+    .order("ordered_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let items, localOrderId, orderedAt;
+  if (existingWebRow) {
+    items = mergeOrderItems(existingWebRow.items_json, newItems);
+    localOrderId = existingWebRow.local_order_id;
+    orderedAt = existingWebRow.ordered_at || now;
+  } else {
+    items = newItems;
+    localOrderId = `web-${uuidv4()}`;
+    orderedAt = now;
+  }
+
+  const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+  const row = {
+    client_id: clientId,
+    license_id: license.id,
+    local_order_id: localOrderId,
+    device_id: WEB_WAITER,
+    table_number: tableNumber,
+    waiter_name: waiterName || "",
+    items_json: items,
+    total,
+    status: "ordered",
+    ordered_at: orderedAt,
+    closed_at: orderedAt,
+  };
+  if (waiterId) row.waiter_id = waiterId;
+
+  let saved;
+  if (existingWebRow) {
+    const { data, error } = await db
+      .from("sales_orders")
+      .update(row)
+      .eq("id", existingWebRow.id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message || "Përditësimi dështoi.");
+    saved = data;
+    console.log("[waiter/pos-table] updated WEB-WAITER row", existingWebRow.id, "T" + tableNumber);
+  } else {
+    const { data, error } = await db
+      .from("sales_orders")
+      .insert(row)
+      .select()
+      .single();
+    if (error) throw new Error(error.message || "Porosia nuk u ruajt.");
+    saved = data;
+    console.log("[waiter/pos-table] created WEB-WAITER row", saved.id, "T" + tableNumber);
+  }
+
+  try {
+    const { deductStockForOrder } = require("./stockService");
+    await deductStockForOrder(clientId, newItems);
+  } catch (err) {
+    console.warn("[stock] waiter deduct failed:", err.message);
+  }
+  try {
+    const { deductIngredientsForOrder } = require("./inventoryService");
+    await deductIngredientsForOrder(clientId, newItems);
+  } catch (err) {
+    console.warn("[inventory] waiter deduct failed:", err.message);
+  }
+
+  if (saved?.id) {
+    try {
+      const { updateOrdersAcceptance, isOrderAccepted: isAccepted } = require("../lib/salesOrderSelect");
+      if (!isAccepted(saved)) {
+        await updateOrdersAcceptance(db, {
+          clientId,
+          orderIds: [saved.id],
+          waiterId: waiterId || undefined,
+          waiterName: waiterName || "",
+        });
+      }
+      const { notifyKitchenUpdate } = require("./kdsEvents");
+      notifyKitchenUpdate(clientId, {
+        order_id: saved.id,
+        table_number: tableNumber,
+        status: "ordered",
+        device_id: WEB_WAITER,
+        accepted_by: waiterName || "",
+      });
+      console.log("[waiter/pos-table] SSE notified", { order_id: saved.id, status: "ordered" });
+      const { data: refreshed } = await db
+        .from("sales_orders")
+        .select("*")
+        .eq("id", saved.id)
+        .maybeSingle();
+      if (refreshed) saved = refreshed;
+    } catch (err) {
+      console.warn("[waiter/pos-table] auto-accept failed:", err.message);
+    }
+  }
+
+  return { sale: saved, newItems, tableNumber, total, deviceId: WEB_WAITER };
 }
 
 async function submitWaiterOrder(clientId, body) {
