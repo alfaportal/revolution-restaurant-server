@@ -1271,6 +1271,7 @@ async function purgeLicenseDependencies(db, licenseId) {
     "terminal_relay_messages",
     "terminal_relay_presence",
     "terminal_relay_snapshots",
+    "license_remote_audit",
   ];
   for (const table of tables) {
     const { error } = await db.from(table).delete().eq("license_id", id);
@@ -1285,8 +1286,16 @@ async function deleteLicensesForClient(db, clientId) {
     .select("id")
     .eq("client_id", clientId);
   if (listErr && !isMissingRelation(listErr)) throw listErr;
-  for (const lic of licenses || []) {
-    if (lic?.id) await purgeLicenseDependencies(db, lic.id);
+  const licenseIds = (licenses || []).map((lic) => lic?.id).filter(Boolean);
+  if (licenseIds.length) {
+    const { error: termErr } = await db
+      .from("license_terminals")
+      .delete()
+      .in("license_id", licenseIds);
+    if (termErr && !isMissingRelation(termErr)) throw termErr;
+  }
+  for (const licId of licenseIds) {
+    await purgeLicenseDependencies(db, licId);
   }
   const { error: licErr } = await db.from("licenses").delete().eq("client_id", clientId);
   if (licErr && !isMissingRelation(licErr)) throw licErr;
@@ -1295,6 +1304,7 @@ async function deleteLicensesForClient(db, clientId) {
 /** Fshin rreshta që mund të bllokojnë DELETE te clients (FK pa CASCADE në prod). */
 async function deleteClientDependentRows(db, clientId) {
   const targets = [
+    ["offline_notifications", "client_id"],
     ["ai_usage_logs", "restaurant_id"],
     ["ingredients", "restaurant_id"],
     ["reservations", "restaurant_id"],
@@ -1309,12 +1319,6 @@ async function deleteClientDependentRows(db, clientId) {
 async function deleteClient(id, productHint) {
   const { db } = await dbForClientId(id, productHint);
   await deleteClientDependentRows(db, id);
-  // Urdhër wipe PARA fshirjes — heartbeat i fundit e merr force_factory_reset.
-  try {
-    await requestFactoryResetForClient(id);
-  } catch (err) {
-    console.warn("[deleteClient] factory reset flag:", err?.message || err);
-  }
   await deleteLicensesForClient(db, id);
   await db.from("users").delete().eq("client_id", id).eq("roli", "client_admin");
   const { error } = await db.from("clients").delete().eq("id", id);
