@@ -1118,6 +1118,35 @@ async function loadZReport() {
   if (currentReportMode === "Z") await loadZReportHistory();
 }
 
+function openOwnerZReportPanel() {
+  document.querySelector('.tab[data-tab="zreport"]')?.click();
+  currentReportMode = "Z";
+  applyReportModeUi();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  return loadZReport();
+}
+
+async function refreshOwnerZReminderBanner() {
+  const banner = document.getElementById("owner-z-reminder-banner");
+  const text = document.getElementById("owner-z-reminder-text");
+  if (!banner || !text) return;
+  try {
+    const data = await api("/api/owner/z-report/reminder");
+    if (data?.needed) {
+      text.textContent = data.message || "Mbyll ditën fiskale (Raporti Z).";
+      banner.classList.remove("hidden");
+      if (data.pending_date) {
+        const zDate = document.getElementById("zreport-date");
+        if (zDate) zDate.value = data.pending_date;
+      }
+    } else {
+      banner.classList.add("hidden");
+    }
+  } catch {
+    banner.classList.add("hidden");
+  }
+}
+
 async function loadFiscalSettings() {
   try {
     const { settings } = await api("/api/owner/fiscal/settings");
@@ -2757,10 +2786,17 @@ document.getElementById("btn-zreport-close")?.addEventListener("click", async ()
       }),
     });
     await loadZReport();
-    alert("Raporti ditor u ruajt.");
+    await refreshOwnerZReminderBanner();
+    alert(
+      "Dita u mbyll në cloud (pronari).\n\n" +
+      "Kur të jeni te lokal, hapni arkën → Admin → Fiskalizimi → Printo Raportin Z (ATK).",
+    );
   } catch (err) {
     alert(err.message);
   }
+});
+document.getElementById("owner-z-reminder-go")?.addEventListener("click", () => {
+  openOwnerZReportPanel().catch((err) => alert(err.message));
 });
 document.getElementById("btn-zreport-print")?.addEventListener("click", () => {
   printZReport().catch(err => alert(err.message));
@@ -3258,6 +3294,8 @@ document.getElementById("btn-staff-add")?.addEventListener("click", async () => 
     await loadOrderFilters();
     await loadOrders();
   });
+  await runBootStep("z-reminder", refreshOwnerZReminderBanner);
+  setInterval(() => refreshOwnerZReminderBanner().catch(() => {}), 120000);
 
   setInterval(async () => {
     try {

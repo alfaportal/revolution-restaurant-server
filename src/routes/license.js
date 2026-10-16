@@ -32,6 +32,7 @@ const {
   listClosedWebWaiterSalesForPos,
   listAllClosedSalesForPosRebuild,
 } = require("../services/salesService");
+const { getOwnerZReminderStatus } = require("../services/zReportService");
 
 const router = express.Router();
 
@@ -593,6 +594,22 @@ router.post("/waiter-login", licenseApiKeyOptional, async (req, res) => {
     res.json({ ok: true, valid: true, role: "waiter", waiter });
   } catch (e) {
     res.status(403).json({ ok: false, gabim: e.message || "PIN i gabuar." });
+  }
+});
+
+/**
+ * POST /api/v1/license/daily-z-reminder — POS: a duhet mbyllje ditore nga pronari (cloud)?
+ */
+router.post("/daily-z-reminder", licenseApiKeyOptional, async (req, res) => {
+  try {
+    const resolved = await resolveLicenseClient(req);
+    if (resolved.error) {
+      return res.status(resolved.error.status).json(resolved.error.body);
+    }
+    const status = await getOwnerZReminderStatus(resolved.clientId);
+    res.json({ ok: true, ...status });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message });
   }
 });
 

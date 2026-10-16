@@ -39,6 +39,10 @@
 
   <div id="panel-boot-error" class="alert alert-error hidden" role="alert" style="margin:0.75rem 1rem 0"></div>
   <div id="panel-boot-info" class="alert alert-ok hidden" role="status" style="margin:0.75rem 1rem 0"></div>
+  <div id="owner-z-reminder-banner" class="alert alert-error hidden" role="alert" style="margin:0.75rem 1rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+    <span id="owner-z-reminder-text" style="flex:1;min-width:200px"></span>
+    <button type="button" class="btn btn-sm btn-warning" id="owner-z-reminder-go">Hap Raporti Z (telefon)</button>
+  </div>
 
   <div class="container">
     <div class="tabs nav-grid owner-tabs owner-nav-cards">
@@ -621,7 +625,7 @@
             <button type="button" class="btn btn-primary btn-sm" id="btn-zreport-close">Mbyll ditën</button>
           </div>
         </div>
-        <p class="links-hint" id="zreport-hint">Raporti X — gjendja e tashme e ditës, i printueshëm në çdo kohë, PA mbyllur asgjë. Raporti Z — mbyllja përfundimtare e ditës, me barazimin e arkës. Raport Periodik — mes dy datave, pa mbyllje.</p>
+        <p class="links-hint" id="zreport-hint">Raporti X — gjendja e tashme e ditës, PA mbyllur ditën. Raporti Z këtu (telefon) — mbyll ditën fiskale 00:00–23:59 (ora e Kosovës), barazim arke, print/CSV. Raporti Z fiskal (ATK) bëhet vetëm te arkë lokale kur jeni në lokal. Raport Periodik — mes dy datave.</p>
         <div id="zreport-summary" class="zreport-summary"></div>
         <div id="zreport-vat" class="zreport-vat"></div>
         <div class="zreport-actions">

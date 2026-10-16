@@ -582,6 +582,83 @@ function escHtml(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 }
 
+function formatSqDate(ymd) {
+  const p = String(ymd || "").slice(0, 10).split("-");
+  if (p.length !== 3) return ymd;
+  return `${p[2]}.${p[1]}.${p[0]}`;
+}
+
+/**
+ * Ditët pa «Mbyll ditën» nga paneli i pronarit (telefon).
+ * Dita = kalendarike Europe/Belgrade (00:00–23:59), report_date YYYY-MM-DD.
+ */
+async function getOwnerZReminderStatus(clientId) {
+  const {
+    businessYmd,
+    businessYesterdayYmd,
+    addBusinessDays,
+    BUSINESS_TZ,
+  } = require("../lib/hotelBusinessDate");
+  const today = businessYmd();
+  const yesterday = businessYesterdayYmd();
+  const day_window = {
+    timezone: BUSINESS_TZ,
+    from: "00:00",
+    to: "23:59",
+    label: "Dita fiskale: 00:00–23:59 (ora e Kosovës)",
+  };
+
+  const db = getSupabase();
+  const { data: lastRow, error } = await db
+    .from("daily_z_reports")
+    .select("report_date, closed_at")
+    .eq("client_id", clientId)
+    .not("closed_at", "is", null)
+    .order("report_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+
+  const last_closed_date = lastRow?.report_date
+    ? String(lastRow.report_date).slice(0, 10)
+    : "";
+
+  const pending_days = [];
+  let d = last_closed_date ? addBusinessDays(last_closed_date, 1) : yesterday;
+  while (d && d <= yesterday) {
+    pending_days.push(d);
+    d = addBusinessDays(d, 1);
+  }
+
+  const needed = pending_days.length > 0;
+  const pending_date = pending_days.length ? pending_days[pending_days.length - 1] : null;
+  const dateLabel =
+    pending_days.length === 1
+      ? formatSqDate(pending_date)
+      : pending_days.length > 1
+        ? `${formatSqDate(pending_days[0])} – ${formatSqDate(pending_date)}`
+        : "";
+
+  let message = "";
+  if (needed) {
+    message =
+      `Nuk u mbyll dita fiskale ${dateLabel} nga paneli i pronarit. ` +
+      "Hapni Raporti Z → «Mbyll ditën» (mund ta bëni edhe nga telefoni). " +
+      "Në arkë mbetet veçmas Raporti Z fiskal (ATK) kur jeni te lokal.";
+  }
+
+  return {
+    needed,
+    business_today: today,
+    business_yesterday: yesterday,
+    last_closed_date: last_closed_date || null,
+    pending_days,
+    pending_date,
+    day_window,
+    message,
+  };
+}
+
 module.exports = {
   buildDailyZReport,
   buildDailyXReport,
@@ -592,4 +669,5 @@ module.exports = {
   listZReportHistory,
   zReportToCsv,
   zReportToHtml,
+  getOwnerZReminderStatus,
 };

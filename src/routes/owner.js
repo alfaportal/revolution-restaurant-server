@@ -30,7 +30,9 @@ const {
   listZReportHistory,
   zReportToCsv,
   zReportToHtml,
+  getOwnerZReminderStatus,
 } = require("../services/zReportService");
+const { businessYmd } = require("../lib/hotelBusinessDate");
 const { getFiscalSettings, updateFiscalSettings, getFiscalDiagnostics } = require("../services/fiscalService");
 const {
   getRegisterSwitchState,
@@ -543,7 +545,7 @@ router.get("/x-report/export", async (req, res) => {
 
 router.get("/z-report", async (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const date = req.query.date || businessYmd();
     const report = await buildDailyZReport(req.user.client_id, date);
     res.json({ ok: true, report });
   } catch (e) {
@@ -551,9 +553,18 @@ router.get("/z-report", async (req, res) => {
   }
 });
 
+router.get("/z-report/reminder", async (req, res) => {
+  try {
+    const status = await getOwnerZReminderStatus(req.user.client_id);
+    res.json({ ok: true, ...status });
+  } catch (e) {
+    res.status(500).json({ gabim: e.message });
+  }
+});
+
 router.post("/z-report/close", async (req, res) => {
   try {
-    const date = req.body?.date || new Date().toISOString().slice(0, 10);
+    const date = req.body?.date || businessYmd();
     const report = await saveDailyZReport(req.user.client_id, date, {
       close: true,
       closing_cash_actual: req.body?.closing_cash_actual,
