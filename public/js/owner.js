@@ -218,9 +218,10 @@ let ownerPackageFeatures = {};
 let ownerClientPackageTier = "";
 
 /** Tab-e të menaxhuara sipas paketës (vetëm fshehje UI — HTML mbetet). */
+/** Si hoteli: Raporti Z/X lejohet nga telefoni — mos fsheh zreport. */
 const OWNER_TIER_TAB_GATES = {
-  pako_2: ["zreport", "fiskale", "licenca", "blerje", "ai", "ai-raporte", "ai-asistent"],
-  pako_5: ["zreport", "fiskale", "licenca", "blerje"],
+  pako_2: ["fiskale", "licenca", "blerje", "ai", "ai-raporte", "ai-asistent"],
+  pako_5: ["fiskale", "licenca", "blerje"],
 };
 
 function applyOwnerPackageTabGating(packageTier) {
@@ -231,13 +232,12 @@ function applyOwnerPackageTabGating(packageTier) {
   if (!hideTabs?.length) return;
 
   for (const tabName of hideTabs) {
-    const btn = document.querySelector(`.tab.nav-tile[data-tab="${tabName}"]`);
-    const panel = document.getElementById(`panel-${tabName}`);
-    if (btn) {
+    document.querySelectorAll(`.tab.nav-tile[data-tab="${tabName}"]`).forEach((btn) => {
       btn.setAttribute("hidden", "");
       btn.classList.add("hidden");
       btn.classList.remove("active");
-    }
+    });
+    const panel = document.getElementById(`panel-${tabName}`);
     if (panel) {
       panel.setAttribute("hidden", "");
       panel.classList.add("hidden");

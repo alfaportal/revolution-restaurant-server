@@ -2296,3 +2296,8 @@
   border-color: rgba(234, 179, 8, 0.5);
   background: rgba(234, 179, 8, 0.08);
 }
+
+/* Panel pronari telefon — fshehur (arka ATK, licencë, blerje). Raporti Z/X lejohet nga telefoni (si hoteli). */
+.owner-panel-mobile-off {
+  display: none !important;
+}

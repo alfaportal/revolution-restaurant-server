@@ -13,7 +13,7 @@
   <link rel="manifest" href="/owner/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-  <link rel="stylesheet" href="/css/owner.css?v=4">
+  <link rel="stylesheet" href="/css/owner.css?v=5">
 </head>
 <body class="owner-panel">
   <div id="pwa-install-banner" class="pwa-install-banner hidden" role="region" aria-label="Instalo aplikacionin">
@@ -54,21 +54,9 @@
         <span class="nav-icon" aria-hidden="true">🌐</span>
         <span class="nav-label">Faqja publike</span>
       </button>
-      <button type="button" class="tab nav-tile" data-tab="zreport">
-        <span class="nav-icon" aria-hidden="true">📊</span>
-        <span class="nav-label">Raportet X/Z</span>
-      </button>
-      <button type="button" class="tab nav-tile" data-tab="fiskale">
-        <span class="nav-icon" aria-hidden="true">🧾</span>
-        <span class="nav-label">Arka</span>
-      </button>
       <button type="button" class="tab nav-tile" data-tab="llogaria">
         <span class="nav-icon" aria-hidden="true">🔑</span>
         <span class="nav-label">Llogaria</span>
-      </button>
-      <button type="button" class="tab nav-tile" data-tab="licenca">
-        <span class="nav-icon" aria-hidden="true">🔐</span>
-        <span class="nav-label">Licenca</span>
       </button>
       <button type="button" class="tab nav-tile" data-tab="porosite">
         <span class="nav-icon" aria-hidden="true">📦</span>
@@ -78,7 +66,15 @@
         <span class="nav-icon" aria-hidden="true">📋</span>
         <span class="nav-label">Stoku</span>
       </button>
-      <button type="button" class="tab nav-tile" data-tab="blerje" id="tab-blerje">
+      <button type="button" class="tab nav-tile owner-panel-mobile-off" data-tab="fiskale">
+        <span class="nav-icon" aria-hidden="true">🧾</span>
+        <span class="nav-label">Arka</span>
+      </button>
+      <button type="button" class="tab nav-tile owner-panel-mobile-off" data-tab="licenca">
+        <span class="nav-icon" aria-hidden="true">🔐</span>
+        <span class="nav-label">Licenca</span>
+      </button>
+      <button type="button" class="tab nav-tile owner-panel-mobile-off" data-tab="blerje" id="tab-blerje">
         <span class="nav-icon" aria-hidden="true">🛒</span>
         <span class="nav-label">Blerje</span>
       </button>
@@ -318,7 +314,7 @@
       </div>
     </div>
 
-    <div id="panel-blerje" class="panel-section hidden">
+    <div id="panel-blerje" class="panel-section hidden owner-panel-mobile-off">
       <div class="card">
         <div class="card-title">Blerje — shëno faturën</div>
         <p class="links-hint">
@@ -688,7 +684,7 @@
       </div>
     </div>
 
-    <div id="panel-fiskale" class="panel-section hidden">
+    <div id="panel-fiskale" class="panel-section hidden owner-panel-mobile-off">
       <div class="card">
         <div class="card-title">Arka fiskale ATK</div>
         <p class="owner-fiscal-intro">
@@ -1006,7 +1002,7 @@
       </div>
     </div>
 
-    <div id="panel-licenca" class="panel-section hidden">
+    <div id="panel-licenca" class="panel-section hidden owner-panel-mobile-off">
       <div class="card">
         <div class="card-title">Licenca e aplikacionit POS</div>
         <p class="links-hint">
@@ -1361,7 +1357,7 @@
   <script src="/js/fiscalDiagnostics.js?v=1"></script>
   <script src="/js/offlineQueue.js?v=1"></script>
   <script src="/js/qrcode.js?v=1"></script>
-  <script src="/js/owner.js?v=42"></script>
+  <script src="/js/owner.js?v=43"></script>
   <script src="/js/owner-locations.js?v=1"></script>
   <script src="/js/owner-catalog.js?v=1"></script>
   <script src="/js/owner-stock.js?v=2"></script>
