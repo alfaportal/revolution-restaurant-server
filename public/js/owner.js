@@ -1118,9 +1118,21 @@ async function loadZReport() {
   if (currentReportMode === "Z") await loadZReportHistory();
 }
 
-function openOwnerZReportPanel() {
-  document.querySelector('.tab[data-tab="zreport"]')?.click();
-  currentReportMode = "Z";
+/** Hap panelin Z/X/Periodik — tab «Raporti Z / X» ose banner reminder. */
+function openOwnerZReportPanel(mode = "Z") {
+  const tabName = "zreport";
+  document.querySelectorAll(".tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.tab === tabName);
+  });
+  document.querySelectorAll(".panel-section").forEach((p) => p.classList.add("hidden"));
+  const panel = document.getElementById("panel-zreport");
+  if (panel) {
+    panel.classList.remove("hidden");
+    panel.hidden = false;
+    panel.removeAttribute("aria-hidden");
+  }
+  currentReportMode = mode === "X" || mode === "PERIODIC" ? mode : "Z";
+  if (currentReportMode === "PERIODIC") initPeriodicDateInputs();
   applyReportModeUi();
   window.scrollTo({ top: 0, behavior: "smooth" });
   return loadZReport();
@@ -2662,7 +2674,11 @@ document.querySelectorAll(".tab").forEach(tab => {
     if (tab.dataset.tab === "ai-asistent") loadOwnerAiAssistant?.();
     if (tab.dataset.tab === "njoftimet") loadOwnerNotifications?.();
     if (tab.dataset.tab === "faqja") loadPublicPage();
-    if (tab.dataset.tab === "zreport") loadZReport();
+    if (tab.dataset.tab === "zreport") {
+      if (currentReportMode !== "X" && currentReportMode !== "PERIODIC") currentReportMode = "Z";
+      initPeriodicDateInputs();
+      loadZReport();
+    }
     if (tab.dataset.tab === "fiskale") loadFiscalSettings();
     if (tab.dataset.tab === "licenca") loadLicense();
   });
@@ -2740,17 +2756,29 @@ document.getElementById("btn-refuse-filter")?.addEventListener("click", loadRefu
 
 document.getElementById("btn-zreport-refresh")?.addEventListener("click", loadZReport);
 document.getElementById("zreport-date")?.addEventListener("change", loadZReport);
+function switchOwnerReportMode(mode) {
+  currentReportMode = mode === "X" || mode === "PERIODIC" ? mode : "Z";
+  if (currentReportMode === "PERIODIC") initPeriodicDateInputs();
+  return loadZReport().catch((err) => alert(err.message));
+}
+
 document.getElementById("btn-report-view-x")?.addEventListener("click", () => {
-  currentReportMode = "X";
-  loadZReport().catch(err => alert(err.message));
+  switchOwnerReportMode("X");
 });
 document.getElementById("btn-report-view-z")?.addEventListener("click", () => {
-  currentReportMode = "Z";
-  loadZReport().catch(err => alert(err.message));
+  switchOwnerReportMode("Z");
 });
 document.getElementById("btn-report-view-periodic")?.addEventListener("click", () => {
-  currentReportMode = "PERIODIC";
-  loadZReport().catch(err => alert(err.message));
+  switchOwnerReportMode("PERIODIC");
+});
+document.getElementById("btn-raportet-open-x")?.addEventListener("click", () => {
+  openOwnerZReportPanel("X").catch((err) => alert(err.message));
+});
+document.getElementById("btn-raportet-open-z")?.addEventListener("click", () => {
+  openOwnerZReportPanel("Z").catch((err) => alert(err.message));
+});
+document.getElementById("btn-raportet-open-periodic")?.addEventListener("click", () => {
+  openOwnerZReportPanel("PERIODIC").catch((err) => alert(err.message));
 });
 document.getElementById("periodic-from")?.addEventListener("change", loadZReport);
 document.getElementById("periodic-to")?.addEventListener("change", loadZReport);

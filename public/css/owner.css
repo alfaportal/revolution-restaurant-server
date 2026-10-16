@@ -680,6 +680,17 @@
   font-size: 0.85rem;
 }
 
+.owner-zx-quick-card {
+  margin-bottom: 1rem;
+}
+
+.owner-zx-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
 .zreport-history-item {
   display: flex;
   justify-content: space-between;
