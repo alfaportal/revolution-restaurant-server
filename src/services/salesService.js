@@ -63,8 +63,7 @@ function mergeOrderItems(existingItems, newItems) {
 }
 
 /** Parandalon double-submit: porosi e njëjtë brenda 60s (table + device + waiter).
- *  Porosi QR (WEB-KIOSK) që ka accepted_at NUK bëhet dedup — klienti ka porositur sërish
- *  pas pranimit dhe duhet rresht i ri (porosi e dytë reale, jo double-click). */
+ *  WEB-KIOSK (QR tavolinë): kurrë merge — çdo «Dërgo» = porosi e re + kupon vetëm për artikujt e saj. */
 async function findRecentActiveOrderForDedup(db, {
   clientId,
   tableNumber,
@@ -72,6 +71,7 @@ async function findRecentActiveOrderForDedup(db, {
   waiterId = "",
   windowSec = 60,
 } = {}) {
+  if (String(deviceId).toUpperCase() === "WEB-KIOSK") return null;
   const num = Number(tableNumber);
   if (!num || num < 1 || !clientId || !deviceId) return null;
   const since = new Date(Date.now() - windowSec * 1000).toISOString();
@@ -90,10 +90,6 @@ async function findRecentActiveOrderForDedup(db, {
   const { data, error } = await q.maybeSingle();
   if (error) return null;
   if (!data) return null;
-  const { WEB_KIOSK } = require("../lib/orderSource");
-  if (String(deviceId).toUpperCase() === WEB_KIOSK && data.accepted_at) {
-    return null;
-  }
   return data;
 }
 
@@ -289,6 +285,17 @@ async function freeTableFromPos(body) {
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
       .eq("id", row.id);
     if (!updErr) cancelled += 1;
+  }
+
+  const { data: stillActive } = await db
+    .from("sales_orders")
+    .select("id, device_id")
+    .eq("client_id", license.client_id)
+    .eq("table_number", tableNum)
+    .in("status", ["ordered", "ready"])
+    .limit(1);
+  if ((stillActive || []).length) {
+    return { ok: true, cancelled, table_still_active: true };
   }
 
   try {
@@ -760,7 +767,7 @@ async function getLiveTablesForOwner(clientId) {
     const num = Number(o.table_number) || 0;
     if (num < 1 || metaByTable.has(num)) continue;
     const device = String(o.device_id || "").trim().toUpperCase();
-    if (device === WEB_KIOSK && !isOrderAccepted(o)) continue;
+    const acceptPending = device === WEB_KIOSK && !isOrderAccepted(o);
     const src = orderSourceLabel(o);
     metaByTable.set(num, {
       id: o.id || null,
@@ -773,12 +780,16 @@ async function getLiveTablesForOwner(clientId) {
       source_icon: src.icon,
       accepted_by: String(o.accepted_by_waiter_name || "").trim(),
       accepted_at: o.accepted_at || null,
+      accept_pending: acceptPending,
     });
     activeByTable.set(num, {
       waiter_name: o.waiter_name || "",
       waiter_id: o.waiter_id || null,
       total: Number(o.total) || 0,
       active_items: normalizeItems(o.items_json),
+      device_id: o.device_id || "",
+      accept_pending: acceptPending,
+      pending_order_id: acceptPending ? o.id || null : null,
     });
   }
 
@@ -802,6 +813,7 @@ async function getLiveTablesForOwner(clientId) {
           source_icon: meta?.source_icon || "",
           accepted_by: meta?.accepted_by || "",
           accepted_at: meta?.accepted_at || null,
+          accept_pending: Boolean(meta?.accept_pending),
         }
       : null;
     return {

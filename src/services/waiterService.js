@@ -18,12 +18,9 @@ const {
 const { isOrderAccepted } = require("../lib/salesOrderSelect");
 const { isOnlineSlotOrder } = require("./kdsService");
 
-/** QR (WEB-KIOSK) në pritje — jo «T1 e zënë» deri PRANO (si takeaway te Online). */
+/** Tavolinë e zënë për çdo porosi aktive (QR = klient porosit; mbyllje vetëm manuale). */
 function attachActiveOrderToWaiterTableLayout(row) {
-  if (!row) return false;
-  const device = String(row.device_id || "").trim().toUpperCase();
-  if (device === WEB_KIOSK && !isOrderAccepted(row)) return false;
-  return true;
+  return !!row && Number(row.table_number) >= 1;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

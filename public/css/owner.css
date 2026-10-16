@@ -641,6 +641,39 @@
   margin-bottom: 1rem;
 }
 
+#zreport-load-error:not(.hidden) {
+  margin: 0.65rem 0 0.75rem;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  #panel-zreport .card-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #panel-zreport .card-title-row > #zreport-title {
+    font-size: 1.05rem;
+    margin-bottom: 0.15rem;
+  }
+  #panel-zreport .card-title-row > div {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  #panel-zreport .card-title-row .btn-sm {
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.25rem);
+  }
+  #panel-zreport .links-hint {
+    font-size: 0.82rem;
+  }
+}
+
 .zreport-stat {
   background: #0f172a;
   border: 1px solid var(--border);

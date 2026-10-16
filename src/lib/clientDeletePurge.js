@@ -90,7 +90,18 @@ function isMissingPgRelation(err) {
 
 function isMissingRpc(error) {
   const msg = String(error?.message || error?.code || error?.details || "");
-  return /function.*does not exist|PGRST202|42883|admin_purge_client_licenses/i.test(msg);
+  return /function.*does not exist|PGRST202|42883|admin_purge_client_licenses|admin_purge_single_license/i.test(
+    msg,
+  );
+}
+
+async function deleteSingleLicenseViaRpc(db, licenseId) {
+  const lid = String(licenseId || "").trim();
+  if (!lid) return false;
+  const { error } = await db.rpc("admin_purge_single_license", { p_license_id: lid });
+  if (!error) return true;
+  if (isMissingRpc(error)) return false;
+  throw error;
 }
 
 async function purgeLicenseDependencies(db, licenseId) {
@@ -165,6 +176,16 @@ async function deleteLicensesForClientViaPg(clientId) {
 }
 
 async function deleteLicensesForClient(db, clientId) {
+  const { data: licenses, error: listErr } = await db
+    .from("licenses")
+    .select("id")
+    .eq("client_id", clientId);
+  if (listErr && !isMissingRelation(listErr)) throw listErr;
+  const licenseIds = (licenses || []).map((lic) => lic?.id).filter(Boolean);
+  if (licenseIds.length) {
+    await deleteLicenseTerminalsRest(db, licenseIds);
+  }
+
   try {
     if (await deleteLicensesForClientViaRpc(db, clientId)) return;
   } catch (err) {
@@ -176,16 +197,6 @@ async function deleteLicensesForClient(db, clientId) {
     if (await deleteLicensesForClientViaPg(clientId)) return;
   } catch (err) {
     console.warn("[deleteLicensesForClient] pg fallback to REST:", err.message || err);
-  }
-
-  const { data: licenses, error: listErr } = await db
-    .from("licenses")
-    .select("id")
-    .eq("client_id", clientId);
-  if (listErr && !isMissingRelation(listErr)) throw listErr;
-  const licenseIds = (licenses || []).map((lic) => lic?.id).filter(Boolean);
-  if (licenseIds.length) {
-    await deleteLicenseTerminalsRest(db, licenseIds);
   }
   for (const licId of licenseIds) {
     await purgeLicenseDependencies(db, licId);
@@ -219,6 +230,52 @@ async function deleteClientDependentRowsViaPg(clientId) {
   return true;
 }
 
+async function deleteSingleLicenseViaPg(licenseId) {
+  const pool = getPgPool();
+  if (!pool) return false;
+  const lid = String(licenseId || "").trim();
+  if (!lid) return false;
+  const deleted = await withPgTransaction(async (client) => {
+    for (const table of LICENSE_CHILD_TABLES) {
+      try {
+        await client.query(`DELETE FROM ${table} WHERE license_id = $1::uuid`, [lid]);
+      } catch (e) {
+        if (!isMissingPgRelation(e)) throw e;
+      }
+    }
+    const res = await client.query(`DELETE FROM licenses WHERE id = $1::uuid RETURNING id`, [lid]);
+    return (res.rowCount || 0) > 0;
+  });
+  return !!deleted;
+}
+
+/** Fshi një licencë (+ arkat) — Super Admin «Fshi licencën». */
+async function deleteSingleLicense(db, licenseId) {
+  const lid = String(licenseId || "").trim();
+  if (!lid) throw new Error("ID e licencës mungon.");
+
+  await deleteLicenseTerminalsRest(db, [lid]);
+
+  try {
+    if (await deleteSingleLicenseViaRpc(db, lid)) return { ok: true };
+  } catch (err) {
+    console.warn("[deleteSingleLicense] rpc:", err.message || err);
+    if (!isMissingRpc(err)) throw err;
+  }
+
+  try {
+    if (await deleteSingleLicenseViaPg(lid)) return { ok: true };
+  } catch (err) {
+    console.warn("[deleteSingleLicense] pg:", err.message || err);
+  }
+
+  await deleteLicenseTerminalsRest(db, [lid]);
+  await purgeLicenseDependencies(db, lid);
+  const { error } = await db.from("licenses").delete().eq("id", lid);
+  if (error) throw error;
+  return { ok: true };
+}
+
 /** Pastron varësitë + licencat — para DELETE te clients. */
 async function purgeClientBeforeDelete(db, clientId) {
   try {
@@ -230,13 +287,80 @@ async function purgeClientBeforeDelete(db, clientId) {
   await deleteLicensesForClient(db, clientId);
 }
 
+/** Prod shpesh pa ON DELETE CASCADE te owner_group_members.user_id → fshi para users. */
+async function deleteOwnerGroupMembersForClientUsers(db, clientId) {
+  const cid = String(clientId || "").trim();
+  if (!cid) return;
+
+  const { data: users, error: listErr } = await db.from("users").select("id").eq("client_id", cid);
+  if (listErr && !isMissingRelation(listErr)) throw listErr;
+  const userIds = (users || []).map((u) => u?.id).filter(Boolean);
+  if (!userIds.length) return;
+
+  const { error: bulkErr } = await db.from("owner_group_members").delete().in("user_id", userIds);
+  if (bulkErr && !isMissingRelation(bulkErr)) throw bulkErr;
+
+  for (const uid of userIds) {
+    const { error: oneErr } = await db.from("owner_group_members").delete().eq("user_id", uid);
+    if (oneErr && !isMissingRelation(oneErr)) throw oneErr;
+  }
+
+  const { count, error: cntErr } = await db
+    .from("owner_group_members")
+    .select("id", { count: "exact", head: true })
+    .in("user_id", userIds);
+  if (cntErr && !isMissingRelation(cntErr)) throw cntErr;
+  if ((count || 0) > 0) {
+    throw new Error(
+      `Nuk u fshinë ${count} anëtar(ë) grupi (owner_group_members) — provoni përsëri ose kontaktoni support.`,
+    );
+  }
+}
+
+async function deleteOwnerGroupMembersForClientUsersViaPg(clientId) {
+  const pool = getPgPool();
+  if (!pool) return false;
+  const cid = String(clientId || "").trim();
+  if (!cid) return false;
+  await withPgTransaction(async (client) => {
+    try {
+      await client.query(
+        `DELETE FROM owner_group_members
+         WHERE user_id IN (SELECT id FROM users WHERE client_id = $1::uuid)`,
+        [cid],
+      );
+    } catch (e) {
+      if (!isMissingPgRelation(e)) throw e;
+    }
+  });
+  return true;
+}
+
+/** Fshin përdoruesit e klientit — pas owner_group_members. */
+async function deleteClientUsers(db, clientId) {
+  const cid = String(clientId || "").trim();
+  if (!cid) return;
+  try {
+    await deleteOwnerGroupMembersForClientUsersViaPg(cid);
+  } catch (err) {
+    console.warn("[deleteClientUsers] pg owner_group_members:", err.message || err);
+  }
+  await deleteOwnerGroupMembersForClientUsers(db, cid);
+  const { error: usersErr } = await db.from("users").delete().eq("client_id", cid);
+  if (usersErr && !isMissingRelation(usersErr)) throw usersErr;
+}
+
 module.exports = {
   CLIENT_DELETE_TARGETS,
   LICENSE_CHILD_TABLES,
   isMissingRelation,
   isMissingPgRelation,
   purgeLicenseDependencies,
+  deleteLicenseTerminalsRest,
+  deleteSingleLicense,
   purgeClientBeforeDelete,
   deleteLicensesForClient,
   deleteClientDependentRows,
+  deleteOwnerGroupMembersForClientUsers,
+  deleteClientUsers,
 };

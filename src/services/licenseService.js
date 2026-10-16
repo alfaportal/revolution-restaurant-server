@@ -38,6 +38,8 @@ const {
   isMissingPgRelation,
   purgeLicenseDependencies,
   purgeClientBeforeDelete,
+  deleteSingleLicense,
+  deleteClientUsers,
 } = require("../lib/clientDeletePurge");
 
 function enrichLicenseRowWithTerminals(lic, summary) {
@@ -1258,8 +1260,7 @@ async function updateClient(id, body) {
 async function deleteClient(id, productHint) {
   const { db } = await dbForClientId(id, productHint);
   await purgeClientBeforeDelete(db, id);
-  const { error: usersErr } = await db.from("users").delete().eq("client_id", id);
-  if (usersErr && !isMissingRelation(usersErr)) throw usersErr;
+  await deleteClientUsers(db, id);
   const { error } = await db.from("clients").delete().eq("id", id);
   if (error) throw error;
   return { ok: true };
@@ -1550,35 +1551,11 @@ async function updateLicense(id, body) {
   return data;
 }
 
-async function deleteLicenseViaPg(licenseId) {
-  const pool = getPgPool();
-  if (!pool) return false;
-  const lid = String(licenseId || "").trim();
-  if (!lid) return false;
-  await withPgTransaction(async (client) => {
-    for (const table of LICENSE_CHILD_TABLES) {
-      try {
-        await client.query(`DELETE FROM ${table} WHERE license_id = $1::uuid`, [lid]);
-      } catch (e) {
-        if (!isMissingPgRelation(e)) throw e;
-      }
-    }
-    await client.query(`DELETE FROM licenses WHERE id = $1::uuid`, [lid]);
-  });
-  return true;
-}
-
 async function deleteLicense(id) {
   const { db } = await dbForLicenseId(id);
-  try {
-    if (await deleteLicenseViaPg(id)) return { ok: true };
-  } catch (err) {
-    console.warn("[deleteLicense] pg fallback to REST:", err.message || err);
-  }
   const lic = await loadLicenseForRemoteControl(id).catch(() => null);
   const now = new Date().toISOString();
   if (lic?.id) {
-    /* Urdhër wipe PARA fshirjes — POS merr force_factory_reset në heartbeat (~45s) */
     try {
       await patchLicenseMeta(lic.id, { force_factory_reset_at: now, statusi: "revokuar" });
       const hw = resolveLicenseHardwareId(lic);
@@ -1593,10 +1570,7 @@ async function deleteLicense(id) {
       console.warn("[deleteLicense] wipe flag:", err?.message || err);
     }
   }
-  await purgeLicenseDependencies(db, id);
-  const { error } = await db.from("licenses").delete().eq("id", id);
-  if (error) throw error;
-  return { ok: true };
+  return deleteSingleLicense(db, id);
 }
 
 async function updateLicenseStatus(id, statusi) {

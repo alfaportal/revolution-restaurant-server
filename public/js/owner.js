@@ -1008,7 +1008,24 @@ function applyReportModeUi() {
   if (isPeriodic) initPeriodicDateInputs();
 }
 
+function setZReportLoadError(msg) {
+  const errEl = document.getElementById("zreport-load-error");
+  if (!errEl) return;
+  if (!msg) {
+    errEl.textContent = "";
+    errEl.classList.add("hidden");
+    return;
+  }
+  errEl.textContent = msg;
+  errEl.classList.remove("hidden");
+}
+
 function renderZReport(report) {
+  if (!report || typeof report !== "object") {
+    setZReportLoadError("Raporti nuk u ngarkua. Provoni «Rifresko» ose dilni/hyni përsëri.");
+    return;
+  }
+  setZReportLoadError("");
   currentZReport = report;
   const summary = document.getElementById("zreport-summary");
   if (summary) {
@@ -1113,9 +1130,15 @@ async function loadZReportHistory() {
 
 async function loadZReport() {
   applyReportModeUi();
-  const { report } = await api(`/api/owner/${reportApiPath()}?${reportFetchQuery()}`);
-  renderZReport(report);
-  if (currentReportMode === "Z") await loadZReportHistory();
+  setZReportLoadError("");
+  try {
+    const data = await api(`/api/owner/${reportApiPath()}?${reportFetchQuery()}`);
+    renderZReport(data?.report);
+    if (currentReportMode === "Z") await loadZReportHistory();
+  } catch (err) {
+    setZReportLoadError(err?.message || "Gabim ngarkimi raportit Z/X.");
+    console.warn("loadZReport:", err);
+  }
 }
 
 /** Hap panelin Z/X/Periodik — tab «Raporti Z / X» ose banner reminder. */
@@ -2772,13 +2795,13 @@ document.getElementById("btn-report-view-periodic")?.addEventListener("click", (
   switchOwnerReportMode("PERIODIC");
 });
 document.getElementById("btn-raportet-open-x")?.addEventListener("click", () => {
-  openOwnerZReportPanel("X").catch((err) => alert(err.message));
+  openOwnerZReportPanel("X").catch((err) => setZReportLoadError(err?.message));
 });
 document.getElementById("btn-raportet-open-z")?.addEventListener("click", () => {
-  openOwnerZReportPanel("Z").catch((err) => alert(err.message));
+  openOwnerZReportPanel("Z").catch((err) => setZReportLoadError(err?.message));
 });
 document.getElementById("btn-raportet-open-periodic")?.addEventListener("click", () => {
-  openOwnerZReportPanel("PERIODIC").catch((err) => alert(err.message));
+  openOwnerZReportPanel("PERIODIC").catch((err) => setZReportLoadError(err?.message));
 });
 document.getElementById("periodic-from")?.addEventListener("change", loadZReport);
 document.getElementById("periodic-to")?.addEventListener("change", loadZReport);
@@ -2824,7 +2847,7 @@ document.getElementById("btn-zreport-close")?.addEventListener("click", async ()
   }
 });
 document.getElementById("owner-z-reminder-go")?.addEventListener("click", () => {
-  openOwnerZReportPanel().catch((err) => alert(err.message));
+  openOwnerZReportPanel().catch((err) => setZReportLoadError(err?.message));
 });
 document.getElementById("btn-zreport-print")?.addEventListener("click", () => {
   printZReport().catch(err => alert(err.message));
