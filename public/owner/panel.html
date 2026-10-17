@@ -1048,7 +1048,7 @@
     <div id="panel-linqet" class="panel-section hidden">
       <div class="card links-card" id="owner-links-card">
         <div class="card-title">Linqet e lokalit tuaj</div>
-        <p class="links-hint">Format: <code>/kafene/emri/owner</code>, <code>/restorant/emri/kamarier</code>, <code>/bar/emri/kuzhina</code>, etj.</p>
+        <p class="links-hint">Stafi punon përmes Wi‑Fi/LAN të POS-it. Takeaway, QR dhe faqja publike mbeten në internet (cloud).</p>
         <p id="owner-links-empty" class="links-hint hidden">Paketa juaj nuk përfshin module web (KDS/Kiosk/Kamarier). Kontaktoni administratorin për upgrade.</p>
         <div class="link-row" id="owner-link-owner-row">
           <label>Pronari — paneli web</label>
@@ -1057,15 +1057,15 @@
             <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-owner">Kopjo</button>
           </div>
         </div>
-        <div class="link-row" id="owner-link-waiter-cloud-row">
+        <div class="link-row hidden" id="owner-link-waiter-cloud-row" hidden aria-hidden="true">
           <label>Kamarier — cloud (internet)</label>
           <div class="link-actions">
-            <input type="text" id="owner-waiter-cloud-url" readonly>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-waiter-cloud">Kopjo</button>
+            <input type="text" id="owner-waiter-cloud-url" readonly tabindex="-1">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-waiter-cloud" tabindex="-1">Kopjo</button>
           </div>
         </div>
         <div class="link-row" id="owner-link-waiter-wifi-row">
-          <label>Kamarier — WiFi lokal (i njëjti rrjet si PC)</label>
+          <label>Kamarier — WiFi/LAN (POS)</label>
           <div class="link-actions">
             <input type="text" id="owner-waiter-wifi-url" readonly>
             <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-waiter-wifi">Kopjo</button>
@@ -1073,14 +1073,14 @@
         </div>
         <div id="owner-waiter-hostnames" class="links-hint hidden" style="margin:-0.35rem 0 0.75rem"></div>
         <div class="link-row" id="owner-link-bar-row">
-          <label>Banak — porosi (QR, kamarier, online, POS)</label>
+          <label>Banak — WiFi/LAN (POS)</label>
           <div class="link-actions">
             <input type="text" id="owner-bar-url" readonly>
             <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-bar">Kopjo</button>
           </div>
         </div>
         <div class="link-row" id="owner-link-kitchen-row">
-          <label>Kuzhina (KDS) — vetëm ushqim</label>
+          <label>Kuzhina (KDS) — WiFi/LAN (POS)</label>
           <div class="link-actions">
             <input type="text" id="owner-kitchen-url" readonly>
             <button type="button" class="btn btn-ghost btn-sm" id="btn-owner-copy-kitchen">Kopjo</button>

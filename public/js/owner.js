@@ -308,17 +308,20 @@ async function loadClient() {
   if (linksCard) linksCard.classList.toggle("hidden", !!viewAll);
 
   const waiterCloud = links.waiter_cloud || links.waiter || data.waiter_url || "";
-  const rows = [
-    ["owner-link-owner-row", "owner-owner-url", true, links.owner],
-    ["owner-link-waiter-cloud-row", "owner-waiter-cloud-url", features.waiter, waiterCloud],
-    ["owner-link-waiter-wifi-row", "owner-waiter-wifi-url", true, links.waiter_wifi || ""],
-    ["owner-link-bar-row", "owner-bar-url", features.kds, links.bar || data.bar_url],
-    ["owner-link-kitchen-row", "owner-kitchen-url", features.kds, links.kitchen || data.kitchen_url],
-    ["owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.kiosk || links.menu],
-    ["owner-link-takeaway-row", "owner-takeaway-url", features.online_orders, links.takeaway],
-    ["owner-link-public-row", "owner-public-url", features.website, links.public_page],
-  ];
-  for (const [rowId, inputId, enabled, url] of rows) {
+  const kitchenCloud = links.kitchen_cloud || links.kitchen || data.kitchen_url || "";
+  const barCloud = links.bar_cloud || links.bar || data.bar_url || "";
+
+  const cloudWaiterRow = document.getElementById("owner-link-waiter-cloud-row");
+  const cloudWaiterInput = document.getElementById("owner-waiter-cloud-url");
+  if (cloudWaiterRow) {
+    cloudWaiterRow.classList.add("hidden");
+    cloudWaiterRow.setAttribute("hidden", "");
+    cloudWaiterRow.setAttribute("aria-hidden", "true");
+    if (waiterCloud) cloudWaiterRow.dataset.cloudUrl = waiterCloud;
+  }
+  if (cloudWaiterInput) cloudWaiterInput.value = waiterCloud || "";
+
+  function setOwnerCloudLinkRow(rowId, inputId, enabled, url) {
     const row = document.getElementById(rowId);
     const show = enabled && !!(url || "").trim();
     if (row) {
@@ -329,6 +332,63 @@ async function loadClient() {
     const input = document.getElementById(inputId);
     if (input) input.value = show ? (url || "") : "";
   }
+
+  function setOwnerStaffLocalRow(rowId, inputId, enabled, localUrl, cloudUrlHidden) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    if (!enabled) {
+      row.classList.add("hidden");
+      row.setAttribute("hidden", "");
+      return;
+    }
+    row.classList.remove("hidden");
+    row.removeAttribute("hidden");
+    if (cloudUrlHidden) row.dataset.cloudUrl = String(cloudUrlHidden);
+    const u = String(localUrl || "").trim();
+    const input = document.getElementById(inputId);
+    if (input) input.value = u;
+    let hint = row.querySelector(".owner-pos-offline-hint");
+    if (!u) {
+      if (!hint) {
+        hint = document.createElement("p");
+        hint.className = "links-hint owner-pos-offline-hint";
+        hint.style.margin = "0.35rem 0 0";
+        const actions = row.querySelector(".link-actions");
+        if (actions) actions.after(hint);
+        else row.appendChild(hint);
+      }
+      hint.textContent = "POS nuk është aktiv";
+      hint.classList.remove("hidden");
+    } else if (hint) {
+      hint.remove();
+    }
+  }
+
+  setOwnerCloudLinkRow("owner-link-owner-row", "owner-owner-url", true, links.owner);
+  setOwnerStaffLocalRow(
+    "owner-link-waiter-wifi-row",
+    "owner-waiter-wifi-url",
+    !!features.waiter,
+    links.waiter_wifi || "",
+    waiterCloud,
+  );
+  setOwnerStaffLocalRow(
+    "owner-link-bar-row",
+    "owner-bar-url",
+    !!features.kds,
+    links.bar_wifi || "",
+    barCloud,
+  );
+  setOwnerStaffLocalRow(
+    "owner-link-kitchen-row",
+    "owner-kitchen-url",
+    !!features.kds,
+    links.kitchen_wifi || "",
+    kitchenCloud,
+  );
+  setOwnerCloudLinkRow("owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.kiosk || links.menu);
+  setOwnerCloudLinkRow("owner-link-takeaway-row", "owner-takeaway-url", features.online_orders, links.takeaway);
+  setOwnerCloudLinkRow("owner-link-public-row", "owner-public-url", features.website, links.public_page);
 
   const hostBox = document.getElementById("owner-waiter-hostnames");
   const hostUrls = Array.isArray(links.waiter_hostname_urls) ? links.waiter_hostname_urls : [];
@@ -359,9 +419,11 @@ async function loadClient() {
   const empty = document.getElementById("owner-links-empty");
   if (empty) {
     const anyLink =
-      !!(features.waiter && waiterCloud)
+      !!features.waiter
       || !!(links.waiter_wifi || "").trim()
-      || !!(features.kds || features.kiosk || features.website || features.online_orders);
+      || !!features.kds
+      || !!(features.kds && (links.kitchen_wifi || links.bar_wifi || "").trim())
+      || !!(features.kiosk || features.website || features.online_orders);
     empty.classList.toggle("hidden", anyLink);
   }
 
