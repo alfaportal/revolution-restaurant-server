@@ -713,6 +713,17 @@ app.get("/health/db", async (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/license", licenseRoutes);
 app.use("/api/v1/owner", require("./routes/owner-daily-report"));
+const {
+  authOwner: cleanupStaleAuthOwner,
+  ownerOnly: cleanupStaleOwnerOnly,
+  handleCleanupStaleOwnerOrders,
+} = require("./routes/owner-cleanup-stale-orders");
+app.post(
+  "/api/v1/owner/cleanup-stale-orders",
+  cleanupStaleAuthOwner,
+  cleanupStaleOwnerOnly,
+  handleCleanupStaleOwnerOrders,
+);
 app.use("/api/v1/terminal", terminalRoutes);
 app.use("/api/v1/sales", salesRoutes);
 app.use("/api/v1/pos", posRoutes);

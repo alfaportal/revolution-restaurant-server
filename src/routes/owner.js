@@ -9,6 +9,7 @@ const {
   getClientById,
   getLiveTablesForOwner,
   voidOwnerOrder,
+  cleanupStaleOwnerOrders,
 } = require("../services/salesService");
 const {
   EXPENSE_CATEGORIES,
@@ -354,10 +355,21 @@ router.get("/tables/live", async (req, res) => {
   }
 });
 
+router.post("/cleanup-stale-orders", async (req, res) => {
+  try {
+    const result = await cleanupStaleOwnerOrders(req.user.client_id, { force: true });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message });
+  }
+});
+
 /** Takeaway / faqe publike / QR në pritje — pa kitchen key (panel pronari). */
 router.get("/online-slots", async (req, res) => {
   try {
     const clientId = req.user.client_id;
+    const { expireStaleOnlineOrders } = require("../services/salesService");
+    await expireStaleOnlineOrders(clientId);
     const {
       fetchOrderedSales,
       fetchRefusalGraceOrders,

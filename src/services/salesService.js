@@ -221,6 +221,78 @@ async function expireStalePosSyncOrders(clientId) {
   }
 }
 
+const STALE_ONLINE_THROTTLE_MS = 10 * 60 * 1000;
+const _staleOnlineLastRunByClient = new Map();
+
+/** Takeaway / Online 1…6 — anulo pas 24h (panel pronari). */
+async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
+  if (Date.now() - _salesServiceStartedAt < EXPIRE_STARTUP_GRACE_MS && !force) {
+    return { expired: 0, order_ids: [] };
+  }
+  const cid = String(clientId || "").trim();
+  if (!cid) return { expired: 0, order_ids: [] };
+  const last = _staleOnlineLastRunByClient.get(cid) || 0;
+  if (!force && Date.now() - last < STALE_ONLINE_THROTTLE_MS) {
+    return { expired: 0, order_ids: [], skipped: true };
+  }
+  _staleOnlineLastRunByClient.set(cid, Date.now());
+
+  const { isOnlineSlotOrder } = require("./kdsService");
+  const db = getSupabase();
+  const cutoffMs = Date.now() - STALE_POS_SYNC_MS;
+  const now = new Date().toISOString();
+
+  const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
+  const base =
+    "id, table_number, device_id, waiter_name, ordered_at, created_at, status";
+  let rows;
+  try {
+    rows = await selectWithAcceptanceFallback((withAcceptance) => {
+      const select = withAcceptance ? `${base}, accepted_at` : base;
+      return db
+        .from("sales_orders")
+        .select(select)
+        .eq("client_id", cid)
+        .in("status", ["ordered", "ready"]);
+    });
+  } catch (err) {
+    console.warn("[sales] expire stale online:", err.message);
+    return { expired: 0, order_ids: [] };
+  }
+
+  const expiredIds = [];
+  for (const row of rows || []) {
+    if (!isOnlineSlotOrder(row)) continue;
+    const touch = row.accepted_at || row.ordered_at || row.created_at;
+    if (!touch || new Date(touch).getTime() > cutoffMs) continue;
+    const { error: updErr } = await db
+      .from("sales_orders")
+      .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
+      .eq("id", row.id);
+    if (!updErr) expiredIds.push(row.id);
+    else console.warn("[sales] expire stale online row:", updErr.message);
+  }
+
+  if (expiredIds.length) {
+    try {
+      require("./kdsEvents").notifyKitchenUpdate(cid, { online_slots: true });
+    } catch {
+      /* optional */
+    }
+  }
+  return { expired: expiredIds.length, order_ids: expiredIds };
+}
+
+async function cleanupStaleOwnerOrders(clientId, opts = {}) {
+  await expireStalePosSyncOrders(clientId);
+  const online = await expireStaleOnlineOrders(clientId, { force: opts.force !== false });
+  return {
+    ok: true,
+    expired_online: online.expired || 0,
+    expired_online_ids: online.order_ids || [],
+  };
+}
+
 async function freeTableFromPos(body) {
   const celesi = normalizeKey(body.celesi || body.license_key);
   if (!celesi) throw new Error("Mungon çelësi i licencës.");
@@ -677,6 +749,10 @@ async function syncSaleFromPos(body) {
       console.warn("[inventory] POS deduct failed:", err.message);
     }
   }
+  if (sale?.client_id) {
+    await expireStalePosSyncOrders(sale.client_id);
+    await expireStaleOnlineOrders(sale.client_id);
+  }
   const receipt = await buildSaleReceipt(sale, body);
   return { sale, receipt };
 }
@@ -686,7 +762,12 @@ async function updateActiveSaleFromPos(body) {
   if (!["ordered", "cancelled"].includes(status)) {
     throw new Error("Statusi duhet të jetë ordered ose cancelled.");
   }
-  return upsertSaleFromPos({ ...body, status }, { defaultStatus: "ordered" });
+  const sale = await upsertSaleFromPos({ ...body, status }, { defaultStatus: "ordered" });
+  if (sale?.client_id) {
+    await expireStalePosSyncOrders(sale.client_id);
+    await expireStaleOnlineOrders(sale.client_id);
+  }
+  return sale;
 }
 
 /** license_id|device_id → terminal_role (arka1, arka2…) nga license_terminals; gabim → Map bosh. */
@@ -743,6 +824,7 @@ async function getLiveTablesForOwner(clientId) {
   const { buildTablesFromAreas } = require("../lib/tableLayout");
 
   await expireStalePosSyncOrders(clientId);
+  await expireStaleOnlineOrders(clientId);
 
   const activeOrders = await fetchOwnerActiveOrders(clientId);
 
@@ -1303,4 +1385,6 @@ module.exports = {
   getClientById,
   voidOwnerOrder,
   VOID_REASONS,
+  expireStaleOnlineOrders,
+  cleanupStaleOwnerOrders,
 };
