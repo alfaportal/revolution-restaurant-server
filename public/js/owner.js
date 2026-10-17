@@ -627,10 +627,7 @@ async function loadLiveTables() {
   const updated = document.getElementById("live-tables-updated");
   if (!grid) return;
   updateOwnerLiveSyncUi({ posPulse: data.pos_pulse, fetchOk: true });
-  const occupied = (data.tables || []).filter((t) => t.status === "occupied");
-  grid.innerHTML = occupied.length
-    ? occupied.map(renderLiveTableCard).join("")
-    : '<p class="links-hint">Nuk ka tavolina të zëna tani.</p>';
+  grid.innerHTML = (data.tables || []).map(renderLiveTableCard).join("");
   if (updated) {
     updated.textContent = data.updated_at
       ? `Përditësuar: ${fmtTime(data.updated_at)}`
