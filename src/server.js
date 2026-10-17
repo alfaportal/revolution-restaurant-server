@@ -712,6 +712,7 @@ app.get("/health/db", async (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/license", licenseRoutes);
+app.use("/api/v1/owner", require("./routes/owner-daily-report"));
 app.use("/api/v1/terminal", terminalRoutes);
 app.use("/api/v1/sales", salesRoutes);
 app.use("/api/v1/pos", posRoutes);
