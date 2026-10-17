@@ -224,7 +224,50 @@ async function expireStalePosSyncOrders(clientId) {
 const STALE_ONLINE_THROTTLE_MS = 10 * 60 * 1000;
 const _staleOnlineLastRunByClient = new Map();
 
-/** Takeaway / Online 1…6 — anulo pas 24h (panel pronari). */
+function staleOnlineOrderAgeMs(row) {
+  const stamps = [row?.created_at, row?.ordered_at, row?.accepted_at]
+    .map(v => (v ? Date.parse(v) : NaN))
+    .filter(n => Number.isFinite(n));
+  return stamps.length ? Math.min(...stamps) : NaN;
+}
+
+async function fetchOwnerVisibleOnlineOrders(clientId) {
+  const {
+    fetchOrderedSales,
+    fetchRefusalGraceOrders,
+    mergeOrdersById,
+    buildOnlineOrdersList,
+  } = require("./kdsService");
+  let orders = await fetchOrderedSales(clientId, { includeReady: true });
+  orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(clientId));
+  return buildOnlineOrdersList(orders, {});
+}
+
+async function cancelOwnerOnlineOrdersByIds(clientId, orderIds) {
+  const db = getSupabase();
+  const now = new Date().toISOString();
+  const ids = [...new Set((orderIds || []).filter(Boolean))];
+  if (!ids.length) return [];
+  const cancelled = [];
+  for (const id of ids) {
+    const { error: updErr } = await db
+      .from("sales_orders")
+      .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
+      .eq("id", id)
+      .eq("client_id", clientId);
+    if (!updErr) cancelled.push(id);
+    else console.warn("[sales] cancel owner online row:", id, updErr.message);
+  }
+  if (cancelled.length) {
+    try {
+      require("./kdsEvents").notifyKitchenUpdate(clientId, { online_slots: true });
+    } catch {
+      /* optional */
+    }
+  }
+  return cancelled;
+}
+
 async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
   if (Date.now() - _salesServiceStartedAt < EXPIRE_STARTUP_GRACE_MS && !force) {
     return { expired: 0, order_ids: [] };
@@ -237,59 +280,52 @@ async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
   }
   _staleOnlineLastRunByClient.set(cid, Date.now());
 
-  const { isOnlineSlotOrder } = require("./kdsService");
-  const db = getSupabase();
   const cutoffMs = Date.now() - STALE_POS_SYNC_MS;
-  const now = new Date().toISOString();
-
-  const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
-  const base =
-    "id, table_number, device_id, waiter_name, ordered_at, created_at, status";
-  let rows;
+  let visible;
   try {
-    rows = await selectWithAcceptanceFallback((withAcceptance) => {
-      const select = withAcceptance ? `${base}, accepted_at` : base;
-      return db
-        .from("sales_orders")
-        .select(select)
-        .eq("client_id", cid)
-        .in("status", ["ordered", "ready"]);
-    });
+    visible = await fetchOwnerVisibleOnlineOrders(cid);
   } catch (err) {
     console.warn("[sales] expire stale online:", err.message);
     return { expired: 0, order_ids: [] };
   }
 
-  const expiredIds = [];
-  for (const row of rows || []) {
-    if (!isOnlineSlotOrder(row)) continue;
-    const ageTouch = row.created_at || row.ordered_at || row.accepted_at;
-    if (!ageTouch || new Date(ageTouch).getTime() > cutoffMs) continue;
-    const { error: updErr } = await db
-      .from("sales_orders")
-      .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
-      .eq("id", row.id);
-    if (!updErr) expiredIds.push(row.id);
-    else console.warn("[sales] expire stale online row:", updErr.message);
+  const toCancel = [];
+  for (const entry of visible || []) {
+    const row = entry?.order;
+    if (!row?.id) continue;
+    const ageMs = staleOnlineOrderAgeMs(row);
+    if (!Number.isFinite(ageMs) || ageMs > cutoffMs) continue;
+    toCancel.push(row.id);
   }
-
-  if (expiredIds.length) {
-    try {
-      require("./kdsEvents").notifyKitchenUpdate(cid, { online_slots: true });
-    } catch {
-      /* optional */
-    }
-  }
+  const expiredIds = await cancelOwnerOnlineOrdersByIds(cid, toCancel);
   return { expired: expiredIds.length, order_ids: expiredIds };
+}
+
+async function flushAllOwnerVisibleOnlineOrders(clientId) {
+  const cid = String(clientId || "").trim();
+  if (!cid) return { flushed: 0, order_ids: [] };
+  let visible;
+  try {
+    visible = await fetchOwnerVisibleOnlineOrders(cid);
+  } catch (err) {
+    console.warn("[sales] flush owner online:", err.message);
+    return { flushed: 0, order_ids: [] };
+  }
+  const ids = (visible || []).map(e => e?.order?.id).filter(Boolean);
+  const flushedIds = await cancelOwnerOnlineOrdersByIds(cid, ids);
+  return { flushed: flushedIds.length, order_ids: flushedIds };
 }
 
 async function cleanupStaleOwnerOrders(clientId, opts = {}) {
   await expireStalePosSyncOrders(clientId);
-  const online = await expireStaleOnlineOrders(clientId, { force: opts.force !== false });
+  const online = await expireStaleOnlineOrders(clientId, { force: true });
+  const flush = await flushAllOwnerVisibleOnlineOrders(clientId);
   return {
     ok: true,
     expired_online: online.expired || 0,
     expired_online_ids: online.order_ids || [],
+    flushed_online: flush.flushed || 0,
+    flushed_online_ids: flush.order_ids || [],
   };
 }
 
