@@ -85,10 +85,25 @@ function registerServiceWorker() {
   navigator.serviceWorker.register("/owner/sw.js?v=8", { scope: "/owner/" }).catch(() => {});
 }
 
+const OWNER_LIVE_POLL_MS = 10_000;
+const OWNER_LIVE_STALE_MS = 30_000;
+const OWNER_ORDER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+let ownerLiveLastFetchAt = 0;
+
 async function api(path, opts = {}) {
-  const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  const headers = {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
+    ...(opts.headers || {}),
+  };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(path, { ...opts, headers, credentials: "include" });
+  const res = await fetch(path, {
+    ...opts,
+    headers,
+    credentials: "include",
+    cache: "no-store",
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.gabim || `HTTP ${res.status}`);
   return data;
@@ -159,6 +174,26 @@ function liveTableSourceLabel(o, t) {
   if (/online|porosi/.test(area)) return "Online tavolin";
   if (code === "pos" && Number(o?.table_number || t?.number) > 0) return "Tavolinë";
   return "";
+}
+
+function ownerLiveSlotFresh(slot) {
+  if (!slot || slot.status === "free" || !slot.order) return false;
+  const ts = Date.parse(slot.order.created_at || slot.order.ordered_at || "");
+  if (!Number.isFinite(ts)) return true;
+  return Date.now() - ts <= OWNER_ORDER_MAX_AGE_MS;
+}
+
+function updateOwnerLiveSyncUi({ posPulse, fetchOk = true } = {}) {
+  if (fetchOk) ownerLiveLastFetchAt = Date.now();
+  const dot = document.getElementById("owner-live-dot");
+  const hint = document.getElementById("owner-pos-offline-hint");
+  const stale = !ownerLiveLastFetchAt || Date.now() - ownerLiveLastFetchAt > OWNER_LIVE_STALE_MS;
+  if (dot) {
+    dot.classList.remove("live", "stale");
+    dot.classList.add(stale ? "stale" : "live");
+  }
+  const posOnline = posPulse?.online !== false;
+  if (hint) hint.classList.toggle("hidden", posOnline);
 }
 
 function renderLiveTableCard(t) {
@@ -574,10 +609,15 @@ async function loadLiveOnlineSlots() {
   zone.classList.remove("hidden");
   try {
     const { slots, title } = await fetchOwnerOnlineSlots();
-    if (titleEl) titleEl.textContent = title;
-    grid.innerHTML = slots.map(renderOwnerOnlineSlotCard).join("");
+    const liveSlots = slots.filter(ownerLiveSlotFresh);
+    if (titleEl) {
+      titleEl.textContent = liveSlots.length ? `${title} (${liveSlots.length})` : title;
+    }
+    grid.innerHTML = liveSlots.length
+      ? liveSlots.map(renderOwnerOnlineSlotCard).join("")
+      : '<p class="links-hint">Nuk ka porosi aktive</p>';
   } catch {
-    grid.innerHTML = defaultOwnerOnlineSlots().map(renderOwnerOnlineSlotCard).join("");
+    grid.innerHTML = '<p class="links-hint">Nuk ka porosi aktive</p>';
   }
 }
 
@@ -586,9 +626,15 @@ async function loadLiveTables() {
   const grid = document.getElementById("live-tables-grid");
   const updated = document.getElementById("live-tables-updated");
   if (!grid) return;
-  grid.innerHTML = (data.tables || []).map(renderLiveTableCard).join("");
-  if (updated && data.updated_at) {
-    updated.textContent = `Përditësuar: ${fmtTime(data.updated_at)}`;
+  updateOwnerLiveSyncUi({ posPulse: data.pos_pulse, fetchOk: true });
+  const occupied = (data.tables || []).filter((t) => t.status === "occupied");
+  grid.innerHTML = occupied.length
+    ? occupied.map(renderLiveTableCard).join("")
+    : '<p class="links-hint">Nuk ka tavolina të zëna tani.</p>';
+  if (updated) {
+    updated.textContent = data.updated_at
+      ? `Përditësuar: ${fmtTime(data.updated_at)}`
+      : `Përditësuar: ${fmtTime(new Date().toISOString())}`;
   }
   await loadLiveOnlineSlots();
 }
@@ -3410,19 +3456,31 @@ document.getElementById("btn-staff-add")?.addEventListener("click", async () => 
   await runBootStep("z-reminder", refreshOwnerZReminderBanner);
   setInterval(() => refreshOwnerZReminderBanner().catch(() => {}), 120000);
 
+  document.getElementById("btn-owner-live-refresh")?.addEventListener("click", () => {
+    loadLiveTables().catch(() => {});
+  });
+
   setInterval(async () => {
     try {
       if (!document.getElementById("panel-tavolinat").classList.contains("hidden")) {
         await loadLiveTables();
+      } else {
+        updateOwnerLiveSyncUi({ fetchOk: false });
       }
       if (!document.getElementById("panel-porosite").classList.contains("hidden")) {
         await loadOrderFilters();
         await loadOrders();
       }
     } catch {
-      /* poll — mos nxirr jashtë */
+      updateOwnerLiveSyncUi({ fetchOk: false });
     }
-  }, 15_000);
+  }, OWNER_LIVE_POLL_MS);
+
+  setInterval(() => {
+    if (!document.getElementById("panel-tavolinat")?.classList.contains("hidden")) {
+      updateOwnerLiveSyncUi({});
+    }
+  }, 5000);
 
   /* Pakoja nga Naseri (PATCH) — AI + linqe, pa restart (12s) */
   setInterval(() => {

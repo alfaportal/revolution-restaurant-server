@@ -146,10 +146,90 @@ async function cancelOtherActiveOrdersForTable(clientId, tableNumber, except = n
 }
 
 const STALE_POS_SYNC_MS = 24 * 60 * 60 * 1000;
+const OWNER_LIVE_OPEN_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const EXPIRE_STARTUP_GRACE_MS = 90 * 1000;
 const STALE_EXPIRE_THROTTLE_MS = 10 * 60 * 1000;
 const _salesServiceStartedAt = Date.now();
 const _staleExpireLastRunByClient = new Map();
+
+function ownerLiveCutoffIso() {
+  return new Date(Date.now() - OWNER_LIVE_OPEN_MAX_AGE_MS).toISOString();
+}
+
+async function getPosPulseForClient(clientId) {
+  const db = getSupabase();
+  const cid = String(clientId || "").trim();
+  if (!cid) return { online: false, last_seen_at: null };
+  try {
+    const { data: licenses, error: licErr } = await db
+      .from("licenses")
+      .select("id")
+      .eq("client_id", cid);
+    if (licErr) throw licErr;
+    const ids = (licenses || []).map((l) => l.id).filter(Boolean);
+    if (!ids.length) return { online: false, last_seen_at: null };
+    const { data: terms, error: termErr } = await db
+      .from("license_terminals")
+      .select("last_seen_at")
+      .in("license_id", ids)
+      .order("last_seen_at", { ascending: false })
+      .limit(1);
+    if (termErr) throw termErr;
+    const last = terms?.[0]?.last_seen_at || null;
+    if (!last) return { online: false, last_seen_at: null };
+    const ageMs = Date.now() - Date.parse(last);
+    return { online: ageMs < 3 * 60 * 1000, last_seen_at: last };
+  } catch (err) {
+    console.warn("[sales] pos pulse:", err.message);
+    return { online: false, last_seen_at: null };
+  }
+}
+
+async function expireGlobalOpenSalesOrders() {
+  const db = getSupabase();
+  const cutoffIso = ownerLiveCutoffIso();
+  const now = new Date().toISOString();
+  let rows;
+  try {
+    const { data, error } = await db
+      .from("sales_orders")
+      .select("id, client_id, table_number")
+      .in("status", ["ordered", "ready"])
+      .lt("created_at", cutoffIso);
+    if (error) throw error;
+    rows = data || [];
+  } catch (err) {
+    console.warn("[sales] global open order janitor:", err.message);
+    return { cancelled: 0 };
+  }
+  if (!rows.length) return { cancelled: 0 };
+
+  const byClient = new Map();
+  for (const row of rows) {
+    const { error: updErr } = await db
+      .from("sales_orders")
+      .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
+      .eq("id", row.id);
+    if (updErr) continue;
+    if (!byClient.has(row.client_id)) byClient.set(row.client_id, { tables: new Set(), count: 0 });
+    const bucket = byClient.get(row.client_id);
+    bucket.count += 1;
+    if (Number(row.table_number) >= 1) bucket.tables.add(Number(row.table_number));
+  }
+  try {
+    const kds = require("./kdsEvents");
+    for (const [clientId, info] of byClient) {
+      kds.notifyKitchenUpdate(clientId, { online_slots: true });
+      for (const table_number of info.tables) {
+        kds.notifyKitchenUpdate(clientId, { table_number, status: "free" });
+      }
+    }
+  } catch {
+    /* optional */
+  }
+  if (rows.length) console.log(`[owner-live-janitor] cancelled ${rows.length} stale open order(s)`);
+  return { cancelled: rows.length };
+}
 
 /** Anulon porositë POS në cloud pa heartbeat — tavolina kthehet «e lirë» pas 2 min. */
 async function expireStalePosSyncOrders(clientId) {
@@ -240,6 +320,11 @@ async function fetchOwnerVisibleOnlineOrders(clientId) {
   } = require("./kdsService");
   let orders = await fetchOrderedSales(clientId, { includeReady: true });
   orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(clientId));
+  const liveCutoffMs = Date.now() - OWNER_LIVE_OPEN_MAX_AGE_MS;
+  orders = (orders || []).filter((o) => {
+    const ts = Date.parse(o.created_at || o.ordered_at || "");
+    return !Number.isFinite(ts) || ts >= liveCutoffMs;
+  });
   return buildOnlineOrdersList(orders, {});
 }
 
@@ -280,7 +365,7 @@ async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
   }
   _staleOnlineLastRunByClient.set(cid, Date.now());
 
-  const cutoffMs = Date.now() - STALE_POS_SYNC_MS;
+  const cutoffMs = Date.now() - OWNER_LIVE_OPEN_MAX_AGE_MS;
   let visible;
   try {
     visible = await fetchOwnerVisibleOnlineOrders(cid);
@@ -301,31 +386,14 @@ async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
   return { expired: expiredIds.length, order_ids: expiredIds };
 }
 
-async function flushAllOwnerVisibleOnlineOrders(clientId) {
-  const cid = String(clientId || "").trim();
-  if (!cid) return { flushed: 0, order_ids: [] };
-  let visible;
-  try {
-    visible = await fetchOwnerVisibleOnlineOrders(cid);
-  } catch (err) {
-    console.warn("[sales] flush owner online:", err.message);
-    return { flushed: 0, order_ids: [] };
-  }
-  const ids = (visible || []).map(e => e?.order?.id).filter(Boolean);
-  const flushedIds = await cancelOwnerOnlineOrdersByIds(cid, ids);
-  return { flushed: flushedIds.length, order_ids: flushedIds };
-}
-
 async function cleanupStaleOwnerOrders(clientId, opts = {}) {
   await expireStalePosSyncOrders(clientId);
+  await expireGlobalOpenSalesOrders();
   const online = await expireStaleOnlineOrders(clientId, { force: true });
-  const flush = await flushAllOwnerVisibleOnlineOrders(clientId);
   return {
     ok: true,
     expired_online: online.expired || 0,
     expired_online_ids: online.order_ids || [],
-    flushed_online: flush.flushed || 0,
-    flushed_online_ids: flush.order_ids || [],
   };
 }
 
@@ -837,7 +905,8 @@ async function fetchOwnerActiveOrders(clientId) {
   const db = getSupabase();
   const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
   const base =
-    "id, license_id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, local_order_id, status, device_id";
+    "id, license_id, table_number, waiter_name, waiter_id, items_json, total, ordered_at, created_at, local_order_id, status, device_id";
+  const liveSince = ownerLiveCutoffIso();
 
   const rows = await selectWithAcceptanceFallback(withAcceptance => {
     const select = withAcceptance
@@ -848,10 +917,17 @@ async function fetchOwnerActiveOrders(clientId) {
       .select(select)
       .eq("client_id", clientId)
       .in("status", ["ordered", "ready"])
+      .gte("created_at", liveSince)
       .order("ordered_at", { ascending: false });
   });
   const roles = await resolveTerminalRolesForOrders(rows);
-  return rows.map(o => ({ ...o, terminal_role: terminalRoleForOrder(roles, o) }));
+  const liveCutoffMs = Date.now() - OWNER_LIVE_OPEN_MAX_AGE_MS;
+  return rows
+    .filter((o) => {
+      const ts = Date.parse(o.created_at || o.ordered_at || "");
+      return !Number.isFinite(ts) || ts >= liveCutoffMs;
+    })
+    .map(o => ({ ...o, terminal_role: terminalRoleForOrder(roles, o) }));
 }
 
 async function getLiveTablesForOwner(clientId) {
@@ -859,6 +935,7 @@ async function getLiveTablesForOwner(clientId) {
   const { loadAreasForClient } = require("./venueService");
   const { buildTablesFromAreas } = require("../lib/tableLayout");
 
+  await expireGlobalOpenSalesOrders();
   await expireStalePosSyncOrders(clientId);
   await expireStaleOnlineOrders(clientId, { force: true });
 
@@ -943,11 +1020,15 @@ async function getLiveTablesForOwner(clientId) {
     };
   });
 
+  const pos_pulse = await getPosPulseForClient(clientId);
+
   return {
     table_count: layout.table_count,
     tables,
     areas: layout.areas,
     updated_at: new Date().toISOString(),
+    pos_pulse,
+    live_max_age_hours: 6,
   };
 }
 
@@ -1423,4 +1504,7 @@ module.exports = {
   VOID_REASONS,
   expireStaleOnlineOrders,
   cleanupStaleOwnerOrders,
+  expireGlobalOpenSalesOrders,
+  getPosPulseForClient,
+  OWNER_LIVE_OPEN_MAX_AGE_MS,
 };

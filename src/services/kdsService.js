@@ -114,6 +114,7 @@ function mapOrderForOnlineSlot(order) {
     items_json: normalizeItems(norm.items_json),
     total: Number(norm.total) || 0,
     ordered_at: norm.ordered_at,
+    created_at: norm.created_at,
     device_id: norm.device_id,
     accepted_at: norm.accepted_at,
     accepted_by_waiter_id: norm.accepted_by_waiter_id,

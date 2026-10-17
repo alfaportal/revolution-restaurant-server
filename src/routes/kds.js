@@ -14,7 +14,11 @@ const {
   filterOrdersForWaiterPolling,
   buildOnlineSlotLayout,
 } = require("../services/kdsService");
-const { getLiveTablesForOwner, expireStaleOnlineOrders } = require("../services/salesService");
+const {
+  getLiveTablesForOwner,
+  expireStaleOnlineOrders,
+  expireGlobalOpenSalesOrders,
+} = require("../services/salesService");
 const { subscribe } = require("../services/kdsEvents");
 const { getRegisterSwitchState } = require("../services/registerSwitchService");
 const {
@@ -121,6 +125,7 @@ router.get("/:slug/bar/orders/ready", resolveKitchenClient, requirePackageFeatur
 router.get("/:slug/bar/orders", resolveKitchenClient, requirePackageFeature("kds"), async (req, res) => {
   try {
     const client = req.kitchenClient;
+    await expireGlobalOpenSalesOrders();
     await expireStaleOnlineOrders(client.id, { force: true });
     // Telefoni i kamarierit: të gjitha porositë në pritje — pa ndarje banak/kuzhinë.
     let orders = await fetchOrderedSales(client.id);

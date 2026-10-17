@@ -112,9 +112,14 @@
       <div class="card">
         <div class="live-tables-head">
           <div class="card-title" style="margin:0">Gjendja e tavolinave</div>
-          <span id="live-tables-updated" class="live-updated-label"></span>
+          <div class="owner-live-sync-bar">
+            <span id="owner-live-dot" class="owner-live-dot live" title="Live" aria-hidden="true"></span>
+            <span id="live-tables-updated" class="live-updated-label"></span>
+            <button type="button" id="btn-owner-live-refresh" class="btn btn-ghost btn-sm">Rifresko</button>
+          </div>
         </div>
-        <p class="links-hint">Rifreskohet live — QR, web dhe POS. Tavolina me QR shfaqet e zënë menjëherë.</p>
+        <p id="owner-pos-offline-hint" class="owner-pos-offline-hint hidden">POS nuk është aktiv — të dhënat mund të jenë të vjetra</p>
+        <p class="links-hint">Vetëm gjendja aktuale (≤ 6 orë) — rifreskim automatik çdo 10 sekonda.</p>
         <div id="live-tables-grid" class="live-tables-grid"></div>
         <section class="owner-online-zone hidden" id="owner-online-zone" aria-label="Porosi online">
           <h2 class="owner-online-title" id="owner-online-title">POROSI ONLINE</h2>
@@ -1357,7 +1362,7 @@
   <script src="/js/fiscalDiagnostics.js?v=1"></script>
   <script src="/js/offlineQueue.js?v=1"></script>
   <script src="/js/qrcode.js?v=1"></script>
-  <script src="/js/owner.js?v=43"></script>
+  <script src="/js/owner.js?v=44"></script>
   <script src="/js/owner-locations.js?v=1"></script>
   <script src="/js/owner-catalog.js?v=1"></script>
   <script src="/js/owner-stock.js?v=2"></script>
