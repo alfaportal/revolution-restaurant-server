@@ -263,8 +263,8 @@ async function expireStaleOnlineOrders(clientId, { force = false } = {}) {
   const expiredIds = [];
   for (const row of rows || []) {
     if (!isOnlineSlotOrder(row)) continue;
-    const touch = row.accepted_at || row.ordered_at || row.created_at;
-    if (!touch || new Date(touch).getTime() > cutoffMs) continue;
+    const ageTouch = row.created_at || row.ordered_at || row.accepted_at;
+    if (!ageTouch || new Date(ageTouch).getTime() > cutoffMs) continue;
     const { error: updErr } = await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
@@ -824,7 +824,7 @@ async function getLiveTablesForOwner(clientId) {
   const { buildTablesFromAreas } = require("../lib/tableLayout");
 
   await expireStalePosSyncOrders(clientId);
-  await expireStaleOnlineOrders(clientId);
+  await expireStaleOnlineOrders(clientId, { force: true });
 
   const activeOrders = await fetchOwnerActiveOrders(clientId);
 

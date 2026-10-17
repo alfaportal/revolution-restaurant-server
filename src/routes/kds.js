@@ -121,7 +121,7 @@ router.get("/:slug/bar/orders/ready", resolveKitchenClient, requirePackageFeatur
 router.get("/:slug/bar/orders", resolveKitchenClient, requirePackageFeature("kds"), async (req, res) => {
   try {
     const client = req.kitchenClient;
-    await expireStaleOnlineOrders(client.id);
+    await expireStaleOnlineOrders(client.id, { force: true });
     // Telefoni i kamarierit: të gjitha porositë në pritje — pa ndarje banak/kuzhinë.
     let orders = await fetchOrderedSales(client.id);
     orders = mergeOrdersById(orders, await fetchRefusalGraceOrders(client.id));

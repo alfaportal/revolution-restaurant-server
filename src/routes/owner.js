@@ -369,7 +369,7 @@ router.get("/online-slots", async (req, res) => {
   try {
     const clientId = req.user.client_id;
     const { expireStaleOnlineOrders } = require("../services/salesService");
-    await expireStaleOnlineOrders(clientId);
+    await expireStaleOnlineOrders(clientId, { force: true });
     const {
       fetchOrderedSales,
       fetchRefusalGraceOrders,
