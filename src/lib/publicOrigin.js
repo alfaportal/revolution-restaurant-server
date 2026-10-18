@@ -1,8 +1,8 @@
 /** URL publike e aplikacionit (domain prod) dhe kontakt mbështetjeje. */
 
 const DEFAULT_PUBLIC_ORIGIN = "https://revolution-pos.com";
-const DEFAULT_SUPPORT_PHONE = "+383 48707880";
-const DEFAULT_SUPPORT_EMAIL = "revolutioninvest05@gmail.com";
+const DEFAULT_SUPPORT_PHONE = "";
+const DEFAULT_SUPPORT_EMAIL = "support@revolution-pos.com";
 /** Fallback i fundit nëse GitHub API / cache dështon. */
 const DEFAULT_SETUP_DOWNLOAD_URL =
   "https://github.com/alfaportal/revolution-restaurant-server/releases/download/setup-v1.0.506/KAFENE-Setup.exe";
@@ -141,9 +141,10 @@ function getPublicAppConfig() {
   }
   return {
     public_origin: getPublicAppOrigin(),
-    support_phone: getSupportPhone(),
-    support_phone_digits: getSupportPhoneDigits(),
-    support_email: getSupportEmail(),
+    /* Kontakt publik (telefon/email) plotësohet nga pos_settings në /api/public/config — jo env këtu. */
+    support_phone: "",
+    support_phone_digits: "",
+    support_email: "",
     setup_version: getSetupVersion(),
     /* Download publik — pa login / pa WhatsApp (aktivizimi mbetet manual) */
     setup_requires_token: false,

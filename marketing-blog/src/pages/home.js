@@ -302,12 +302,13 @@ function bindStripeConfigAndPaymentBanner() {
   }
 }
 
-function setupWhatsAppHref(digits = "38348707880", plan = "") {
+function setupWhatsAppHref(digits = "", plan = "") {
   const planLabel = plan ? ` (pako ${plan})` : "";
   const text =
     getLang() === "en"
       ? `Hello, I need the official protected Setup link${planLabel} and a license / trial key.`
       : `Përshëndetje, më duhet linku zyrtar i mbrojtur për Setup${planLabel} dhe çelës trial / licencë.`;
+  if (!digits) return "/#kontakt";
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
@@ -424,14 +425,17 @@ function bindGetStartedDownload() {
       const data = await res.json();
       if (!res.ok || !data.ok) return;
       applyPublicSetupConfig(data);
-      const digits = data.support_phone_digits || "38348707880";
-      const wa = `https://wa.me/${digits}?text=${setupWaTextEncoded()}`;
-      if (help) help.href = wa;
+      const digits = data.support_phone_digits || "";
+      if (help) {
+        help.href = digits
+          ? `https://wa.me/${digits}?text=${setupWaTextEncoded()}`
+          : "/#kontakt";
+      }
       if (mainBtn?.tagName === "A" && data.setup_download_url) {
         mainBtn.setAttribute("href", data.setup_download_url.replace(/^https?:\/\/[^/]+/i, "") || setupDownloadHref());
       }
     } catch {
-      if (help) help.href = `https://wa.me/38348707880?text=${setupWaTextEncoded()}`;
+      if (help) help.href = "/#kontakt";
     }
   })();
 }
@@ -592,7 +596,7 @@ function bindPackageCards() {
   document.getElementById("package-detail-cta")?.addEventListener("click", async () => {
     const plan = sessionStorage.getItem("selectedPackage") || "";
     const pkg = document.getElementById("contact-package")?.value.trim() || "";
-    let digits = "38348707880";
+    let digits = "";
     let stripeOn = !!window.__stripeEnabled;
     try {
       const res = await fetch("/api/public/config");
@@ -609,7 +613,11 @@ function bindPackageCards() {
     }
     if (plan === "p4") {
       const text = `Përshëndetje, dua informacion për AI (Pako 4).\nPako: ${pkg}`;
-      window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+      if (digits) {
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = `mailto:support@revolution-pos.com?body=${encodeURIComponent(text)}`;
+      }
       return;
     }
     if (stripeOn && (plan === "p1" || plan === "p2" || plan === "p3")) {
@@ -630,8 +638,8 @@ async function openTrialModal() {
   const existing = document.getElementById("trial-modal");
   if (existing) existing.remove();
 
-  let phone = "+383 48707880";
-  let digits = "38348707880";
+  let phone = "—";
+  let digits = "";
   try {
     const res = await fetch("/api/public/config");
     const data = await res.json();
@@ -653,11 +661,11 @@ async function openTrialModal() {
       <p class="trial-modal-body">${t("trialModal.body")}</p>
       <p class="trial-modal-phone">
         <span>${t("trialModal.phoneLabel")}</span>
-        <a href="tel:+${digits}">${phone}</a>
+        ${digits ? `<a href="tel:+${digits}">${phone}</a>` : `<a href="mailto:support@revolution-pos.com">support@revolution-pos.com</a>`}
       </p>
       <div class="checkout-actions">
         <a class="btn btn-primary" id="trial-setup-link" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
-        <a class="btn btn-ghost" href="https://wa.me/${digits}?text=${waText}" target="_blank" rel="noopener noreferrer">${t("trialModal.wa")}</a>
+        ${digits ? `<a class="btn btn-ghost" href="https://wa.me/${digits}?text=${waText}" target="_blank" rel="noopener noreferrer">${t("trialModal.wa")}</a>` : ""}
         <button type="button" class="btn btn-ghost" id="trial-close">${t("trialModal.close")}</button>
       </div>
     </div>`;
@@ -686,7 +694,7 @@ async function openEquipmentModal() {
   const existing = document.getElementById("equip-modal");
   if (existing) existing.remove();
 
-  let digits = "38348707880";
+  let digits = "";
   try {
     const res = await fetch("/api/public/config");
     const data = await res.json();
@@ -697,7 +705,9 @@ async function openEquipmentModal() {
     /* default */
   }
 
-  const waHref = `https://wa.me/${digits}?text=${encodeURIComponent(t("equip.wa"))}`;
+  const waHref = digits
+    ? `https://wa.me/${digits}?text=${encodeURIComponent(t("equip.wa"))}`
+    : "mailto:support@revolution-pos.com";
   const modal = document.createElement("div");
   modal.id = "equip-modal";
   modal.className = "checkout-modal";
@@ -1055,7 +1065,7 @@ export function renderHome() {
           <div class="get-started-actions">
             <a class="btn btn-primary" id="get-started-download" href="/api/public/setup-download?dl=1">${t("pillars.cta")}</a>
             <a class="btn btn-ghost" href="#pakot">${t("nav.packages")}</a>
-            <a class="btn btn-ghost" id="get-started-wa" href="https://wa.me/38348707880" target="_blank" rel="noopener noreferrer">${t("getStarted.ctaHelp")}</a>
+            <a class="btn btn-ghost" id="get-started-wa" href="/#kontakt">${t("getStarted.ctaHelp")}</a>
           </div>
           <p class="download-license-hint">${t("download.licenseRequired")}</p>
           <p class="get-started-note">${t("getStarted.note")}</p>

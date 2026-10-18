@@ -1,6 +1,6 @@
 /**
- * Stripe Checkout për licenca — i njëjti model si KetuJemi (session + webhook).
- * Nuk kopjon sekretet: vendosi STRIPE_* në Railway nga llogaria jote Stripe / KetuJemi.
+ * Stripe Checkout për licenca (session + webhook).
+ * Nuk kopjon sekretet: vendosi STRIPE_* në Railway nga llogaria Stripe.
  */
 const crypto = require("crypto");
 const { getSupabase } = require("../db");

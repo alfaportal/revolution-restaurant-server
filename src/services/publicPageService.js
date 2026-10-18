@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { getSupabase } = require("../db");
 const { getClientBySlugOrId, ensureKitchenCredentials } = require("../lib/kitchenAccess");
+const { businessContactFromPosSettings } = require("../lib/businessPublicContact");
 const { getClientMenuCatalog, getClientShopCatalog } = require("./menuCatalogService");
 const { clientHasFeature, packageUpgradeMessage } = require("../lib/packages");
 const { isShopStorefront, storefrontPrefix, buildStorefrontUrl } = require("../lib/storefront");
@@ -253,7 +254,8 @@ async function getPublicRestaurantPage(slug, baseUrl) {
   const name = String(settings?.restaurant_name || client.emri || "Restorant").trim();
   const hours = normalizeHours(settings?.public_hours);
 
-  const address = String(settings?.address || client.adresa || "").trim();
+  const bizContact = businessContactFromPosSettings(settings);
+  const address = bizContact.biz_address;
   const mapsUrl = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : null;
@@ -264,7 +266,8 @@ async function getPublicRestaurantPage(slug, baseUrl) {
     description: String(settings?.public_description || "").trim(),
     address,
     maps_url: mapsUrl,
-    phone: String(settings?.phone || client.telefoni || "").trim(),
+    phone: bizContact.biz_phone,
+    email: bizContact.biz_email,
     hours,
     hours_display: formatHoursForDisplay(hours),
     logo_url: settings?.public_logo ? `/api/r/${encodeURIComponent(pageSlug)}/logo` : null,
@@ -309,7 +312,8 @@ async function getPublicShopPage(slug, baseUrl) {
   const name = String(settings?.restaurant_name || client.emri || "Dyqani").trim();
   const hours = normalizeHours(settings?.public_hours);
 
-  const address = String(settings?.address || client.adresa || "").trim();
+  const bizContact = businessContactFromPosSettings(settings);
+  const address = bizContact.biz_address;
   const mapsUrl = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : null;
@@ -321,7 +325,8 @@ async function getPublicShopPage(slug, baseUrl) {
     description: String(settings?.public_description || "").trim(),
     address,
     maps_url: mapsUrl,
-    phone: String(settings?.phone || client.telefoni || "").trim(),
+    phone: bizContact.biz_phone,
+    email: bizContact.biz_email,
     hours,
     hours_display: formatHoursForDisplay(hours),
     logo_url: settings?.public_logo ? `/api/s/${encodeURIComponent(pageSlug)}/logo` : null,
@@ -363,8 +368,10 @@ async function getOwnerPublicPageSettings(clientId, baseUrl) {
     public_url: publicUrl,
     url_prefix: `/${prefix}/`,
     restaurant_name: String(settings?.restaurant_name || client.emri || "").trim(),
-    address: String(settings?.address || client.adresa || "").trim(),
-    phone: String(settings?.phone || client.telefoni || "").trim(),
+    ...(() => {
+      const c = businessContactFromPosSettings(settings);
+      return { address: c.biz_address, phone: c.biz_phone, email: c.biz_email };
+    })(),
     website_enabled: clientHasFeature(client, "website"),
     kiosk_enabled: clientHasFeature(client, "kiosk"),
     online_orders_enabled: clientHasFeature(client, "online_orders"),

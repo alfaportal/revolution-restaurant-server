@@ -1247,18 +1247,18 @@ ALTER TABLE clients
   CHECK (package_tier IN ('pako_1', 'pako_2', 'pako_3', 'pako_4', 'pako_5'));
 
 
--- ---------- 037_pako_1_4_labels_and_naseri.sql ----------
+-- ---------- 037_pako_1_4_labels.sql ----------
 -- Pako 1–4 (marketing) = pako_2 … pako_5 në backend.
 -- pako_1 mbetet vetëm për klientë legacy.
 
 COMMENT ON COLUMN clients.package_tier IS
   'pako_2=Pako1, pako_3=Pako2, pako_4=Pako3 (porosi online), pako_5=Pako4 (AI), pako_1=legacy';
 
--- Naseri përdor QR, kamarier, faqe publike dhe porosi online — Pako 4 (pako_5).
+-- Shembull legacy: klient demo me Pako 4 (pako_5).
 UPDATE clients
 SET package_tier = 'pako_5'
-WHERE kitchen_slug = 'naseri-77a7dd'
-   OR (LOWER(TRIM(emri)) = 'naseri' AND package_tier IN ('pako_2', 'pako_3'));
+WHERE kitchen_slug = 'demo-client-77a7dd'
+   OR (LOWER(TRIM(emri)) = 'demo client' AND package_tier IN ('pako_2', 'pako_3'));
 
 
 -- ---------- 038_waiter_table_assignments.sql ----------
@@ -1909,7 +1909,7 @@ COMMENT ON TABLE pos_pending_purchases IS
 
 
 -- ---------- 056_license_stripe_payments.sql ----------
--- Pagesa Stripe për licenca (Checkout) — e njëjta ide si KetuJemi
+-- Pagesa Stripe për licenca (Checkout)
 CREATE TABLE IF NOT EXISTS license_stripe_payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   token TEXT NOT NULL UNIQUE,

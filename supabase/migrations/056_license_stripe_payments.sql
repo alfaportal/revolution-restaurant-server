@@ -1,4 +1,4 @@
--- Pagesa Stripe për licenca (Checkout) — e njëjta ide si KetuJemi
+-- Pagesa Stripe për licenca (Checkout)
 CREATE TABLE IF NOT EXISTS license_stripe_payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   token TEXT NOT NULL UNIQUE,

@@ -7,7 +7,15 @@ const {
   sendKafeneSecurityAlertEmail,
 } = require("./emailService");
 
-const DEFAULT_NOTIFY = "naserbuzhala189@gmail.com";
+function defaultSecurityNotifyEmail() {
+  return String(
+    process.env.SECURITY_ALERT_EMAIL ||
+      process.env.SUPPORT_EMAIL ||
+      "alerts@revolution-pos.com",
+  )
+    .trim()
+    .toLowerCase();
+}
 
 /** Duhet të përputhet me KAFENE/security-alert.js getAlertHmacSecret(). */
 function getAlertHmacSecret() {
@@ -89,7 +97,7 @@ async function insertSecurityEvent(row) {
 }
 
 /**
- * Pranon alert nga POS, ruan log, dërgon email te Naseri.
+ * Pranon alert nga POS, ruan log, dërgon email te ops (env).
  */
 async function handleSecurityAlert(body, { clientIp } = {}) {
   if (!verifyAlertSig(body)) {
@@ -144,7 +152,7 @@ async function handleSecurityAlert(body, { clientIp } = {}) {
   const to =
     String(body.notify_email || "").trim().toLowerCase() ||
     process.env.SECURITY_NOTIFY_EMAIL?.trim()?.toLowerCase() ||
-    DEFAULT_NOTIFY;
+    defaultSecurityNotifyEmail();
 
   let email_ok = false;
   let email_error = null;

@@ -3479,7 +3479,7 @@ document.getElementById("btn-staff-add")?.addEventListener("click", async () => 
     }
   }, 5000);
 
-  /* Pakoja nga Naseri (PATCH) — AI + linqe, pa restart (12s) */
+  /* Pakoja owner (PATCH) — AI + linqe, pa restart (12s) */
   setInterval(() => {
     applyAiUiState().catch(() => {});
   }, 12000);

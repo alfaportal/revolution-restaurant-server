@@ -477,16 +477,37 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.get("/api/public/config", async (_req, res) => {
+app.get("/api/public/config", async (req, res) => {
   try {
     const { ensureSetupReleaseMeta } = require("./lib/setupReleaseMeta");
     await ensureSetupReleaseMeta();
   } catch {
     /* fallback te cache/DEFAULT */
   }
+  const slug = String(
+    req.query.slug || req.query.kitchen_slug || req.query.client_slug || "",
+  ).trim();
+  let biz = {
+    biz_phone: "",
+    biz_email: "",
+    biz_address: "",
+    biz_phone_digits: "",
+  };
+  if (slug) {
+    try {
+      const { loadBusinessContactForSlug } = require("./lib/businessPublicContact");
+      biz = await loadBusinessContactForSlug(slug);
+    } catch (e) {
+      console.warn("[public/config] business contact:", e.message || e);
+    }
+  }
   res.json({
     ok: true,
     ...getPublicAppConfig(),
+    ...biz,
+    support_phone: biz.biz_phone,
+    support_phone_digits: biz.biz_phone_digits,
+    support_email: biz.biz_email,
     stripe_enabled: paymentsConfigured(),
   });
 });
@@ -1072,7 +1093,7 @@ async function start() {
     console.log(`  🏠 Website:     /  (revolution-pos.com)`);
     console.log(`  🔎 SEO:         /robots.txt  /sitemap.xml  /restorante`);
     console.log(`  🏪 Pronarët:    /owner/login`);
-    console.log(`  🍹 Banak:       /{tipi}/:slug/bar  (p.sh. /bar/ferizaj/bar)`);
+    console.log(`  🍹 Banak:       /{tipi}/:slug/bar  (p.sh. /bar/my-slug/bar)`);
     console.log(`  🍳 Kuzhina:     /{tipi}/:slug/kuzhina  (p.sh. /kafene/babylon/kuzhina)`);
     console.log(`  🧑‍🍳 Kamarieri:   /{tipi}/:slug/kamarier`);
     console.log(`  🪑 Menu QR:     /{tipi}/:slug/menu/:table`);

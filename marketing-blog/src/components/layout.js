@@ -145,13 +145,18 @@ export function bindFooterContact() {
       const res = await fetch("/api/public/config");
       const data = await res.json();
       if (!res.ok || !data.ok) return;
-      const phone = data.support_phone || "+383 48707880";
-      const digits = data.support_phone_digits || "38348707880";
-      waLink.textContent = `WhatsApp — ${phone}`;
+      const phone = data.support_phone || "";
+      const digits = data.support_phone_digits || "";
+      if (!digits) {
+        waLink.textContent = "WhatsApp";
+        waLink.href = "/#kontakt";
+        return;
+      }
+      waLink.textContent = phone ? `WhatsApp — ${phone}` : "WhatsApp";
       waLink.href = `https://wa.me/${digits}?text=${encodeURIComponent(t("wa.trial"))}`;
     } catch {
       waLink.textContent = "WhatsApp";
-      waLink.href = `https://wa.me/38348707880?text=${encodeURIComponent(t("wa.trial"))}`;
+      waLink.href = "/#kontakt";
     }
   }
 
@@ -207,16 +212,23 @@ export function bindContactForm() {
   const formMsg = document.getElementById("form-msg");
   if (!form) return;
 
-  let waDigits = "38348707880";
-  let supportPhone = "+383 48707880";
+  let waDigits = "";
+  let supportPhone = "";
 
   async function loadSiteConfig() {
     try {
       const res = await fetch("/api/public/config");
       const data = await res.json();
       if (!res.ok || !data.ok) return;
+      if (data.support_email) {
+        const em = document.getElementById("contact-email");
+        const emLabel = document.getElementById("contact-email-label");
+        if (em) em.href = `mailto:${data.support_email}`;
+        if (emLabel) emLabel.textContent = data.support_email;
+      }
       if (data.support_phone) supportPhone = data.support_phone;
       if (data.support_phone_digits) waDigits = data.support_phone_digits;
+      if (!waDigits) return;
       const waLabel = document.getElementById("contact-whatsapp-label");
       const telLabel = document.getElementById("contact-tel-label");
       const telLink = document.getElementById("contact-tel");
@@ -250,7 +262,11 @@ export function bindContactForm() {
     const intro = t("wa.formIntro").replace("{name}", name).replace("{phone}", phone);
     const packageLine = packageChoice ? `\n\nPako: ${packageChoice}` : "";
     const text = encodeURIComponent(`${intro}${packageLine}\n\n${message}\n\n${t("wa.formSuffix")}`);
-    window.open(`https://wa.me/${waDigits}?text=${text}`, "_blank", "noopener,noreferrer");
+    if (waDigits) {
+      window.open(`https://wa.me/${waDigits}?text=${text}`, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = `mailto:support@revolution-pos.com?subject=${encodeURIComponent(name)}&body=${text}`;
+    }
     formMsg.textContent = t("form.success");
     formMsg.className = "form-msg ok";
     form.reset();

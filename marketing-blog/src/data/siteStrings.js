@@ -24,7 +24,7 @@ export const siteStrings = {
     "getStarted.s3.title": "3. Shihni Hardware ID",
     "getStarted.s3.desc": "Pas instalimit hapet «Aktivizo Revolution POS» me ID e pajisjes (XXXX-XXXX-XXXX-XXXX).",
     "getStarted.s4.title": "4. Dërgoni ID te Revolution Invest",
-    "getStarted.s4.desc": "Kopjoni Hardware ID dhe dërgojeni me WhatsApp / SMS / telefon te +383 48707880.",
+    "getStarted.s4.desc": "Kopjoni Hardware ID dhe dërgojeni përmes formës së kontaktit ose support@revolution-pos.com.",
     "getStarted.s5.title": "5. Merrni License Key",
     "getStarted.s5.desc": "Ne gjenerojmë çelësin nga ID juaj dhe jua dërgojmë (trial ose vjetor).",
     "getStarted.s6.title": "6. Aktivizoni dhe filloni",
@@ -135,7 +135,7 @@ export const siteStrings = {
     "trialModal.body":
       "Shkarkoni Setup vetë nga faqja, instaloni, pastaj na shkruani për License Key (trial 7 ditë) ose paguani më poshtë.",
     "trialModal.phoneLabel": "Telefon / WhatsApp",
-    "trialModal.phone": "+383 48707880",
+    "trialModal.phone": "—",
     "trialModal.download": "Shkarko Setup",
     "trialModal.wa": "WhatsApp — kërko çelës trial",
     "trialModal.close": "Mbyll",
@@ -268,7 +268,7 @@ export const siteStrings = {
     "contact.subtitle":
       "Na kontaktoni në WhatsApp për trial, instalim Setup.exe dhe zgjedhjen e pakos (Standard, Pro, Full ose AI).",
     "contact.direct": "Kontakt i drejtpërdrejtë",
-    "contact.email": "revolutioninvest05@gmail.com",
+    "contact.email": "support@revolution-pos.com",
     "contact.sendMessage": "Dërgo mesazh",
     "form.name": "Emri",
     "form.phone": "Telefoni",
@@ -324,7 +324,7 @@ export const siteStrings = {
     "getStarted.s3.title": "3. See your Hardware ID",
     "getStarted.s3.desc": "After install, «Activate KAFENE» opens with your device ID (XXXX-XXXX-XXXX-XXXX).",
     "getStarted.s4.title": "4. Send the ID to Revolution Invest",
-    "getStarted.s4.desc": "Copy the Hardware ID and send it via WhatsApp / SMS / phone to +383 48707880.",
+    "getStarted.s4.desc": "Copy the Hardware ID and send it via the contact form or support@revolution-pos.com.",
     "getStarted.s5.title": "5. Get your License Key",
     "getStarted.s5.desc": "We generate the key from your ID and send it to you (trial or annual).",
     "getStarted.s6.title": "6. Activate and start",
@@ -434,7 +434,7 @@ export const siteStrings = {
     "trialModal.body":
       "Download Setup yourself, install, then message us for a License Key (7-day trial) or pay below.",
     "trialModal.phoneLabel": "Phone / WhatsApp",
-    "trialModal.phone": "+383 48707880",
+    "trialModal.phone": "—",
     "trialModal.download": "Download Setup",
     "trialModal.wa": "WhatsApp — request trial key",
     "trialModal.close": "Close",
@@ -567,7 +567,7 @@ export const siteStrings = {
     "contact.subtitle":
       "Contact us on WhatsApp for trial, Setup.exe install, and choosing Standard, Pro, Full or AI.",
     "contact.direct": "Direct contact",
-    "contact.email": "revolutioninvest05@gmail.com",
+    "contact.email": "support@revolution-pos.com",
     "contact.sendMessage": "Send a message",
     "form.name": "Name",
     "form.phone": "Phone",

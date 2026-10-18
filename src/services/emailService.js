@@ -606,7 +606,7 @@ async function sendAdminClientOfflineEmail(opts) {
   });
 }
 
-/** Njoftim sigurie KAFENE → Naseri (from sistemi, jo inbox personal). */
+/** Njoftim sigurie POS → email ops (SECURITY_ALERT_EMAIL / SUPPORT_EMAIL). */
 async function sendKafeneSecurityAlertEmail({
   to,
   type,
@@ -622,7 +622,14 @@ async function sendKafeneSecurityAlertEmail({
   message,
   at,
 }) {
-  const dest = String(to || "naserbuzhala189@gmail.com").trim().toLowerCase();
+  const dest = String(
+    to ||
+      process.env.SECURITY_ALERT_EMAIL ||
+      process.env.SUPPORT_EMAIL ||
+      "alerts@revolution-pos.com",
+  )
+    .trim()
+    .toLowerCase();
   const urgentTag = urgent ? "URGJENT — " : "";
   const typeLabel =
     type === "license_activate_urgent"

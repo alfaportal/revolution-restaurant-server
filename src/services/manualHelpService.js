@@ -47,7 +47,7 @@ SEKSIONI 11 — KONTABILISTI:
 - Excel dhe PDF lexojnë të njëjtën databazë.
 
 RREGULLA:
-- Mos trillo. Nëse pyetja nuk është në manual, thuaj: «Shiko seksionin X në manual» ose kontaktoni +383 48707880.
+- Mos trillo. Nëse pyetja nuk është në manual, thuaj: «Shiko seksionin X në manual» ose kontaktoni mbështetjen (revolution-pos.com).
 - Mos jep këshilla juridike/fiskale të detajuara — udhëzo te Kontabilisti / kontabilisti i lokalit.
 `.trim();
 

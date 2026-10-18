@@ -778,6 +778,7 @@
           <a href="#si-funksionon" data-i18n="nav.howItWorks">Si funksionon</a>
           <a href="#pakot" data-i18n="nav.packages">Pakot</a>
           <a href="/blog" data-i18n="nav.blog">Blog</a>
+          <a href="/website/manual.html" data-i18n="nav.manual">Manuali</a>
           <a href="#kontakt" data-i18n="nav.contact">Kontakti</a>
         </nav>
 
@@ -796,6 +797,7 @@
         <a href="#si-funksionon" data-i18n="nav.howItWorks">Si funksionon</a>
         <a href="#pakot" data-i18n="nav.packages">Pakot</a>
         <a href="/blog" data-i18n="nav.blog">Blog</a>
+        <a href="/website/manual.html" data-i18n="nav.manual">Manuali</a>
         <a href="#kontakt" data-i18n="nav.contact">Kontakti</a>
         <a class="btn btn-primary" href="#kontakt" style="margin-top:0.35rem;width:fit-content" data-i18n="cta.startFree">Fillo Falas</a>
       </nav>
@@ -810,7 +812,7 @@
           <h1 data-i18n="hero.title">Sistemi POS për Restorantet dhe Kafenetë</h1>
           <p data-i18n="hero.subtitle">Menaxho porositë, stafin dhe raportet nga çdo pajisje — kasë, kuzhinë, kamarier, kiosk dhe faqe publike në një platformë.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="/api/public/setup-download?dl=1" data-i18n="cta.start3Months">Shkarko KAFENE</a>
+            <a class="btn btn-primary" href="/api/public/setup-download" data-i18n="cta.start3Months">Shkarko KAFENE</a>
             <a class="btn btn-ghost" href="#pakot" data-i18n="cta.viewDemo">Shiko Demo</a>
           </div>
         </div>
@@ -886,21 +888,25 @@
             <div class="how-card-icon" aria-hidden="true">🖥️</div>
             <h3 data-i18n="how.pos.title">POS Kasa</h3>
             <p data-i18n="how.pos.desc">Merr porosi, bëj fatura fiskale dhe menaxho tavolinat — qendra e operimit të restorantit tuaj.</p>
+            <a class="how-card-link" href="/website/manual.html#menuja" data-i18n="how.readManual">Lexo në manual →</a>
           </article>
           <article class="how-card">
             <div class="how-card-icon" aria-hidden="true">📱</div>
             <h3 data-i18n="how.waiter.title">Kamarieri</h3>
             <p data-i18n="how.waiter.desc">Tablet ose telefon — merr porosi direkt nga tavolina dhe i dërgon automatikisht në kuzhinë.</p>
+            <a class="how-card-link" href="/website/manual.html#kamarieri" data-i18n="how.readManual">Lexo në manual →</a>
           </article>
           <article class="how-card">
             <div class="how-card-icon" aria-hidden="true">🍳</div>
             <h3 data-i18n="how.kds.title">KDS Kuzhina</h3>
             <p data-i18n="how.kds.desc">Ekran dixhital — sheh porositë në kohë reale dhe konfirmon kur pjata është gati për servim.</p>
+            <a class="how-card-link" href="/website/manual.html#kuzhina" data-i18n="how.readManual">Lexo në manual →</a>
           </article>
           <article class="how-card">
             <div class="how-card-icon" aria-hidden="true">👤</div>
             <h3 data-i18n="how.owner.title">Pronari</h3>
             <p data-i18n="how.owner.desc">Panel online — sheh raportet, menaxhon menunë dhe stafin nga kudo, edhe nga telefoni.</p>
+            <a class="how-card-link" href="/website/manual.html#hyrja" data-i18n="how.readManual">Lexo në manual →</a>
           </article>
         </div>
       </div>
@@ -956,7 +962,7 @@
 
           <article class="package-card">
             <span class="package-badge" data-i18n="packages.badge">7 ditë falas</span>
-            <h3 class="package-name" data-i18n="packages.p4.name">Pako 4 — Full</h3>
+            <h3 class="package-name" data-i18n="packages.p4.name">Pako 3 — Premium (Full + AI)</h3>
             <div class="package-price">30€<small data-i18n="packages.perWeek">/javë</small></div>
             <ul class="package-list">
               <li data-i18n="packages.p4.f1">Përfshin gjithçka nga Pako 3</li>
@@ -1005,17 +1011,17 @@
             <h2 id="support247-title" data-i18n-html="support247.title">Mbështetje teknike <span>24/7</span></h2>
             <p data-i18n="support247.desc">Jemi në dispozicion 24 orë, 7 ditë në javë. Çdo problem që keni, na kontaktoni dhe e rregullojmë menjëherë — pa pagesë shtesë. Mbështetje nga distanca me AnyDesk, përditësime automatike, dhe mirëmbajtje e vazhdueshme.</p>
             <div class="highlight-actions">
-              <a class="primary" id="support247-tel" href="tel:+38348707880">
+              <a class="primary" id="support247-tel" href="#">
                 <span aria-hidden="true">📞</span>
-                <span id="support247-tel-label">+383 48707880</span>
+                <span id="support247-tel-label">—</span>
               </a>
-              <a id="support247-whatsapp" href="https://wa.me/38348707880" target="_blank" rel="noopener noreferrer">
+              <a id="support247-whatsapp" href="#" target="_blank" rel="noopener noreferrer">
                 <span aria-hidden="true">💬</span>
                 <span id="support247-whatsapp-label">WhatsApp</span>
               </a>
-              <a href="mailto:revolutioninvest05@gmail.com">
+              <a id="support247-email" href="mailto:support@revolution-pos.com">
                 <span aria-hidden="true">✉️</span>
-                <span>revolutioninvest05@gmail.com</span>
+                <span id="support247-email-label">support@revolution-pos.com</span>
               </a>
             </div>
           </div>
@@ -1047,7 +1053,7 @@
           </article>
         </div>
         <div class="custom-cta">
-          <a class="btn btn-primary" id="custom-whatsapp" href="https://wa.me/38348707880?text=P%C3%ABrsh%C3«ndetje%2C%20d%C3«shiroj%20t%C3%AB%20diskutoj%20p%C3%ABr%20zgjidhje%20t%C3%AB%20personalizuara." target="_blank" rel="noopener noreferrer" data-i18n="cta.contactUs">Na Kontaktoni</a>
+          <a class="btn btn-primary" id="custom-whatsapp" href="#" target="_blank" rel="noopener noreferrer" data-i18n="cta.contactUs">Na Kontaktoni</a>
         </div>
       </div>
     </section>
@@ -1063,17 +1069,17 @@
           <div class="contact-card">
             <h3 data-i18n="contact.direct">Kontakt i drejtpërdrejtë</h3>
             <div class="contact-links">
-              <a class="contact-link whatsapp" id="contact-whatsapp" href="https://wa.me/38348707880?text=P%C3%ABrsh%C3«ndetje%2C%20d%C3«shiroj%20t%C3«%20provoj%20Revolution%20Invest%20POS." target="_blank" rel="noopener noreferrer">
+              <a class="contact-link whatsapp" id="contact-whatsapp" href="#" target="_blank" rel="noopener noreferrer">
                 <span aria-hidden="true">💬</span>
-                <span id="contact-whatsapp-label">WhatsApp — +383 48707880</span>
+                <span id="contact-whatsapp-label">WhatsApp</span>
               </a>
-              <a class="contact-link" id="contact-tel" href="tel:+38348707880">
+              <a class="contact-link" id="contact-tel" href="#">
                 <span aria-hidden="true">📞</span>
-                <span id="contact-tel-label">+383 48707880</span>
+                <span id="contact-tel-label">—</span>
               </a>
-              <a class="contact-link" href="mailto:revolutioninvest05@gmail.com">
+              <a class="contact-link" id="contact-email" href="mailto:support@revolution-pos.com">
                 <span aria-hidden="true">✉️</span>
-                <span>revolutioninvest05@gmail.com</span>
+                <span id="contact-email-label">support@revolution-pos.com</span>
               </a>
             </div>
           </div>
@@ -1087,7 +1093,7 @@
               </div>
               <div class="field">
                 <label for="contact-phone" data-i18n="form.phone">Telefoni</label>
-                <input type="tel" id="contact-phone" name="phone" required placeholder="+383 48707880">
+                <input type="tel" id="contact-phone" name="phone" required placeholder="+383 …">
               </div>
               <div class="field">
                 <label for="contact-message" data-i18n="form.message">Mesazhi</label>
@@ -1119,14 +1125,15 @@
 
       document.getElementById("year").textContent = new Date().getFullYear();
 
-      let waDigits = "38348707880";
-      let supportPhone = "+383 48707880";
+      let waDigits = "";
+      let supportPhone = "";
 
       function t(key) {
         return SiteLang.t(SiteLang.getLang(), key, window.SITE_STRINGS);
       }
 
       function updateWhatsAppLinks() {
+        if (!waDigits) return;
         const waLink = document.getElementById("contact-whatsapp");
         const customWa = document.getElementById("custom-whatsapp");
         if (waLink) {
@@ -1146,8 +1153,19 @@
           const res = await fetch("/api/public/config");
           const data = await res.json();
           if (!res.ok || !data.ok) return;
+          if (data.support_email) {
+            const em = document.getElementById("contact-email");
+            const emLabel = document.getElementById("contact-email-label");
+            const s247Em = document.getElementById("support247-email");
+            const s247EmLabel = document.getElementById("support247-email-label");
+            if (em) em.href = `mailto:${data.support_email}`;
+            if (emLabel) emLabel.textContent = data.support_email;
+            if (s247Em) s247Em.href = `mailto:${data.support_email}`;
+            if (s247EmLabel) s247EmLabel.textContent = data.support_email;
+          }
           if (data.support_phone) supportPhone = data.support_phone;
           if (data.support_phone_digits) waDigits = data.support_phone_digits;
+          if (!waDigits) return;
           const waLabel = document.getElementById("contact-whatsapp-label");
           const telLabel = document.getElementById("contact-tel-label");
           const telLink = document.getElementById("contact-tel");
