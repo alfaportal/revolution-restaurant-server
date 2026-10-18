@@ -5,8 +5,8 @@ const DEFAULT_SUPPORT_PHONE = "";
 const DEFAULT_SUPPORT_EMAIL = "support@revolution-pos.com";
 /** Fallback i fundit nëse GitHub API / cache dështon. */
 const DEFAULT_SETUP_DOWNLOAD_URL =
-  "https://github.com/alfaportal/revolution-restaurant-server/releases/download/setup-v1.0.506/KAFENE-Setup.exe";
-const DEFAULT_SETUP_VERSION = "1.0.506";
+  "https://github.com/alfaportal/revolution-restaurant-server/releases/download/setup-v1.0.507/KAFENE-Setup.exe";
+const DEFAULT_SETUP_VERSION = "1.0.507";
 /** Link Setup (admin / email / SMS) — default 7 ditë. */
 const DEFAULT_SETUP_LINK_TTL_HOURS = 168;
 
