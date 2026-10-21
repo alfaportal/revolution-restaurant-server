@@ -1290,7 +1290,7 @@ async function getOwnerReport(clientId, from, to) {
     byDay[d].count += 1;
   }
 
-  return {
+  const report = {
     from: fromD,
     to: toD,
     total,
@@ -1298,6 +1298,23 @@ async function getOwnerReport(clientId, from, to) {
     by_day: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
     orders,
   };
+
+  try {
+    const { listSummaries } = require("./ownerDailyReportService");
+    const rows = await listSummaries(clientId, toD, toD);
+    const p = rows.length ? rows[rows.length - 1].payload : null;
+    if (p && typeof p === "object") {
+      if (p.cash_by_register) report.cash_by_register = p.cash_by_register;
+      if (Array.isArray(p.closed_shifts)) report.closed_shifts = p.closed_shifts;
+      report.has_new_shift_close = !!p.has_new_shift_close;
+      report.latest_shift_closed_at = p.latest_shift_closed_at || null;
+      if (p.fiscal_z_total != null) report.fiscal_z_total = p.fiscal_z_total;
+    }
+  } catch {
+    /* snapshot opsionale */
+  }
+
+  return report;
 }
 
 /** Porosi të mbyllura (të gjitha kanalet) — për sync në daily_log të POS-it. */

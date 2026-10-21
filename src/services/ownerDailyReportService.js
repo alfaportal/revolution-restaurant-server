@@ -51,6 +51,33 @@ function mergePayloadIntoAgg(agg, p) {
   agg.vat_output += Number(vat.output_total) || 0;
 }
 
+function closedShiftCount(payload) {
+  return Array.isArray(payload?.closed_shifts) ? payload.closed_shifts.length : 0;
+}
+
+function latestClosedShiftAt(payload) {
+  const list = payload?.closed_shifts;
+  if (!Array.isArray(list) || !list.length) return null;
+  let max = null;
+  for (const s of list) {
+    const t = s?.closed_at;
+    if (t && (!max || String(t) > String(max))) max = t;
+  }
+  return max;
+}
+
+function applyNewShiftCloseFlags(payload, previousPayload) {
+  const next = payload && typeof payload === "object" ? { ...payload } : {};
+  const prevN = closedShiftCount(previousPayload);
+  const nextN = closedShiftCount(next);
+  if (nextN > prevN) {
+    next.has_new_shift_close = true;
+    const at = latestClosedShiftAt(next);
+    if (at) next.latest_shift_closed_at = at;
+  }
+  return next;
+}
+
 function finalizeAgg(agg) {
   const r = agg.revenue_by_department;
   r.dhome = roundMoney(r.dhome);
@@ -75,7 +102,14 @@ async function upsertDailySummaries(clientId, items) {
   const synced_at = new Date().toISOString();
   for (const it of rows) {
     const report_date = parseDateOnly(it.report_date);
-    const payload = it.payload && typeof it.payload === "object" ? it.payload : {};
+    let payload = it.payload && typeof it.payload === "object" ? { ...it.payload } : {};
+    const { data: prevRow } = await db
+      .from("pos_owner_daily_summaries")
+      .select("payload")
+      .eq("client_id", clientId)
+      .eq("report_date", report_date)
+      .maybeSingle();
+    payload = applyNewShiftCloseFlags(payload, prevRow?.payload);
     const computed_at = it.computed_at || payload.computed_at || synced_at;
     const content_hash = it.content_hash || payload.fingerprint || null;
     const { error } = await db.from("pos_owner_daily_summaries").upsert(

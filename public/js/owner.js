@@ -791,6 +791,88 @@ document.getElementById("void-order-close")?.addEventListener("click", closeVoid
 document.getElementById("void-order-backdrop")?.addEventListener("click", closeVoidOrderModal);
 document.getElementById("btn-void-order-save")?.addEventListener("click", saveVoidOrderFromModal);
 
+let raportetShiftCloseIndicatorDismissed = false;
+
+function updateRaportetShiftCloseIndicator(report) {
+  const tab = document.querySelector('.tab[data-tab="raportet"]');
+  if (!tab) return;
+  const show = !raportetShiftCloseIndicatorDismissed && !!(report && report.has_new_shift_close);
+  tab.classList.toggle("owner-tab-shift-close-news", show);
+  tab.setAttribute("aria-label", show ? "Raportet — ndërrim i ri i mbyllur" : "Raportet");
+}
+
+function clearRaportetShiftCloseIndicator() {
+  raportetShiftCloseIndicatorDismissed = true;
+  const tab = document.querySelector('.tab[data-tab="raportet"]');
+  if (tab) {
+    tab.classList.remove("owner-tab-shift-close-news");
+    tab.setAttribute("aria-label", "Raportet");
+  }
+}
+
+function pazariSectionTotal(cash, card, extra) {
+  return Math.round(
+    ((Number(cash) || 0) + (Number(card) || 0) + (Number(extra) || 0)) * 100,
+  ) / 100;
+}
+
+function renderKafeneCashByRegister(cash) {
+  const el = document.getElementById("report-cash-by-register");
+  if (!el) return;
+  if (!cash) {
+    el.innerHTML = '<p class="links-hint">Nuk ka të dhëna — prisni përmbledhjen nga programi në lokal.</p>';
+    return;
+  }
+  const r = cash.restorant || cash || {};
+  const restCash = Number(r.cash) || 0;
+  const restCard = Number(r.card) || 0;
+  const restRoom = Number(r.ne_dhome) || 0;
+  const restTotal = pazariSectionTotal(restCash, restCard, restRoom);
+  el.innerHTML = `
+    <div class="owner-pazari-block">
+      <div class="owner-pazari-title">PAZARI I SOTËM</div>
+      <div class="owner-pazari-divider" aria-hidden="true"></div>
+      <div class="owner-pazari-section-total">
+        <span>Restoranti:</span><span>${euro(restTotal)}</span>
+      </div>
+      <div class="owner-pazari-line"><span>Cash:</span><span>${euro(restCash)}</span></div>
+      <div class="owner-pazari-line"><span>Kartë:</span><span>${euro(restCard)}</span></div>
+      ${
+        restRoom > 0
+          ? `<div class="owner-pazari-line owner-pazari-sub"><span>Në dhomë:</span><span>${euro(restRoom)}</span></div>`
+          : ""
+      }
+      <div class="owner-pazari-divider owner-pazari-divider-gap" aria-hidden="true"></div>
+      <div class="owner-pazari-grand">
+        <span>TOTALI:</span><span>${euro(restTotal)}</span>
+      </div>
+    </div>`;
+}
+
+function renderKafeneDailyBalanceSummary(report) {
+  const el = document.getElementById("report-daily-balance");
+  if (!el) return;
+  const cash = report?.cash_by_register;
+  const r = cash?.restorant || {};
+  const hasRegister = cash && (Number(r.cash) || Number(r.card) || Number(r.ne_dhome));
+  const restCash = Number(r.cash) || 0;
+  const restCard = Number(r.card) || 0;
+  const restRoom = Number(r.ne_dhome) || 0;
+  const restSub = Math.round((restCash + restCard + restRoom) * 100) / 100;
+  const closedN = Array.isArray(report?.closed_shifts) ? report.closed_shifts.length : 0;
+  if (!hasRegister && !report?.total) {
+    el.innerHTML = "";
+    return;
+  }
+  const grand = hasRegister ? restSub : Math.round(Number(report.total) * 100) / 100;
+  el.innerHTML = `
+    <div class="card-title" style="font-size:0.95rem;margin-bottom:0.35rem">Barazimi ditor (restorant)</div>
+    <div style="font-size:0.92rem;line-height:1.5">
+      <div><strong>Subtotal restorant:</strong> Arkë ${euro(restCash)} · Kartë ${euro(restCard)}${restRoom ? ` · Në dhomë ${euro(restRoom)}` : ""}</div>
+      <div><strong>Grand total:</strong> ${euro(grand)}${closedN ? ` · ${closedN} ndërrime të mbyllura` : ""}</div>
+    </div>`;
+}
+
 async function loadReport() {
   const nga = document.getElementById("raport-nga").value;
   const deri = document.getElementById("raport-deri").value;
@@ -798,6 +880,9 @@ async function loadReport() {
   if (nga) q.set("from", nga);
   if (deri) q.set("to", deri);
   const { report } = await api(`/api/owner/reports?${q}`);
+  renderKafeneCashByRegister(report.cash_by_register);
+  renderKafeneDailyBalanceSummary(report);
+  updateRaportetShiftCloseIndicator(report);
   document.getElementById("report-summary").textContent =
     `Totali: ${euro(report.total)} · ${report.order_count} porosi`;
 
@@ -1246,8 +1331,19 @@ async function loadZReport() {
   }
 }
 
-/** Hap panelin Z/X/Periodik — tab «Raporti Z / X» ose banner reminder. */
+/** Hiq banner/kuti të vjetra Z (PWA cache) — Z/X vetëm nga tab Raporti Z / X. */
+function removeOwnerLegacyZReminderUi() {
+  document.getElementById("owner-z-reminder-banner")?.remove();
+  document.querySelectorAll(".owner-z-reminder-banner").forEach((el) => el.remove());
+  const bootInfo = document.getElementById("panel-boot-info");
+  if (bootInfo?.textContent?.includes("Nuk u mbyll dita fiskale")) {
+    showBootInfo("");
+  }
+}
+
+/** Hap panelin Z/X/Periodik nga tab Raporti Z / X. */
 function openOwnerZReportPanel(mode = "Z") {
+  removeOwnerLegacyZReminderUi();
   const tabName = "zreport";
   document.querySelectorAll(".tab").forEach((t) => {
     t.classList.toggle("active", t.dataset.tab === tabName);
@@ -1264,27 +1360,6 @@ function openOwnerZReportPanel(mode = "Z") {
   applyReportModeUi();
   window.scrollTo({ top: 0, behavior: "smooth" });
   return loadZReport();
-}
-
-async function refreshOwnerZReminderBanner() {
-  const banner = document.getElementById("owner-z-reminder-banner");
-  const text = document.getElementById("owner-z-reminder-text");
-  if (!banner || !text) return;
-  try {
-    const data = await api("/api/owner/z-report/reminder");
-    if (data?.needed) {
-      text.textContent = data.message || "Mbyll ditën fiskale (Raporti Z).";
-      banner.classList.remove("hidden");
-      if (data.pending_date) {
-        const zDate = document.getElementById("zreport-date");
-        if (zDate) zDate.value = data.pending_date;
-      }
-    } else {
-      banner.classList.add("hidden");
-    }
-  } catch {
-    banner.classList.add("hidden");
-  }
 }
 
 async function loadFiscalSettings() {
@@ -2784,7 +2859,12 @@ document.querySelectorAll(".tab").forEach(tab => {
     document.querySelectorAll(".panel-section").forEach(p => p.classList.add("hidden"));
     document.getElementById(`panel-${tab.dataset.tab}`).classList.remove("hidden");
     if (tab.dataset.tab === "tavolinat") loadLiveTables();
-    if (tab.dataset.tab === "raportet") { loadReport(); loadAuditLog(); loadExpenses(); }
+    if (tab.dataset.tab === "raportet") {
+      clearRaportetShiftCloseIndicator();
+      loadReport();
+      loadAuditLog();
+      loadExpenses();
+    }
     if (tab.dataset.tab === "porosite") {
       loadOrders();
       loadRefusedOrders();
@@ -2942,7 +3022,6 @@ document.getElementById("btn-zreport-close")?.addEventListener("click", async ()
       }),
     });
     await loadZReport();
-    await refreshOwnerZReminderBanner();
     alert(
       "Dita u mbyll në cloud (pronari).\n\n" +
       "Kur të jeni te lokal, hapni arkën → Admin → Fiskalizimi → Printo Raportin Z (ATK).",
@@ -2950,9 +3029,6 @@ document.getElementById("btn-zreport-close")?.addEventListener("click", async ()
   } catch (err) {
     alert(err.message);
   }
-});
-document.getElementById("owner-z-reminder-go")?.addEventListener("click", () => {
-  openOwnerZReportPanel().catch((err) => setZReportLoadError(err?.message));
 });
 document.getElementById("btn-zreport-print")?.addEventListener("click", () => {
   printZReport().catch(err => alert(err.message));
@@ -3450,8 +3526,8 @@ document.getElementById("btn-staff-add")?.addEventListener("click", async () => 
     await loadOrderFilters();
     await loadOrders();
   });
-  await runBootStep("z-reminder", refreshOwnerZReminderBanner);
-  setInterval(() => refreshOwnerZReminderBanner().catch(() => {}), 120000);
+
+  removeOwnerLegacyZReminderUi();
 
   document.getElementById("btn-owner-live-refresh")?.addEventListener("click", () => {
     loadLiveTables().catch(() => {});

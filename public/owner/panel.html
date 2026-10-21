@@ -39,10 +39,6 @@
 
   <div id="panel-boot-error" class="alert alert-error hidden" role="alert" style="margin:0.75rem 1rem 0"></div>
   <div id="panel-boot-info" class="alert alert-ok hidden" role="status" style="margin:0.75rem 1rem 0"></div>
-  <div id="owner-z-reminder-banner" class="alert alert-error hidden" role="alert" style="margin:0.75rem 1rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
-    <span id="owner-z-reminder-text" style="flex:1;min-width:200px"></span>
-    <button type="button" class="btn btn-sm btn-warning" id="owner-z-reminder-go">Hap Raporti Z (telefon)</button>
-  </div>
 
   <div class="container">
     <div class="tabs nav-grid owner-tabs owner-nav-cards">
@@ -916,6 +912,9 @@
           <button class="btn btn-primary btn-sm" id="btn-raport">Shfaq</button>
         </div>
         <div id="report-summary" style="margin-bottom:1rem;font-size:1.1rem;font-weight:700"></div>
+        <div class="card-title" style="font-size:0.95rem;margin-bottom:0.35rem">Paratë sipas arkës</div>
+        <div id="report-cash-by-register" class="owner-panel-block"></div>
+        <div id="report-daily-balance" class="owner-panel-block" style="margin-top:0.75rem;margin-bottom:0.75rem"></div>
         <div id="report-bars"></div>
         <div class="overflow-x" style="margin-top:1rem">
           <table>
@@ -1362,7 +1361,7 @@
   <script src="/js/fiscalDiagnostics.js?v=1"></script>
   <script src="/js/offlineQueue.js?v=1"></script>
   <script src="/js/qrcode.js?v=1"></script>
-  <script src="/js/owner.js?v=45"></script>
+  <script src="/js/owner.js?v=46"></script>
   <script src="/js/owner-locations.js?v=1"></script>
   <script src="/js/owner-catalog.js?v=1"></script>
   <script src="/js/owner-stock.js?v=2"></script>
