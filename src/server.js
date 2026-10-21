@@ -49,6 +49,7 @@ const { startAiWeeklyReportCron } = require("./jobs/aiWeeklyReports");
 const { startSupplySuggestionCron } = require("./jobs/supplySuggestions");
 const { startNotificationDailyCron } = require("./jobs/notificationDailyReports");
 const { startCloudHealthMonitor } = require("./jobs/cloudHealthMonitor");
+const { startSupabaseKeepalive } = require("./jobs/supabase-keepalive");
 const { startOwnerLiveOrdersJanitorJob } = require("./jobs/ownerLiveOrdersJanitor");
 const { startWeeklyDataExportCron } = require("./jobs/weeklyDataExport");
 const { startTelegramBotWebhook } = require("./jobs/telegramBotWebhook");
@@ -1080,6 +1081,7 @@ async function start() {
   startSupplySuggestionCron();
   startNotificationDailyCron();
   startCloudHealthMonitor();
+  startSupabaseKeepalive();
   startOwnerLiveOrdersJanitorJob();
   startWeeklyDataExportCron();
   startTelegramBotWebhook();
