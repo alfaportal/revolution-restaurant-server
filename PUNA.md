@@ -1,5 +1,21 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-02 — Railway: UTF-8 te manuali (nixpacks)
+
+Deploy dështoi: `Error reading public/website/manual-en-sections.js` / `stream did not contain valid UTF-8`.
+Skedarët kishin shenja Windows-1252 (`« » — ë ç`) të përziera me UTF-8. U transkoduan në UTF-8 të pastër. Teksti i njëjtë.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/website/manual-en-sections.js` | « » — → UTF-8 (gabimi i Railway) |
+| `public/website/manual.html` | ë ç « » — → UTF-8 |
+| `public/css/menu-pos.css` | 6 × — |
+| `public/owner/login.html` | ë — · (vetëm kodim, jo UI) |
+
+Provë: `node --check` + TextDecoder fatal UTF-8 OK. Commit/push për deploy.
+
+---
+
 ## 2026-11-02 — Super Admin: email/PW Security + Fiskale + Kontabilisti
 
 `POST set-password` për këto tre produkte nuk prek më `users` të POS. Shkon te bridge.
