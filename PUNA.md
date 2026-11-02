@@ -1,5 +1,13 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-02 — ENABLE_RLS.sql (vetëm skedar, pa ekzekutim)
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `supabase/ENABLE_RLS.sql` | ENABLE RLS + REVOKE anon/authenticated për 52 tabela live (`jdlypmieskgrqsfyjrul`) |
+
+**Nuk u ekzekutua** SQL. Nuk u bë build/git.
+
 ## 2026-11-02 — Railway: UTF-8 te manuali (nixpacks)
 
 Deploy dështoi: `Error reading public/website/manual-en-sections.js` / `stream did not contain valid UTF-8`.
