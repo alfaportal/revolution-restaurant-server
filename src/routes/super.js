@@ -214,35 +214,103 @@ router.post(
     const id = String(req.params.id || "").trim();
     const product = normalizeProductLine(req.body?.product_line || req.query.product || "kafene");
     const password = req.body?.password || req.body?.new_password;
-    if (product === "market") {
-      const { setMarketClientOwnerPassword } = require("../lib/marketAdminBridge");
-      const result = await setMarketClientOwnerPassword(id, {
-        password,
+    try {
+      if (product === "hotel") {
+        const { setHotelClientOwnerPassword } = require("../lib/hotelAdminBridge");
+        const result = await setHotelClientOwnerPassword(id, {
+          password,
+          email: req.body?.email,
+          emri: req.body?.emri,
+        });
+        await logAdminActivity({
+          ...activityFromReq(req),
+          action: "hotel_owner_password_set",
+          targetType: "client",
+          targetId: id,
+          details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
+        }).catch(() => {});
+        return res.json({ ok: true, ...result, product_line: "hotel" });
+      }
+      if (product === "security") {
+        const { setSecurityClientOwnerPassword } = require("../lib/securityAdminBridge");
+        const result = await setSecurityClientOwnerPassword(id, {
+          password,
+          email: req.body?.email,
+          emri: req.body?.emri,
+        });
+        await logAdminActivity({
+          ...activityFromReq(req),
+          action: "security_owner_password_set",
+          targetType: "client",
+          targetId: id,
+          details: { owners: (result.owners || []).map((o) => o.email) },
+        }).catch(() => {});
+        return res.json({ ok: true, ...result, product_line: "security" });
+      }
+      if (product === "fiskale") {
+        const { setFiskalizimClientOwnerPassword } = require("../lib/fiskalizimAdminBridge");
+        const result = await setFiskalizimClientOwnerPassword(id, {
+          password,
+          email: req.body?.email,
+          emri: req.body?.emri,
+        });
+        await logAdminActivity({
+          ...activityFromReq(req),
+          action: "fiskale_owner_password_set",
+          targetType: "client",
+          targetId: id,
+          details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
+        }).catch(() => {});
+        return res.json({ ok: true, ...result, product_line: "fiskale" });
+      }
+      if (product === "kontabilisti") {
+        const { setKontabilistiClientOwnerPassword } = require("../lib/kontabilistiAdminBridge");
+        const result = await setKontabilistiClientOwnerPassword(id, {
+          password,
+          email: req.body?.email,
+          emri: req.body?.emri,
+        });
+        await logAdminActivity({
+          ...activityFromReq(req),
+          action: "kontabilisti_owner_password_set",
+          targetType: "client",
+          targetId: id,
+          details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
+        }).catch(() => {});
+        return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+      }
+      if (product === "market") {
+        const { setMarketClientOwnerPassword } = require("../lib/marketAdminBridge");
+        const result = await setMarketClientOwnerPassword(id, {
+          password,
+          email: req.body?.email,
+          emri: req.body?.emri,
+        });
+        await logAdminActivity({
+          ...activityFromReq(req),
+          action: "market_owner_password_set",
+          targetType: "client",
+          targetId: id,
+          details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
+        }).catch(() => {});
+        return res.json({ ok: true, ...result, product_line: "market" });
+      }
+      const result = await setOwnerPasswordForClient(id, password, {
         email: req.body?.email,
         emri: req.body?.emri,
+        baseUrl: getPublicAppOrigin(),
       });
       await logAdminActivity({
         ...activityFromReq(req),
-        action: "market_owner_password_set",
+        action: "owner_password_set",
         targetType: "client",
         targetId: id,
         details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
       }).catch(() => {});
-      return res.json({ ok: true, ...result, product_line: "market" });
+      res.json({ ok: true, ...result, product_line: "kafene" });
+    } catch (e) {
+      res.status(400).json({ ok: false, gabim: e.message || "Dështoi vendosja e fjalëkalimit." });
     }
-    const result = await setOwnerPasswordForClient(id, password, {
-      email: req.body?.email,
-      emri: req.body?.emri,
-      baseUrl: getPublicAppOrigin(),
-    });
-    await logAdminActivity({
-      ...activityFromReq(req),
-      action: "owner_password_set",
-      targetType: "client",
-      targetId: id,
-      details: { created: result.created, owners: (result.owners || []).map((o) => o.email) },
-    }).catch(() => {});
-    res.json({ ok: true, ...result, product_line: "kafene" });
   }),
 );
 

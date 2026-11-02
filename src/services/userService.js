@@ -452,14 +452,23 @@ async function setOwnerPasswordForClient(clientId, password, { email, emri, base
   const pw = String(password || "").trim();
   if (pw.length < 6) throw new Error("Fjalëkalimi min. 6 karaktere.");
   const owners = await listOwnersForClient(clientId, baseUrl);
+  const mail = email != null ? String(email).trim().toLowerCase() : "";
+  const name = emri != null ? String(emri).trim() : "";
   if (owners.length) {
     const updated = [];
     for (const o of owners) {
-      updated.push(await updateOwner(o.id, { password: pw }, baseUrl));
+      const patch = { password: pw };
+      if (mail) patch.email = mail;
+      if (name) patch.emri = name;
+      updated.push(await updateOwner(o.id, patch, baseUrl));
+    }
+    if (mail) {
+      const db = getSupabase();
+      const { error: cErr } = await db.from("clients").update({ email: mail }).eq("id", clientId);
+      if (cErr) throw cErr;
     }
     return { owners: updated, created: false };
   }
-  const mail = String(email || "").trim().toLowerCase();
   if (!mail) {
     throw new Error("Vendos email të klientit para se të vendosësh fjalëkalimin.");
   }

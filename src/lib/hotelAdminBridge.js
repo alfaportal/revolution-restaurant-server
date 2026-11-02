@@ -256,6 +256,24 @@ async function registerHotelClient(body = {}) {
   };
 }
 
+async function setHotelClientOwnerPassword(id, { password, email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit HOTEL.");
+  return hotelRequest(`/dashboard/clients/${encodeURIComponent(cid)}/set-password`, {
+    method: "POST",
+    body: { password, email, emri },
+  });
+}
+
+async function setHotelClientOwnerEmail(id, { email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit HOTEL.");
+  return hotelRequest(`/dashboard/clients/${encodeURIComponent(cid)}/owner-email`, {
+    method: "PATCH",
+    body: { email, emri },
+  });
+}
+
 async function updateHotelClient(id, body = {}) {
   const cid = String(id || "").trim();
   if (!cid) throw new Error("Mungon ID e klientit HOTEL.");
@@ -314,6 +332,8 @@ module.exports = {
   getHotelClientDetail,
   registerHotelClient,
   updateHotelClient,
+  setHotelClientOwnerPassword,
+  setHotelClientOwnerEmail,
   deleteHotelClient,
   deleteHotelLicense,
   removeHotelLicenseTerminal,

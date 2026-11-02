@@ -391,6 +391,44 @@ async function rotateKontabilistiLicenseKey(id) {
   };
 }
 
+async function setKontabilistiClientOwnerPassword(id, { password, email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Kontabilisti.");
+  try {
+    return await kontabilistiRequest(`/clients/${encodeURIComponent(cid)}/set-password`, {
+      method: "POST",
+      body: { password, email, emri },
+    });
+  } catch (e) {
+    if (![404, 405].includes(Number(e.status))) throw e;
+    const result = await kontabilistiRequest(`/clients/${encodeURIComponent(cid)}/password`, {
+      method: "POST",
+      body: { password, new_password: password },
+    });
+    const mail = email != null ? String(email).trim().toLowerCase() : "";
+    if (mail) {
+      await updateKontabilistiClient(cid, { email: mail, emri });
+    }
+    return { ...result, product_line: "kontabilisti" };
+  }
+}
+
+async function setKontabilistiClientOwnerEmail(id, { email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Kontabilisti.");
+  const mail = String(email || "").trim().toLowerCase();
+  if (!mail) throw new Error("Email është i detyrueshëm.");
+  try {
+    return await kontabilistiRequest(`/clients/${encodeURIComponent(cid)}/owner-email`, {
+      method: "PATCH",
+      body: { email: mail, emri },
+    });
+  } catch (e) {
+    if (![404, 405].includes(Number(e.status))) throw e;
+    return updateKontabilistiClient(cid, { email: mail, emri });
+  }
+}
+
 async function updateKontabilistiLicense(id, patch = {}) {
   const r = await kontabilistiRequest(`/licenses/${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -407,6 +445,8 @@ module.exports = {
   getKontabilistiOverview,
   registerKontabilistiClient,
   updateKontabilistiClient,
+  setKontabilistiClientOwnerPassword,
+  setKontabilistiClientOwnerEmail,
   updateKontabilistiLicense,
   deleteKontabilistiClient,
   deleteKontabilistiLicense,

@@ -1129,14 +1129,19 @@ function renderLicenseEditBlocks(licenses, productLine = "kafene") {
 }
 
 function renderPasswordBlock(owners) {
+  const first = (owners || []).find((o) => o && o.email) || (owners || [])[0] || null;
+  const ownerEmail = String(first?.email || "").trim();
   const ownerLabel = (owners || []).length
     ? (owners || []).map((o) => o.email).filter(Boolean).join(", ")
     : "nuk ka llogari ende — krijohet me email + fjalëkalim";
   return `
     <div class="detail-block">
-      <h4>Fjalëkalimi i pronarit</h4>
+      <h4>Hyrja e pronarit (/owner/login)</h4>
       <p style="color:var(--muted);font-size:0.88rem;margin:0 0 0.65rem">Llogaria: <strong>${esc(ownerLabel)}</strong></p>
       <div class="drawer-form">
+        <label>Email i hyrjes
+          <input id="dr-owner-email" type="email" value="${esc(ownerEmail)}" autocomplete="username">
+        </label>
         <label>Fjalëkalim i ri
           <input id="dr-password" type="password" minlength="6" placeholder="min. 6 karaktere" autocomplete="new-password">
         </label>
@@ -1145,7 +1150,7 @@ function renderPasswordBlock(owners) {
         </label>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem">
-        <button type="button" class="btn btn-ok" id="btn-drawer-set-pw">Vendos fjalëkalimin</button>
+        <button type="button" class="btn btn-ok" id="btn-drawer-set-pw">Ruaj email / fjalëkalimin</button>
         <button type="button" class="btn btn-ghost" id="btn-drawer-send-reset">Dërgo kod me email</button>
       </div>
       <p id="dr-pw-msg" style="color:var(--muted);font-size:0.9rem;margin:0.5rem 0 0"></p>
@@ -1418,7 +1423,7 @@ async function openClientDetail(id, opts = {}) {
       ${expiryAlertHtml}
       <div class="drawer-form">
         <label>Emri<input id="dr-emri" value="${esc(c.emri || "")}" required autocomplete="organization"></label>
-        <label>Email<input id="dr-email" type="email" value="${esc(displayEmail)}" autocomplete="email"></label>
+        <label>Email i pronarit (hyrja)<input id="dr-email" type="email" value="${esc(displayEmail)}" autocomplete="email"></label>
         <label>Telefon<input id="dr-tel" value="${esc(c.telefoni || "")}" autocomplete="tel"></label>
         ${sectorFields}
         ${maxRegField}
@@ -1500,6 +1505,11 @@ function bindDrawerPassword(clientId, productLine) {
   document.getElementById("btn-drawer-set-pw")?.addEventListener("click", async () => {
     const pw = document.getElementById("dr-password")?.value || "";
     const pw2 = document.getElementById("dr-password2")?.value || "";
+    const loginEmail = (
+      document.getElementById("dr-owner-email")?.value
+      || document.getElementById("dr-email")?.value
+      || ""
+    ).trim();
     const m = msg();
     if (pw.length < 6) {
       if (m) m.textContent = "Fjalëkalimi min. 6 karaktere.";
@@ -1511,17 +1521,23 @@ function bindDrawerPassword(clientId, productLine) {
     }
     const btn = document.getElementById("btn-drawer-set-pw");
     if (btn) btn.disabled = true;
-    if (m) m.textContent = "Duke vendosur fjalëkalimin…";
+    if (m) m.textContent = "Duke ruajtur email / fjalëkalimin…";
     try {
       const data = await api(`/api/super/dashboard/clients/${encodeURIComponent(clientId)}/set-password`, {
         method: "POST",
         body: JSON.stringify({
           product_line: productLine,
           password: pw,
-          email: document.getElementById("dr-email")?.value?.trim(),
+          email: loginEmail,
           emri: document.getElementById("dr-emri")?.value?.trim(),
         }),
       });
+      const emailEl = document.getElementById("dr-email");
+      const ownerEmailEl = document.getElementById("dr-owner-email");
+      if (loginEmail) {
+        if (emailEl) emailEl.value = loginEmail;
+        if (ownerEmailEl) ownerEmailEl.value = loginEmail;
+      }
       if (m) {
         m.textContent = data.created
           ? "Pronari u krijua dhe fjalëkalimi u vendos."
@@ -1544,7 +1560,11 @@ function bindDrawerPassword(clientId, productLine) {
     if (m) m.textContent = "Duke dërguar email…";
     try {
       // Ruaj email-in e klientit së pari nëse është ndryshuar
-      const email = document.getElementById("dr-email")?.value?.trim();
+      const email = (
+        document.getElementById("dr-owner-email")?.value
+        || document.getElementById("dr-email")?.value
+        || ""
+      ).trim();
       if (email) {
         await api(`/api/super/dashboard/clients/${encodeURIComponent(clientId)}`, {
           method: "PATCH",
@@ -1556,7 +1576,7 @@ function bindDrawerPassword(clientId, productLine) {
             telefon: document.getElementById("dr-tel")?.value?.trim(),
             adresa: document.getElementById("dr-adresa")?.value?.trim() || "",
           }),
-        }).catch(() => null);
+        });
       }
       const data = await api(
         `/api/super/dashboard/clients/${encodeURIComponent(clientId)}/send-password-reset`,
@@ -1604,7 +1624,11 @@ function bindDrawerSave(clientId, productLine) {
     const body = {
       product_line: product,
       emri,
-      email: document.getElementById("dr-email")?.value?.trim() || "",
+      email: (
+        document.getElementById("dr-owner-email")?.value
+        || document.getElementById("dr-email")?.value
+        || ""
+      ).trim(),
       telefoni: document.getElementById("dr-tel")?.value?.trim() || "",
       telefon: document.getElementById("dr-tel")?.value?.trim() || "",
       adresa: document.getElementById("dr-adresa")?.value?.trim() || "",

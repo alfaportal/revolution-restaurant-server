@@ -445,6 +445,34 @@ async function rotateSecurityLicenseKey(id) {
   };
 }
 
+async function setSecurityClientOwnerPassword(id, { password, email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Security.");
+  const result = await securityRequest(`/clients/${encodeURIComponent(cid)}/password`, {
+    method: "POST",
+    body: { password, new_password: password },
+  });
+  const mail = email != null ? String(email).trim().toLowerCase() : "";
+  if (!mail) return { ...result, product_line: "security" };
+  const patched = await securityRequest(`/clients/${encodeURIComponent(cid)}`, {
+    method: "PATCH",
+    body: { email: mail, emri: emri || undefined },
+  });
+  return {
+    ...result,
+    client: patched.client || result.client,
+    product_line: "security",
+  };
+}
+
+async function setSecurityClientOwnerEmail(id, { email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Security.");
+  const mail = String(email || "").trim().toLowerCase();
+  if (!mail) throw new Error("Email është i detyrueshëm.");
+  return updateSecurityClient(cid, { email: mail, emri });
+}
+
 async function updateSecurityLicense(id, patch = {}) {
   const body = { ...patch };
   if (patch.statusi != null) body.status = mapSecurityStatusToUpstream(patch.statusi);
@@ -464,6 +492,8 @@ module.exports = {
   getSecurityOverview,
   registerSecurityClient,
   updateSecurityClient,
+  setSecurityClientOwnerPassword,
+  setSecurityClientOwnerEmail,
   updateSecurityLicense,
   deleteSecurityClient,
   deleteSecurityLicense,

@@ -1,5 +1,78 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-02 — Super Admin: email/PW Security + Fiskale + Kontabilisti
+
+`POST set-password` për këto tre produkte nuk prek më `users` të POS. Shkon te bridge.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/routes/super.js` | degë security / fiskale / kontabilisti |
+| `src/lib/securityAdminBridge.js` | `setSecurityClientOwnerPassword` → `POST /clients/:id/password` (ekzistonte) + PATCH email |
+| `src/lib/fiskalizimAdminBridge.js` | `set-password` HOTEL + fallback `/password` |
+| `src/lib/kontabilistiAdminBridge.js` | e njëjta |
+
+Security server: endpoint **ekzistonte**. Fiskale/Kontabilisti: burimi **nuk** është në këtë PC — nuk u shtuan rrugë atje.
+
+Provë: `node --check`. Commit/push/deploy te ky hap.
+
+---
+
+## 2026-11-02 — Super Admin HOTEL: email/fjalëkalim përmes hotelAdminBridge
+
+Kur `product_line=hotel`, `POST /api/super/dashboard/clients/:id/set-password` **nuk** prek `users` të POS. Shkon te hotel-server si MARKET.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/routes/super.js` | degë `hotel` → `setHotelClientOwnerPassword` |
+| `src/lib/hotelAdminBridge.js` | `setHotelClientOwnerPassword` + `setHotelClientOwnerEmail` |
+
+PATCH klienti HOTEL mbetet `updateHotelClient` (email i hyrjes sinkronizohet te hotel-server `updateClient`).
+
+Provë: `node --check`. **Nuk u bë deploy/build/git.** Duhet edhe deploy i hotel-server.
+
+**Nuk preka:** `public/admin/`, desktop HOTEL, URL/secrets, MARKET/KAFENE.
+
+---
+
+## 2026-11-02 — Super Admin: ndrysho email/fjalëkalim pronari
+
+Rruga ekzistonte: `POST /api/super/dashboard/clients/:id/set-password` + `PATCH /api/admin/owners/:id`.
+Bug: `setOwnerPasswordForClient` injoronte `email` kur pronari ekzistonte; `updateClient` e fshihte dështimin e sync-ut të email-it.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/services/userService.js` | `setOwnerPasswordForClient` ruan email + bcrypt 12 + `clients.email` |
+| `src/services/licenseService.js` | `updateClient` sync email pronari pa e fshehur gabimin |
+| `src/routes/super.js` | set-password kthen 400 jo 500 për validim |
+| `public/admin/dashboard.js` | fusha «Email i hyrjes» + butoni ruan email/fjalëkalimin |
+
+Provë: `node --check` OK; live `POST set-password` pa auth → 401; fjalëkalim 3 shkronja → gabim «min. 6». Nuk u ndryshua email/PW i Te naseri.
+
+**Nuk preka:** HOTEL, build, git, deploy.
+
+---
+
+## 2026-11-02 — users: super_admin në OLD Supabase
+
+OLD `jdlypmieskgrqsfyjrul`. Tabela `users` **nuk** ishte 0: 1 rresht `supoort@ketujemi.com` (`client_admin`) — **nuk u fshi**.
+U insertua `naserbuzhala189@gmail.com`, `roli=super_admin`, `aktiv=true`, `passwordi` bcryptjs cost 12 nga `SUPER_ADMIN_PASSWORD` në `.env`.
+Provë: SELECT pas insert → 2 rreshta; `bcrypt.compare` mbi hash-in në DB = true.
+
+**Nuk preka:** HOTEL, NEW Supabase, kod, keys, git, build.
+
+---
+
+## 2026-11-02 — KAFENE Setup web + URL Supabase
+
+| Skedar / veprim | Ndryshimi |
+|-----------------|-----------|
+| Kërkim `vlvvkzzwrgreoblfdqav` | **Asnjë** referencë në RESTAURANT. `.env` tashmë OLD `jdlypmieskgrqsfyjrul`. Çelësat të paprekur. |
+| `restaurant-system/KAFENE` | `node scripts/pre-build-check.js` 20/20; `node build-packages.js web` **PO** → `dist/KAFENE-Setup.exe` v1.0.507 |
+
+**Nuk preka:** kod, keys, kitchen_key, git, NEW URL (nuk ekzistonte).
+
+---
+
 ## 2026-10-13 — Ulje ngarkese Supabase (KAFENE cloud — pa deploy)
 
 | Skedar | Ndryshim |

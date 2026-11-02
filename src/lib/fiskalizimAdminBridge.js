@@ -390,6 +390,47 @@ async function rotateFiskalizimLicenseKey(id) {
   };
 }
 
+async function setFiskalizimClientOwnerPassword(id, { password, email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Fiskalizim.");
+  try {
+    return await fiskalizimRequest(`/clients/${encodeURIComponent(cid)}/set-password`, {
+      method: "POST",
+      body: { password, email, emri },
+    });
+  } catch (e) {
+    if (![404, 405].includes(Number(e.status))) throw e;
+    const result = await fiskalizimRequest(`/clients/${encodeURIComponent(cid)}/password`, {
+      method: "POST",
+      body: { password, new_password: password },
+    });
+    const mail = email != null ? String(email).trim().toLowerCase() : "";
+    if (mail) {
+      await fiskalizimRequest(`/clients/${encodeURIComponent(cid)}`, {
+        method: "PATCH",
+        body: { email: mail, emri: emri || undefined },
+      });
+    }
+    return { ...result, product_line: "fiskale" };
+  }
+}
+
+async function setFiskalizimClientOwnerEmail(id, { email, emri } = {}) {
+  const cid = String(id || "").trim();
+  if (!cid) throw new Error("Mungon ID e klientit Fiskalizim.");
+  const mail = String(email || "").trim().toLowerCase();
+  if (!mail) throw new Error("Email është i detyrueshëm.");
+  try {
+    return await fiskalizimRequest(`/clients/${encodeURIComponent(cid)}/owner-email`, {
+      method: "PATCH",
+      body: { email: mail, emri },
+    });
+  } catch (e) {
+    if (![404, 405].includes(Number(e.status))) throw e;
+    return updateFiskalizimClient(cid, { email: mail, emri });
+  }
+}
+
 async function updateFiskalizimLicense(id, patch = {}) {
   const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -406,6 +447,8 @@ module.exports = {
   getFiskalizimOverview,
   registerFiskalizimClient,
   updateFiskalizimClient,
+  setFiskalizimClientOwnerPassword,
+  setFiskalizimClientOwnerEmail,
   updateFiskalizimLicense,
   deleteFiskalizimClient,
   deleteFiskalizimLicense,
