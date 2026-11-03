@@ -1,5 +1,20 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-03 — public_enabled default true + Te naseri
+
+Seed/INSERT tani shkruajnë `public_enabled: true`. SQL default i vjetër `false` u kthye `true`. Live: `te-naseri` `pos_settings.public_enabled` false → true. GET `/api/r/te-naseri` 200.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/services/receiptService.js` | seed `public_enabled: true` |
+| `src/services/menuService.js` | insert i ri `public_enabled: true` |
+| `src/services/dashboardClientRegister.js` | seed meta `public_enabled: true` |
+| `src/services/posSyncService.js` | INSERT PG `TRUE`, pa overwrite në UPDATE |
+| `supabase/MIGRATE_OLD_TO_MATCH_NEW.sql` | DEFAULT true |
+| `supabase/migrations/082_pos_settings_public_enabled_default_true.sql` | ALTER DEFAULT true |
+
+**Nuk u bë build/git/deploy.**
+
 ## 2026-11-02 — ENABLE_RLS.sql (vetëm skedar, pa ekzekutim)
 
 | Skedar | Ndryshimi |

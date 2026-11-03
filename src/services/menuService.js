@@ -46,6 +46,7 @@ async function touchMenuSync(clientId) {
       client_id: clientId,
       table_count: 10,
       receipt_width_mm: 80,
+      public_enabled: true,
       synced_at: now,
     });
   }

@@ -390,6 +390,7 @@ async function seedPosSettingsForClient(client) {
     table_count: 10,
     receipt_width_mm: 80,
     fiscal_enabled: true,
+    public_enabled: true,
     synced_at: now,
   });
 }

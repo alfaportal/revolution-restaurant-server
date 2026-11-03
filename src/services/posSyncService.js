@@ -552,8 +552,8 @@ async function syncCatalogFromPosTransactional(license, body) {
         : [];
 
     await client.query(
-      `INSERT INTO pos_settings (client_id, restaurant_name, address, phone, nui, tvsh_nr, receipt_width_mm, table_count, synced_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO pos_settings (client_id, restaurant_name, address, phone, nui, tvsh_nr, receipt_width_mm, table_count, public_enabled, synced_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9)
        ON CONFLICT (client_id) DO UPDATE SET
          restaurant_name = EXCLUDED.restaurant_name,
          address = EXCLUDED.address,

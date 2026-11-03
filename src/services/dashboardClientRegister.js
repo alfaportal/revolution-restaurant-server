@@ -138,6 +138,7 @@ async function seedBusinessMeta(clientId, { nui, adresa, qyteti, telefoni, emri 
     restaurant_name: emri || "",
     address: buildFullAddress(adresa, qyteti),
     phone: telefoni || "",
+    public_enabled: true,
     synced_at: now,
   };
   if (nui) patch.nui = String(nui).trim();
