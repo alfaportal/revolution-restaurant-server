@@ -1,5 +1,17 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-03 — QR te kamarieri, jo banak
+
+QR e papranuar nuk shfaqet te `/bar/tables/live`. Teksti i menysë: «te kamarieri». `sent_to: waiter`. PRANO cloud mbetet `/api/waiter/.../orders/:id/accept` (PIN).
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/routes/kds.js` | live banak: `accept_pending` → tavolinë e lirë |
+| `src/services/kioskService.js` | `sent_to: waiter` |
+| `public/js/kiosk.js` + `public/kiosk.html` | teksti kamarier |
+
+**Nuk u prek waiter.js / admin. Commit/push/deploy te ky hap.**
+
 ## 2026-11-03 — public_enabled default true + Te naseri
 
 Seed/INSERT tani shkruajnë `public_enabled: true`. SQL default i vjetër `false` u kthye `true`. Live: `te-naseri` `pos_settings.public_enabled` false → true. GET `/api/r/te-naseri` 200.

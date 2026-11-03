@@ -57,7 +57,7 @@ async function submitKioskOrder(client, body) {
     order_id: sale?.id || null,
     track_token: sale?.id ? issueOrderTrackToken(client.id, sale.id) : "",
     client_name: client.emri,
-    sent_to: "bar",
+    sent_to: "waiter",
     table_number: tableNumber,
   };
 }

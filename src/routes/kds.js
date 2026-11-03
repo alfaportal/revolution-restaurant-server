@@ -107,7 +107,13 @@ router.get("/:slug/events", resolveKitchenClient, requirePackageFeature("kds"), 
 router.get("/:slug/bar/tables/live", resolveKitchenClient, requirePackageFeature("kds"), async (req, res) => {
   try {
     const live = await getLiveTablesForOwner(req.kitchenClient.id);
-    res.json({ ok: true, ...live });
+    const tables = (live.tables || []).map((t) => {
+      if (t?.order?.accept_pending) {
+        return { ...t, status: "free", order: null };
+      }
+      return t;
+    });
+    res.json({ ok: true, ...live, tables });
   } catch (e) {
     res.status(500).json({ ok: false, gabim: e.message });
   }

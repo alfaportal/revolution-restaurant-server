@@ -1,14 +1,24 @@
 /**
- * Ping Supabase projects that are not on this server (FISKAL, MARKET, SECURITY, KONTABILISTI)
- * so free-tier pauses less often. Does NOT ping KAFENE/POS or HOTEL (always active here).
+ * Ping Supabase projects that are not on this server (FISKAL, MARKET, SECURITY, KONTABILISTI, + FURRA nëse env)
+ * so free-tier pauses less often. Does NOT ping KAFENE/POS (always active on this hub).
  */
 const https = require("https");
 
 const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000;
 const BOOT_DELAY_MS = 30 * 1000;
 
+function furraSupabaseRefFromEnv() {
+  const direct = String(process.env.SUPABASE_KEEPALIVE_FURRA_REF || "").trim();
+  if (direct) return direct;
+  const url = String(
+    process.env.SUPABASE_FURRA_URL || process.env.SUPABASE_KEEPALIVE_FURRA_URL || "",
+  ).trim();
+  const m = url.match(/https?:\/\/([a-z0-9]+)\.supabase\.co/i);
+  return m ? m[1] : "";
+}
+
 /** Public anon/publishable keys from respective product repos (optional env overrides). */
-const PROJECTS = [
+const BASE_PROJECTS = [
   {
     name: "FISKALIZIM",
     ref: "oqquiuisreztzcyehpiq",
@@ -34,6 +44,22 @@ const PROJECTS = [
     anonKey: process.env.SUPABASE_KEEPALIVE_KONTABILISTI_ANON_KEY || "",
   },
 ];
+
+function getKeepaliveProjects() {
+  const list = [...BASE_PROJECTS];
+  const furraRef = furraSupabaseRefFromEnv();
+  if (furraRef) {
+    list.push({
+      name: "FURRA",
+      ref: furraRef,
+      anonKey:
+        process.env.SUPABASE_KEEPALIVE_FURRA_ANON_KEY ||
+        process.env.SUPABASE_FURRA_ANON_KEY ||
+        "",
+    });
+  }
+  return list;
+}
 
 function httpsGet(hostname, path, headers = {}) {
   return new Promise((resolve) => {
@@ -68,7 +94,7 @@ async function pingOnce({ ref, anonKey }) {
 }
 
 async function runSupabaseKeepalive() {
-  for (const project of PROJECTS) {
+  for (const project of getKeepaliveProjects()) {
     let ok = false;
     try {
       ok = await pingOnce(project);
@@ -97,7 +123,9 @@ function startSupabaseKeepalive() {
     });
   }, SIX_DAYS_MS);
 
-  console.log("  ⏰ Supabase keepalive: FISKAL/MARKET/SECURITY/KONTABILISTI — çdo 6 ditë (+ 30s pas start)");
+  console.log(
+    "  ⏰ Supabase keepalive: FISKAL/MARKET/SECURITY/KONTABILISTI (+FURRA nëse env) — çdo 6 ditë (+ 30s pas start)",
+  );
 }
 
 module.exports = { startSupabaseKeepalive, runSupabaseKeepalive };

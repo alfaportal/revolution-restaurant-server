@@ -128,7 +128,7 @@
     const hint = $("sync-hint");
     if (!hint) return;
     if (bootstrap?.synced_at) {
-      hint.textContent = `Menuja u sinkronizua: ${new Date(bootstrap.synced_at).toLocaleString("sq-AL")}. Porosia shkon te banaku — jo faturë.`;
+      hint.textContent = `Menuja u sinkronizua: ${new Date(bootstrap.synced_at).toLocaleString("sq-AL")}. Porosia shkon te kamarieri — jo faturë.`;
     } else {
       hint.textContent = "Menuja ende nuk është sinkronizuar nga POS ose pronari.";
     }
@@ -352,7 +352,7 @@
     const btn = $("btn-send");
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "Dërgo porosinë te banaku";
+      btn.textContent = "Dërgo porosinë te kamarieri";
     }
     showErr($("order-err"), "");
     showScreen("screen-order");
@@ -384,7 +384,7 @@
       renderCart();
       const msgEl = $("success-msg");
       if (msgEl) {
-        msgEl.textContent = `Porosia juaj për T${tableNumber} u dërgua te banaku.`;
+        msgEl.textContent = `Porosia juaj për T${tableNumber} u dërgua te kamarieri.`;
       }
       showScreen("screen-success");
       try {
@@ -396,7 +396,7 @@
       orderSubmitting = false;
       btn.disabled = cart.length === 0;
       if ($("screen-order")?.classList.contains("active")) {
-        btn.textContent = "Dërgo porosinë te banaku";
+        btn.textContent = "Dërgo porosinë te kamarieri";
       }
     }
   }
