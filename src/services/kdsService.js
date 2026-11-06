@@ -163,9 +163,18 @@ function onlineSlotVisibleToWaiter(raw, waiterId, waiterName = "") {
   return { visible: true, status: "pending" };
 }
 
+const ONLINE_SLOT_MIN = 6;
+const ONLINE_SLOT_MAX = 16;
+
+function resolveOnlineSlotGridCount(onlineOrders, slotCount = ONLINE_SLOT_MAX) {
+  const base = Math.max(ONLINE_SLOT_MIN, Number(slotCount) || ONLINE_SLOT_MAX);
+  const need = Array.isArray(onlineOrders) ? onlineOrders.length : 0;
+  return Math.min(ONLINE_SLOT_MAX, Math.max(base, need));
+}
+
 /** Ndërton Online 1…N — renditje globale ordered_at ↑; maskë per-kamarier kur waiterId. */
-function buildOnlineSlotLayout(orders, { slotCount = 6, waiterId = null, waiterName = "" } = {}) {
-  const count = Math.min(12, Math.max(1, Number(slotCount) || 6));
+function buildOnlineSlotLayout(orders, { slotCount = ONLINE_SLOT_MAX, waiterId = null, waiterName = "" } = {}) {
+  const count = resolveOnlineSlotGridCount(orders, slotCount);
   const slots = [];
   for (let i = 1; i <= count; i += 1) {
     slots.push({ slot: i, label: `Online ${i}`, status: "free", order: null });

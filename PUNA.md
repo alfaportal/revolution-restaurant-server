@@ -1,5 +1,15 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-06 — Dil te kamarieri
+
+`public/waiter.html`: butoni i daljes «Kyçu» → «Dil». Nuk u bë push.
+
+
+
+## 2026-11-06 — 16 vende online si HOTEL
+
+`buildOnlineSlotLayout` kthen Online 1–16. Porosia e 17-të nuk merr kartë. Prova: 0 porosi → 16 të lira; 20 takeaway → 16 të zëna. Nuk u bë git.
+
 ## 2026-11-06 — Paneli: Ruaj/Rifresko te serveri i produktit
 
 MARKET, BUTIKA, DYQANE, ARGJENDARI dhe BARNATORE nuk shkruhen më te databaza e KAFENE. SECURITY dhe FISKALE e kishin urën; Rifresko tani ruan edhe ID-në e pajisjes. FURRA krijohet te i njëjti server që pyet programi (`product_line` furra).
