@@ -1,5 +1,39 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-06 — Paneli: Ruaj/Rifresko te serveri i produktit
+
+MARKET, BUTIKA, DYQANE, ARGJENDARI dhe BARNATORE nuk shkruhen më te databaza e KAFENE. SECURITY dhe FISKALE e kishin urën; Rifresko tani ruan edhe ID-në e pajisjes. FURRA krijohet te i njëjti server që pyet programi (`product_line` furra).
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/lib/dedicatedLicenseBridge.js` | urë e re për 4 produktet |
+| `src/lib/marketAdminBridge.js` | PATCH + rotate-key |
+| `src/lib/securityAdminBridge.js` | Rifresko ruan `hardware_id` |
+| `src/lib/fiskalizimAdminBridge.js` | Rifresko ruan `hardware_id` |
+| `src/routes/super.js` | degët e produkteve |
+| `src/services/dashboardClientRegister.js` | regjistrimi me pronar |
+| `src/services/superAdminDashboardService.js` | lista |
+| `src/utils/productLine.js` | emrat e produkteve |
+| `public/admin/dashboard.html` + `dashboard.js` | skedat |
+
+`node --check` kaloi. Nuk u bë push. Nuk u bë deploy. Desktop-i KAFENE nuk u prek.
+
+
+
+## 2026-11-06 — Paneli: licenca HOTEL shkon te serveri HOTEL
+
+Ruaj dhe Rifresko për produktin `hotel` nuk shkruajnë më te databaza e KAFENE. Dërgohen te serveri HOTEL, bashkë me ID e pajisjes. Licenca KAFENE mbetet te databaza e vet.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/lib/hotelAdminBridge.js` | `updateHotelLicense`, `rotateHotelLicenseKey` |
+| `src/routes/super.js` | degë `product === "hotel"` te PATCH dhe rotate-key |
+| `public/admin/dashboard.js` | Rifresko dërgon edhe `hardware_id` |
+
+`node --check` kaloi. Nuk u bë push. Nuk u bë deploy. Nuk u prek desktop-i KAFENE.
+
+
+
 ## 2026-11-03 — QR te kamarieri, jo banak
 
 QR e papranuar nuk shfaqet te `/bar/tables/live`. Teksti i menysë: «te kamarieri». `sent_to: waiter`. PRANO cloud mbetet `/api/waiter/.../orders/:id/accept` (PIN).

@@ -177,7 +177,7 @@ function buildExpiryLists(clients, licByClient) {
   };
 }
 
-const TAB_PRODUCT_IDS = ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"];
+const TAB_PRODUCT_IDS = ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore"];
 
 function buildProductTabBadges(licensesAll, clientsAll) {
   const badges = {};
@@ -714,6 +714,10 @@ async function getOverview({ product } = {}) {
     const { getKontabilistiOverview } = require("../lib/kontabilistiAdminBridge");
     return getKontabilistiOverview();
   }
+  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(p)) {
+    const { getRetailOverview } = require("../lib/dedicatedLicenseBridge");
+    return getRetailOverview(p);
+  }
   return getOverviewKafene(p);
 }
 
@@ -738,6 +742,10 @@ async function getClientsGrouped({ product } = {}) {
   if (p === "kontabilisti") {
     const { getKontabilistiClientsGrouped } = require("../lib/kontabilistiAdminBridge");
     return getKontabilistiClientsGrouped();
+  }
+  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(p)) {
+    const { getRetailClientsGrouped } = require("../lib/dedicatedLicenseBridge");
+    return getRetailClientsGrouped(p);
   }
 
   const [clientsAll, licenses, salesToday] = await Promise.all([
@@ -1024,6 +1032,10 @@ async function getLicensesView({ product } = {}) {
   if (p === "kontabilisti") {
     const { getKontabilistiLicensesView } = require("../lib/kontabilistiAdminBridge");
     return getKontabilistiLicensesView();
+  }
+  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(p)) {
+    const { getRetailLicensesView } = require("../lib/dedicatedLicenseBridge");
+    return getRetailLicensesView(p);
   }
 
   const { ensureLicenseHardwareSchema } = require("../lib/ensureLicenseHardwareSchema");

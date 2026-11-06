@@ -202,6 +202,11 @@ router.get(
       const detail = await getKontabilistiClientDetail(req.params.id);
       return res.json({ ok: true, ...detail, product_line: "kontabilisti" });
     }
+    if (["butika", "dyqanet", "argjendari", "barnatore"].includes(product)) {
+      const { getRetailClientDetail } = require("../lib/dedicatedLicenseBridge");
+      const detail = await getRetailClientDetail(product, req.params.id);
+      return res.json({ ok: true, ...detail, product_line: product });
+    }
     const detail = await getClientDetail(req.params.id);
     res.json({ ok: true, ...detail, product_line: "kafene" });
   }),
@@ -577,6 +582,18 @@ router.delete(
       }).catch(() => {});
       return res.json({ ok: true, product_line: "fiskale" });
     }
+    if (["butika", "dyqanet", "argjendari", "barnatore"].includes(product)) {
+      const { deleteRetailClient } = require("../lib/dedicatedLicenseBridge");
+      await deleteRetailClient(product, id);
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_delete",
+        targetType: "client",
+        targetId: id,
+        details: { product_line: product },
+      }).catch(() => {});
+      return res.json({ ok: true, product_line: product });
+    }
     if (product === "kontabilisti") {
       const { deleteKontabilistiClient } = require("../lib/kontabilistiAdminBridge");
       await deleteKontabilistiClient(id);
@@ -659,6 +676,21 @@ router.patch(
       const { updateKontabilistiLicense } = require("../lib/kontabilistiAdminBridge");
       const license = await updateKontabilistiLicense(id, body);
       return res.json({ ok: true, license, product_line: "kontabilisti" });
+    }
+    if (product === "hotel") {
+      const { updateHotelLicense } = require("../lib/hotelAdminBridge");
+      const result = await updateHotelLicense(id, body);
+      return res.json({ ok: true, ...result, product_line: "hotel" });
+    }
+    if (product === "market") {
+      const { updateMarketLicense } = require("../lib/marketAdminBridge");
+      const result = await updateMarketLicense(id, body);
+      return res.json({ ok: true, ...result, product_line: "market" });
+    }
+    if (["butika", "dyqanet", "argjendari", "barnatore"].includes(product)) {
+      const { updateRetailLicense } = require("../lib/dedicatedLicenseBridge");
+      const result = await updateRetailLicense(product, id, body);
+      return res.json({ ok: true, ...result, product_line: product });
     }
 
     const license = await updateLicense(id, { ...body, product_line: product });
@@ -854,10 +886,79 @@ router.post(
       });
     }
 
+    if (["butika", "dyqanet", "argjendari", "barnatore"].includes(product)) {
+      const { registerRetailClient } = require("../lib/dedicatedLicenseBridge");
+      const result = await registerRetailClient(product, {
+        ...(req.body || {}),
+        hardware_id: hardwareId || undefined,
+        celesi: celesi || undefined,
+        license_key: celesi || undefined,
+      });
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_create",
+        targetType: "client",
+        targetId: result.client?.id || null,
+        targetLabel: result.client?.emri || req.body?.emri || product,
+        details: {
+          license_key: result.license_key || null,
+          hardware_id: result.hardware_id || null,
+          product_line: product,
+        },
+      }).catch(() => {});
+      return res.status(201).json({
+        ok: true,
+        client: result.client,
+        license: result.license,
+        license_key: result.license_key,
+        celesi: result.license_key,
+        hardware_id: result.hardware_id || null,
+        product_line: product,
+        already_exists: !!result.already_exists,
+      });
+    }
+
     if (product === "furra") {
-      const err = new Error("FURRA nuk menaxhohet nga ky server.");
-      err.status = 400;
-      throw err;
+      const { createClient, createLicense } = require("../services/licenseService");
+      const { normalizeClientTipi } = require("../utils/businessTipi");
+      let tipi = normalizeClientTipi(req.body?.tipi || "furre_buke");
+      if (!["furre_buke", "pasticeri"].includes(tipi)) tipi = "furre_buke";
+      const client = await createClient({
+        ...(req.body || {}),
+        tipi,
+        product_line: "furra",
+      });
+      let license = null;
+      if (wantLicense) {
+        license = await createLicense({
+          client_id: client.id,
+          product_line: "furra",
+          license_type: licenseType,
+          muaj: licenseType === "trial" ? 1 : req.body?.muaj || 12,
+          max_terminals: req.body?.max_terminals || 1,
+          celesi: celesi || undefined,
+          hardware_id: hwHex.length === 16 ? hardwareId : undefined,
+          data_skadimit: dataSkadimit || undefined,
+          trial_ends_at: licenseType === "trial" ? (trialEndsAt || undefined) : null,
+        });
+      }
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_create",
+        targetType: "client",
+        targetId: client.id,
+        targetLabel: client.emri || req.body?.emri || "Furra",
+        details: { license_key: license?.celesi || null, product_line: "furra" },
+      }).catch(() => {});
+      return res.status(201).json({
+        ok: true,
+        client,
+        license,
+        license_key: license?.celesi || null,
+        celesi: license?.celesi || null,
+        hardware_id: license?.hardware_id || hardwareId || null,
+        product_line: "furra",
+      });
     }
 
     const { createClient, createLicense } = require("../services/licenseService");
@@ -1277,7 +1378,7 @@ router.post(
 
     if (product === "security") {
       const { rotateSecurityLicenseKey } = require("../lib/securityAdminBridge");
-      const result = await rotateSecurityLicenseKey(id);
+      const result = await rotateSecurityLicenseKey(id, req.body || {});
       await logAdminActivity({
         ...activityFromReq(req),
         action: "license_rotate_key",
@@ -1289,7 +1390,7 @@ router.post(
     }
     if (product === "fiskale") {
       const { rotateFiskalizimLicenseKey } = require("../lib/fiskalizimAdminBridge");
-      const result = await rotateFiskalizimLicenseKey(id);
+      const result = await rotateFiskalizimLicenseKey(id, req.body || {});
       await logAdminActivity({
         ...activityFromReq(req),
         action: "license_rotate_key",
@@ -1310,6 +1411,45 @@ router.post(
         details: { product_line: "kontabilisti", previous_id: id },
       }).catch(() => {});
       return res.json({ ok: true, ...result, product_line: "kontabilisti" });
+    }
+    if (product === "market") {
+      const { rotateMarketLicenseKey } = require("../lib/marketAdminBridge");
+      const result = await rotateMarketLicenseKey(id, req.body || {});
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: result.license?.id || id,
+        targetLabel: result.license_key || result.celesi || "",
+        details: { product_line: "market" },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "market" });
+    }
+    if (["butika", "dyqanet", "argjendari", "barnatore"].includes(product)) {
+      const { rotateRetailLicenseKey } = require("../lib/dedicatedLicenseBridge");
+      const result = await rotateRetailLicenseKey(product, id, req.body || {});
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: result.license?.id || id,
+        targetLabel: result.license_key || result.celesi || "",
+        details: { product_line: product },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: product });
+    }
+    if (product === "hotel") {
+      const { rotateHotelLicenseKey } = require("../lib/hotelAdminBridge");
+      const result = await rotateHotelLicenseKey(id, req.body || {});
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "license_rotate_key",
+        targetType: "license",
+        targetId: result.license?.id || id,
+        targetLabel: result.license_key || result.celesi || "",
+        details: { product_line: "hotel" },
+      }).catch(() => {});
+      return res.json({ ok: true, ...result, product_line: "hotel" });
     }
 
     const result = await rotateLicenseKey(id, { product_line: product });

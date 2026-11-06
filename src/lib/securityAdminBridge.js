@@ -423,7 +423,7 @@ async function extendSecurityLicense(id, months = 12) {
   };
 }
 
-async function rotateSecurityLicenseKey(id) {
+async function rotateSecurityLicenseKey(id, body = {}) {
   const crypto = require("crypto");
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const bytes = crypto.randomBytes(16);
@@ -433,9 +433,12 @@ async function rotateSecurityLicenseKey(id) {
     return s;
   };
   const key = `${part(0)}-${part(4)}-${part(8)}-${part(12)}`;
+  const hw = String(body?.hardware_id || body?.hardwareId || "").trim();
+  const patch = { license_key: key };
+  if (hw) patch.hardware_id = hw;
   const r = await securityRequest(`/licenses/${encodeURIComponent(id)}`, {
     method: "PATCH",
-    body: { license_key: key },
+    body: patch,
   });
   return {
     license: mapSecurityLicenseRow(r.license || r),

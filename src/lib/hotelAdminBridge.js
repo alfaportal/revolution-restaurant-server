@@ -296,6 +296,24 @@ async function deleteHotelClient(id) {
   return hotelRequest(`/dashboard/clients/${encodeURIComponent(cid)}?product=hotel`, { method: "DELETE" });
 }
 
+async function updateHotelLicense(id, body = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës HOTEL.");
+  return hotelRequest(`/dashboard/licenses/${encodeURIComponent(lid)}?product=hotel`, {
+    method: "PATCH",
+    body: { ...(body || {}), product_line: "hotel" },
+  });
+}
+
+async function rotateHotelLicenseKey(id, body = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës HOTEL.");
+  return hotelRequest(`/dashboard/licenses/${encodeURIComponent(lid)}/rotate-key?product=hotel`, {
+    method: "POST",
+    body: { ...(body || {}), product_line: "hotel" },
+  });
+}
+
 async function deleteHotelLicense(id) {
   const lid = String(id || "").trim();
   if (!lid) throw new Error("Mungon ID e licencës HOTEL.");
@@ -335,6 +353,8 @@ module.exports = {
   setHotelClientOwnerPassword,
   setHotelClientOwnerEmail,
   deleteHotelClient,
+  updateHotelLicense,
+  rotateHotelLicenseKey,
   deleteHotelLicense,
   removeHotelLicenseTerminal,
   revokeHotelLicense,

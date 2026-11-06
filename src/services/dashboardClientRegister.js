@@ -101,7 +101,7 @@ function ownerRoleForProgram(program) {
   return program === "security" ? "pronari" : "owner";
 }
 
-const BRIDGE_PROGRAMS = new Set(["security", "hotel", "market", "fiskale", "kontabilisti"]);
+const BRIDGE_PROGRAMS = new Set(["security", "hotel", "market", "fiskale", "kontabilisti", "butika", "dyqanet", "argjendari", "barnatore"]);
 
 function buildOwnerLoginUrl(client, program) {
   const base = getPublicAppOrigin();
@@ -192,6 +192,10 @@ async function registerViaBridge(program, body, licenseOpts) {
     delete payload.celesi;
     delete payload.license_key;
     return registerKontabilistiClient(payload);
+  }
+  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(program)) {
+    const { registerRetailClient } = require("../lib/dedicatedLicenseBridge");
+    return registerRetailClient(program, payload);
   }
   return null;
 }
@@ -285,7 +289,7 @@ async function registerFullDashboardClient(body, baseUrl) {
   let bridgeResult = null;
 
   try {
-    if (program === "security" || program === "hotel" || program === "market" || program === "fiskale" || program === "kontabilisti") {
+    if (BRIDGE_PROGRAMS.has(program)) {
       bridgeResult = await registerViaBridge(program, body, licenseOpts);
       client = bridgeResult.client;
       license = bridgeResult.license || null;

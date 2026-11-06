@@ -379,8 +379,18 @@ async function extendFiskalizimLicense(id, months = 12) {
   };
 }
 
-async function rotateFiskalizimLicenseKey(id) {
-  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}/rotate-key`, { method: "POST" });
+async function rotateFiskalizimLicenseKey(id, body = {}) {
+  const r = await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}/rotate-key`, {
+    method: "POST",
+    body: body || {},
+  });
+  const hw = String(body?.hardware_id || body?.hardwareId || "").trim();
+  if (hw) {
+    await fiskalizimRequest(`/licenses/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: { hardware_id: hw },
+    });
+  }
   const key = r.license_key || r.celesi || r.license?.license_key || "";
   return {
     license: mapFiskaleLicenseRow(r.license || r),

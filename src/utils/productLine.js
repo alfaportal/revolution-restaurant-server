@@ -25,6 +25,10 @@ function normalizeProductLine(v) {
   if (s === "furra" || s === "furre" || s === "furre_buke" || s === "bakery") return "furra";
   if (s === "kontabilisti" || s === "kontabilist" || s === "accounting") return "kontabilisti";
   if (s === "fiskale" || s === "fiscal" || s === "fiskal") return "fiskale";
+  if (s === "butika" || s === "butik") return "butika";
+  if (s === "dyqanet" || s === "dyqane" || s === "dyqan") return "dyqanet";
+  if (s === "argjendari") return "argjendari";
+  if (s === "barnatore" || s === "farmaci") return "barnatore";
   if (s === "kafene" || s === "cafe" || s === "pos" || s === "hospitality") return "kafene";
   if (s === "restaurant" || s === "restorant") return "kafene";
   if (PRODUCT_LINES.some((p) => p.id === s && p.enabled !== false)) return s;
@@ -57,6 +61,10 @@ function adminProductOfClient(c) {
   if (rawPl === "furra") return "furra";
   if (rawPl === "kontabilisti" || rawPl === "kontabilist") return "kontabilisti";
   if (rawPl === "fiskale" || rawPl === "fiscal" || rawPl === "fiskal") return "fiskale";
+  if (rawPl === "butika" || rawPl === "butik") return "butika";
+  if (rawPl === "dyqanet" || rawPl === "dyqane" || rawPl === "dyqan") return "dyqanet";
+  if (rawPl === "argjendari") return "argjendari";
+  if (rawPl === "barnatore" || rawPl === "farmaci") return "barnatore";
   if (rawPl === "kafene" || rawPl === "pos" || rawPl === "restaurant" || rawPl === "restorant") {
     return "kafene";
   }
@@ -78,6 +86,10 @@ function adminProductOfLicense(l) {
   if (pl === "furra") return "furra";
   if (pl === "kontabilisti" || pl === "kontabilist") return "kontabilisti";
   if (pl === "fiskale" || pl === "fiscal" || pl === "fiskal") return "fiskale";
+  if (pl === "butika" || pl === "butik") return "butika";
+  if (pl === "dyqanet" || pl === "dyqane" || pl === "dyqan") return "dyqanet";
+  if (pl === "argjendari") return "argjendari";
+  if (pl === "barnatore" || pl === "farmaci") return "barnatore";
   if (pl === "kafene" || pl === "pos") return "kafene";
   return adminProductOfClient(l?.clients || { tipi: l?.clients?.tipi, product_line: l?.product_line });
 }

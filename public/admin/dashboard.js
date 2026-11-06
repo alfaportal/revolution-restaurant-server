@@ -6,7 +6,7 @@ let sectorsCache = [];
 let openSectorIds = new Set();
 /** Produkti aktiv: kafene (POS), security, ose hotel (bridge te serveri i veçantë) */
 let currentProduct = localStorage.getItem("rip_admin_product") || "kafene";
-if (!["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"].includes(currentProduct)) {
+if (!["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore"].includes(currentProduct)) {
   currentProduct = "kafene";
 }
 
@@ -74,6 +74,10 @@ const PRODUCT_LABELS = {
   furra: "FURRA",
   kontabilisti: "KONTABILISTI",
   fiskale: "FISKALE",
+  butika: "BUTIKA",
+  dyqanet: "DYQANE",
+  argjendari: "ARGJENDARI",
+  barnatore: "BARNATORE",
 };
 
 /** REVOLUTION MARKET — 8 kategori dyqanesh. */
@@ -373,6 +377,10 @@ function setProductTab(product, { reload = true } = {}) {
     furra: 1,
     kontabilisti: 1,
     fiskale: 1,
+    butika: 1,
+    dyqanet: 1,
+    argjendari: 1,
+    barnatore: 1,
   };
   currentProduct = allowed[product] ? product : "kafene";
   localStorage.setItem("rip_admin_product", currentProduct);
@@ -391,6 +399,10 @@ function setProductTab(product, { reload = true } = {}) {
       furra: "furra",
       kontabilisti: "kontabilisti",
       fiskale: "fiskale",
+      butika: "butika",
+      dyqanet: "dyqanet",
+      argjendari: "argjendari",
+      barnatore: "barnatore",
     };
     nc.value = tabToProgram[currentProduct] || "pos";
     syncNewClientForm();
@@ -456,6 +468,7 @@ function ncSelectedTipi(program) {
   if (program === "security") return document.getElementById("nc-vepr")?.value || "kompani_sigurie";
   if (program === "furra") return document.getElementById("nc-tipi-furra")?.value || "furre_buke";
   if (program === "kontabilisti" || program === "fiskale") return "tjeter";
+  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(program)) return program;
   return document.getElementById("nc-tipi")?.value || "kafene";
 }
 
@@ -1182,6 +1195,10 @@ const DEDICATED_DRAWER_PRODUCTS = new Set([
   "security",
   "fiskale",
   "kontabilisti",
+  "butika",
+  "dyqanet",
+  "argjendari",
+  "barnatore",
 ]);
 
 function resolveDrawerProduct(fetchedProduct, opts = {}) {
@@ -1205,7 +1222,7 @@ async function fetchClientDetailSmart(id, preferredProduct) {
     return { d, product: d.product_line || pref };
   }
   const order = [pref];
-  for (const p of ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale"]) {
+  for (const p of ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore"]) {
     if (!order.includes(p)) order.push(p);
   }
   let lastErr = null;
@@ -1237,7 +1254,10 @@ async function rotateLicenseKeyUi({ licenseId, product, hwEl, keyEl, msgEl, btn 
       `/api/super/dashboard/licenses/${encodeURIComponent(licenseId)}/rotate-key${productQueryString(prod)}`,
       {
         method: "POST",
-        body: JSON.stringify({ product_line: prod }),
+        body: JSON.stringify({
+          product_line: prod,
+          hardware_id: String(hwEl?.value || "").trim() || undefined,
+        }),
       },
     );
     const key = data.license_key || data.celesi || data.license?.license_key || data.license?.celesi || "";
@@ -3081,6 +3101,10 @@ async function boot() {
       furra: "furra",
       kontabilisti: "kontabilisti",
       fiskale: "fiskale",
+      butika: "butika",
+      dyqanet: "dyqanet",
+      argjendari: "argjendari",
+      barnatore: "barnatore",
     };
     const p = map[e.target.value] || "kafene";
     if (p !== currentProduct) setProductTab(p);
@@ -3312,6 +3336,10 @@ async function boot() {
         furra: "furra",
         kontabilisti: "kontabilisti",
         fiskale: "fiskale",
+        butika: "butika",
+        dyqanet: "dyqanet",
+        argjendari: "argjendari",
+        barnatore: "barnatore",
       };
       setProductTab(tabMap[program] || "kafene");
       await Promise.all([loadClients().catch(() => null), loadLicenses().catch(() => null)]);

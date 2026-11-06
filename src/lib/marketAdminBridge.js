@@ -335,6 +335,24 @@ async function reactivateMarketLicense(id, { hardware_id, hardwareId, reason } =
   });
 }
 
+async function updateMarketLicense(id, body = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës MARKET.");
+  return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}`, {
+    method: "PATCH",
+    body: { ...(body || {}), product_line: "market" },
+  });
+}
+
+async function rotateMarketLicenseKey(id, body = {}) {
+  const lid = String(id || "").trim();
+  if (!lid) throw new Error("Mungon ID e licencës MARKET.");
+  return marketRequest(`/dashboard/licenses/${encodeURIComponent(lid)}/rotate-key`, {
+    method: "POST",
+    body: { ...(body || {}), product_line: "market" },
+  });
+}
+
 async function setMarketClientOwnerPassword(id, { password, email, emri } = {}) {
   const cid = String(id || "").trim();
   if (!cid) throw new Error("Mungon ID e klientit MARKET.");
@@ -357,5 +375,7 @@ module.exports = {
   removeMarketLicenseTerminal,
   revokeMarketLicense,
   reactivateMarketLicense,
+  updateMarketLicense,
+  rotateMarketLicenseKey,
   setMarketClientOwnerPassword,
 };
