@@ -17,10 +17,8 @@ function startAiWeeklyReportCron() {
       });
     }
   };
-
   tick();
   setInterval(tick, 60 * 1000);
-  console.log(`  ⏰ AI weekly reports: e hënë 08:00 (${REPORT_TZ})`);
 }
 
 module.exports = {

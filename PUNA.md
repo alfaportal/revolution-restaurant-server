@@ -1,5 +1,48 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-10 — Çelësat e email-it te Njoftimet
+
+Në panelin e pronarit, skeda «Njoftimet» (telefoni) tani hapet për çdo pronar. Në krye të skedës, karta «Njoftimet me email» ka tre çelës: Raport javor, Stok i ulët, Raport AI. Hapja lexon GET `/api/owner/notification-preferences`. Çdo ndryshim bën PUT me slug-un e lokalit. Nisjen e kanë të fikur. Telegram/SMS mbetet poshtë dhe duket vetëm kur pakoja AI është aktive. Nuk u deploy-ua.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/owner/panel.html` | Karta dhe skeda |
+| `public/js/owner-notifications.js` | GET dhe PUT |
+| `public/js/owner.js` | Skeda nuk fshihet kur AI dështon |
+| `public/css/owner.css` | Çelësi on/off |
+
+## 2026-11-10 — Pronari zgjedh cilat email-e dalin
+
+Tabela `owner_notification_preferences` krijohet në nisje nëse mungon. Të trija (`weekly_report`, `low_stock_alert`, `ai_report`) nisin false. GET/PUT `/api/owner/notification-preferences` kërkon pronarin dhe slug-un e lokalit të tij. Raporti javor (e hënë 08:00) dhe raporti AI (23:59) nisen përsëri, por email-i anashkalohet në heshtje nëse preferenca është false ose mungon. E njëjta për stokun e ulët dhe stokun kritik. Offline 48 orë, siguria, prova, licenca, furnizimi dhe CSV mbeten si ishin. Nuk u deploy-ua. Git nuk u prek.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/services/ownerNotificationPreferences.js` | Tabela, leximi, ruajtja |
+| `src/routes/owner.js` | GET dhe PUT |
+| `src/server.js` | Krijimi në nisje |
+| `src/jobs/aiDailyReports.js` | Nisja e raportit AI |
+| `src/jobs/aiWeeklyReports.js` | Nisja e raportit javor |
+| `src/services/aiDailyReportService.js` | Email vetëm me `ai_report` |
+| `src/services/aiWeeklyReportService.js` | Email vetëm me `weekly_report` |
+| `src/services/stockService.js` | Email vetëm me `low_stock_alert` |
+| `src/services/aiStockPredictService.js` | Email kritik vetëm me `low_stock_alert` |
+
+## 2026-11-10 — Email-et automatike u ndalën
+
+Cron-et që dërgonin email (offline çdo orë, provë, licencë, AI, furnizim, CSV) nuk nisen më. «KAFENE Siguri» / DevTools nuk dërgon email. Mbetet një kontroll që ruan në memorie `last_seen_online` dhe `offline_email_sent` për çdo slug me arkë fiskale aktive: një email pas 48 orëve, pastaj asnjë derisa lokali të kthehet online dhe të rrijë prapë 48 orë offline. Prova e vendimit: skip, online, send, wait, online, send. Nuk u deploy-ua. Git nuk u prek.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/services/offlineNotificationService.js` | Logjika 48 orë |
+| `src/jobs/offlineNotifications.js` | Kontrolli, jo email çdo orë |
+| `src/jobs/trialNotifications.js` | Pa nisje |
+| `src/jobs/licenseOwnerNotifications.js` | Pa nisje |
+| `src/jobs/aiDailyReports.js` | Pa nisje |
+| `src/jobs/aiWeeklyReports.js` | Pa nisje |
+| `src/jobs/supplySuggestions.js` | Pa nisje |
+| `src/jobs/weeklyDataExport.js` | Pa nisje automatike |
+| `src/services/licenseSecurityAlertService.js` | Pa email sigurie |
+
 ## 2026-11-09 — TVSH 8% llogaritej si 18%
 
 E njëjta gabim si MARKET: «8» te cloud bëhej A (18%). Tani 8 → B. Katalogu merr TVSH. Git KAFENE NUK u prek (i ngrirë). Duhet deploy kur Naseri thotë.

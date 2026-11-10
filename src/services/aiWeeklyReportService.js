@@ -6,6 +6,7 @@ const { insertAiUsageLog } = require("./aiUsageService");
 const { getOwnerReport } = require("./salesService");
 const { resolveOwnerEmail } = require("./stockService");
 const { isEmailConfigured, sendWeeklyAiReportEmail } = require("./emailService");
+const { ownerWantsNotification } = require("./ownerNotificationPreferences");
 const { getZonedParts, listEligibleClients, aggregateTopItems } = require("./aiDailyReportService");
 const { ensureAiExtraSchema } = require("../lib/ensureAiExtraSchema");
 
@@ -136,7 +137,7 @@ async function generateWeeklyReportForClient(client, weekStart, { sendEmail = tr
   }).catch((e) => console.warn("[weekly-report] usage log:", e.message));
 
   let emailSentAt = null;
-  if (sendEmail && isEmailConfigured()) {
+  if (sendEmail && isEmailConfigured() && (await ownerWantsNotification(clientId, "weekly_report"))) {
     const to = (await resolveOwnerEmail(clientId).catch(() => null)) || client.email;
     if (to) {
       const sent = await sendWeeklyAiReportEmail({

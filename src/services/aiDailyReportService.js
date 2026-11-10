@@ -6,6 +6,7 @@ const { getStockSummary, listStockForOwner, resolveOwnerEmail } = require("./sto
 const { listInventoryAlerts } = require("./inventoryService");
 const { insertAiUsageLog } = require("./aiUsageService");
 const { isEmailConfigured, sendDailyAiReportEmail } = require("./emailService");
+const { ownerWantsNotification } = require("./ownerNotificationPreferences");
 
 const REPORT_TZ = process.env.REPORT_CRON_TZ || "Europe/Belgrade";
 
@@ -365,7 +366,7 @@ async function generateDailyReportForClient(client, reportDate, { sendEmail = tr
   }
 
   let emailSentAt = null;
-  if (sendEmail && isEmailConfigured()) {
+  if (sendEmail && isEmailConfigured() && (await ownerWantsNotification(clientId, "ai_report"))) {
     const ownerEmail = await resolveOwnerEmail(clientId, client);
     if (ownerEmail) {
       try {

@@ -88,29 +88,7 @@ async function exportWeeklyDataCsv() {
   return result;
 }
 
-function startWeeklyDataExportCron() {
-  const tick = () => {
-    const { date, hour, minute } = getZonedParts();
-    const weekday = new Intl.DateTimeFormat("en-US", {
-      timeZone: EXPORT_TZ,
-      weekday: "short",
-    }).format(new Date());
-    if (weekday === "Mon" && hour === 6 && minute === 0 && lastRunWeek !== date) {
-      if (!isEmailConfigured()) {
-        console.log("[cron] weeklyDataExport: RESEND_API_KEY mungon — anashkalohet.");
-        return;
-      }
-      lastRunWeek = date;
-      exportWeeklyDataCsv().catch(err => {
-        console.error("[cron] weeklyDataExport:", err.message || err);
-      });
-    }
-  };
-
-  tick();
-  setInterval(tick, 60 * 1000);
-  console.log(`  ⏰ Export CSV javor: e hënë 06:00 (${EXPORT_TZ}) → ${resolveAdminNotifyEmail()}`);
-}
+function startWeeklyDataExportCron() {}
 
 module.exports = {
   buildDataExportBundle,

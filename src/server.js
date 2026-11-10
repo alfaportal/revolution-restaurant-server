@@ -1071,6 +1071,18 @@ async function start() {
     console.warn("  ⚠️  admin_purge_client_licenses:", formatError(e));
   }
 
+  try {
+    const { ensureOwnerNotificationPreferences } = require("./services/ownerNotificationPreferences");
+    const prefOk = await ensureOwnerNotificationPreferences();
+    if (prefOk) {
+      console.log("  ✅ Preferencat e njoftimeve të pronarit");
+    } else {
+      console.warn("  ⚠️  Preferencat e njoftimeve: vendosni DATABASE_URL për tabelën");
+    }
+  } catch (e) {
+    console.warn("  ⚠️  Preferencat e njoftimeve:", formatError(e));
+  }
+
   startLicenseExpiryCron();
   startRefusedOrdersExpiryJob();
   startTrialNotificationCron();

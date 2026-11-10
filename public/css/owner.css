@@ -2387,3 +2387,57 @@
   vertical-align: middle;
   box-shadow: 0 0 0 2px rgba(232, 93, 4, 0.35);
 }
+
+.email-pref-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.email-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.email-pref-switch {
+  appearance: none;
+  width: 2.75rem;
+  height: 1.55rem;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #6b7280;
+  position: relative;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.email-pref-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.email-pref-switch:checked {
+  background: #16a34a;
+}
+
+.email-pref-switch:checked::after {
+  transform: translateX(1.15rem);
+}
+
+.email-pref-switch:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

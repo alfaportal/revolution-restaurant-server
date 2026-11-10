@@ -2,20 +2,6 @@
 
 const crypto = require("crypto");
 const { getSupabase } = require("../lib/supabase");
-const {
-  isEmailConfigured,
-  sendKafeneSecurityAlertEmail,
-} = require("./emailService");
-
-function defaultSecurityNotifyEmail() {
-  return String(
-    process.env.SECURITY_ALERT_EMAIL ||
-      process.env.SUPPORT_EMAIL ||
-      "alerts@revolution-pos.com",
-  )
-    .trim()
-    .toLowerCase();
-}
 
 /** Duhet të përputhet me KAFENE/security-alert.js getAlertHmacSecret(). */
 function getAlertHmacSecret() {
@@ -149,38 +135,8 @@ async function handleSecurityAlert(body, { clientIp } = {}) {
 
   await insertSecurityEvent(row);
 
-  const to =
-    String(body.notify_email || "").trim().toLowerCase() ||
-    process.env.SECURITY_NOTIFY_EMAIL?.trim()?.toLowerCase() ||
-    defaultSecurityNotifyEmail();
-
-  let email_ok = false;
-  let email_error = null;
-  if (isEmailConfigured()) {
-    try {
-      await sendKafeneSecurityAlertEmail({
-        to,
-        type,
-        hardwareId: hardware_id,
-        count24h: count_24h,
-        urgent,
-        attemptKeyHash: row.attempt_key_hash,
-        appVersion: row.app_version,
-        hostname: row.hostname,
-        platform: row.platform,
-        buildFingerprint: row.build_fingerprint,
-        watermarkOk: row.watermark_ok,
-        message: row.message,
-        at: body.at || new Date().toISOString(),
-      });
-      email_ok = true;
-    } catch (e) {
-      email_error = e.message || String(e);
-      console.warn("[security-alert] email:", email_error);
-    }
-  } else {
-    email_error = "RESEND_API_KEY mungon";
-  }
+  const email_ok = false;
+  const email_error = "Njoftimi me email është i ndalur.";
 
   return {
     ok: true,

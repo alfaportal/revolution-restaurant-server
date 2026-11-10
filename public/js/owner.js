@@ -3398,7 +3398,6 @@ async function applyAiUiState() {
     document.getElementById("tab-ai-hub")?.setAttribute("hidden", "");
     document.getElementById("tab-ai-reports")?.setAttribute("hidden", "");
     document.getElementById("tab-ai-assistant")?.setAttribute("hidden", "");
-    document.getElementById("tab-notifications")?.setAttribute("hidden", "");
   }
 }
 

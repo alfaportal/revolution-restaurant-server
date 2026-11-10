@@ -1525,4 +1525,30 @@ router.patch("/reservations/:id", async (req, res) => {
   }
 });
 
+router.get("/notification-preferences", async (req, res) => {
+  try {
+    const {
+      assertOwnerSlug,
+      getPreferencesForSlug,
+      ensureOwnerNotificationPreferences,
+    } = require("../services/ownerNotificationPreferences");
+    await ensureOwnerNotificationPreferences();
+    const slug = await assertOwnerSlug(req.user.client_id, req.query.slug);
+    const prefs = await getPreferencesForSlug(slug);
+    res.json({ ok: true, ...prefs });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.put("/notification-preferences", async (req, res) => {
+  try {
+    const { savePreferencesForOwner } = require("../services/ownerNotificationPreferences");
+    const prefs = await savePreferencesForOwner(req.user.client_id, req.body || {});
+    res.json({ ok: true, ...prefs });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
 module.exports = router;

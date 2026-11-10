@@ -1,6 +1,7 @@
 const { getSupabase } = require("../db");
 const { touchMenuSync } = require("./menuService");
 const { isEmailConfigured, sendStockLowAlertEmail } = require("./emailService");
+const { ownerWantsNotification } = require("./ownerNotificationPreferences");
 const { computeStockStatus, isVisibleOnWebMenu, isOutOfStock } = require("../lib/stockHelpers");
 
 async function resolveOwnerEmail(clientId, clientRow) {
@@ -89,6 +90,7 @@ async function maybeSendLowStockAlert(clientId, item, clientRow) {
     .eq("menu_item_id", item.id)
     .maybeSingle();
   if (existing) return;
+  if (!(await ownerWantsNotification(clientId, "low_stock_alert"))) return;
 
   const ownerEmail = await resolveOwnerEmail(clientId, clientRow);
   if (isEmailConfigured() && ownerEmail) {

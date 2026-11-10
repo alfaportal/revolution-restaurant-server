@@ -6,6 +6,7 @@ const { listIngredients, listInventoryAlerts } = require("./inventoryService");
 const { getOwnerReport, normalizeItems } = require("./salesService");
 const { resolveOwnerEmail } = require("./stockService");
 const { isEmailConfigured, sendLowStockCriticalEmail } = require("./emailService");
+const { ownerWantsNotification } = require("./ownerNotificationPreferences");
 const { getZonedParts } = require("./aiDailyReportService");
 const { analyzeLowStockIngredients } = require("./supplySuggestionService");
 
@@ -143,7 +144,12 @@ async function generateStockPredict(clientId, clientName = "", { days = 30, send
 
   let emailResult = null;
   const critical = payload.critical_items.filter((c) => c.critical);
-  if (sendEmail && critical.length && isEmailConfigured()) {
+  if (
+    sendEmail &&
+    critical.length &&
+    isEmailConfigured() &&
+    (await ownerWantsNotification(clientId, "low_stock_alert"))
+  ) {
     const to = await resolveOwnerEmail(clientId).catch(() => null);
     if (to) {
       emailResult = await sendLowStockCriticalEmail({

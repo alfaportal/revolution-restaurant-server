@@ -9,15 +9,13 @@ function startAiDailyReportCron() {
     const key = `${date}|${hour}:${minute}`;
     if (hour === 23 && minute === 59 && lastRunKey !== key) {
       lastRunKey = key;
-      processAiDailyReports(date).catch(err => {
+      processAiDailyReports(date).catch((err) => {
         console.error("[cron] aiDailyReports:", err.message || err);
       });
     }
   };
-
   tick();
   setInterval(tick, 60 * 1000);
-  console.log(`  ⏰ AI daily reports: 23:59 (${REPORT_TZ})`);
 }
 
 module.exports = {
