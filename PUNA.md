@@ -1,5 +1,14 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-09 — TVSH 8% llogaritej si 18%
+
+E njëjta gabim si MARKET: «8» te cloud bëhej A (18%). Tani 8 → B. Katalogu merr TVSH. Git KAFENE NUK u prek (i ngrirë). Duhet deploy kur Naseri thotë.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/lib/vatCategories.js` | 8 → B |
+| `src/services/posSyncService.js` | TVSH te katalogu |
+
 ## 2026-11-06 — Dil te kamarieri
 
 `public/waiter.html`: butoni i daljes «Kyçu» → «Dil». Nuk u bë push.
