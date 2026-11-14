@@ -506,7 +506,7 @@
               <label class="btn btn-primary btn-sm" for="public-logo-input">Ngarko logo</label>
               <input type="file" id="public-logo-input" accept="image/png,image/jpeg,image/jpg" hidden>
               <button type="button" class="btn btn-ghost btn-sm" id="btn-public-logo-remove">Hiq logon</button>
-              <p class="public-logo-hint">PNG ose JPG, Maksimumi 2 MB. Shfaqet në faqen publike dhe si ikonë PWA.</p>
+              <p class="public-logo-hint">PNG ose JPG, maksimumi 2 MB. Del lart te faqja publike e klientit.</p>
             </div>
           </div>
           <div class="public-cover-row">
@@ -562,8 +562,11 @@
             <textarea id="public-description" rows="3" maxlength="2000" placeholder="p.sh. Restorant tradicional me specialitete të kuzhinës shqiptare…"></textarea>
           </div>
           <div class="hub-fiscal-field">
-            <label for="public-theme">Ngjyra kryesore</label>
-            <input type="color" id="public-theme" value="#c2410c">
+            <label>Tema e faqes publike</label>
+            <p class="public-logo-hint">Zgjidhni një temë dhe ruani. Faqja e klientit e ngarkon vetë.</p>
+            <input type="hidden" id="public-theme" value="#c4a574">
+            <input type="hidden" id="public-page-theme" value="brown-gold">
+            <div class="public-theme-grid" id="public-theme-grid" role="listbox" aria-label="Temat e faqes publike"></div>
           </div>
           <div class="card-title" style="margin-top:1rem;font-size:0.95rem">Orari i punës</div>
           <div id="public-hours-grid" class="public-hours-grid"></div>
@@ -1379,7 +1382,8 @@
   <script src="/js/fiscalDiagnostics.js?v=1"></script>
   <script src="/js/offlineQueue.js?v=1"></script>
   <script src="/js/qrcode.js?v=1"></script>
-  <script src="/js/owner.js?v=46"></script>
+  <script src="/js/r-public-theme.js?v=1"></script>
+  <script src="/js/owner.js?v=47"></script>
   <script src="/js/owner-locations.js?v=1"></script>
   <script src="/js/owner-catalog.js?v=1"></script>
   <script src="/js/owner-stock.js?v=2"></script>

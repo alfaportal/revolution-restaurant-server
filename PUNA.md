@@ -1,5 +1,106 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-14 — Tema e pronarit + porosia vetëm formular
+
+Te «Faqja publike» pronari zgjedh 6 tema dhe ruan; faqja e klientit i ngarkon nga ngjyra e ruajtur. Logoja ekzistuese del lart. «Porosit Tani» hap vetëm formularin + listën e shportës, jo menunë. POST `/api/r/{slug}/order` i njëjtë. Pas dërgimit: mesazhi i konfirmimit. Commit + push + deploy.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/owner/panel.html` | zgjedhës temash 6, jo ngjyra e lirë |
+| `public/js/owner.js` | ruajtja e temës |
+| `public/js/r-public-theme.js` | temat + aplikimi |
+| `public/js/r.js` | shporta në session, mbetet te menuja |
+| `public/r-order.html` | vetëm formular + përmbledhje |
+| `public/js/r-order.js` | pa menunë; shporta nga session |
+| `public/css/r-public-menu.css` | 6 tema + checkout |
+| `src/lib/publicPageThemes.js` | harta e temave |
+| `src/services/publicPageService.js` | `page_theme` / ruajtja e hex |
+
+## 2026-11-14 — Logo te emri lart
+
+Te faqja publike, ku shkruhej emri, tani del si logo (filxhan + emri i artë). Nëse pronari ngarkon logo te paneli «Faqja publike», del ajo. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` | shenja e logos |
+| `public/css/r-public-menu.css` | emri si logo e artë |
+
+## 2026-11-14 — Mapa/Telefoni/Orari drejt dhe të gjerë
+
+Poshtë: të treja në një vijë, më të hapura, më të theksuara. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/css/r-public-menu.css` | rresht, hapësirë, theks |
+
+## 2026-11-14 — Mapa dhe Telefoni poshtë
+
+Te fundi i faqes publike dalin Mapa, Telefoni dhe Orari. Trus dhe hapen. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` | Mapa + Telefoni poshtë |
+| `public/js/r.js` | Mapa/Telefoni dalin gjithmonë poshtë |
+
+## 2026-11-14 — Lule më të rralla, jo në mes
+
+Lulet e arta mbeten anash, më të dobëta. Në mes (te kartat) u hoqën. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/css/r-public-menu.css` | mes i errët, lule vetëm anash |
+
+## 2026-11-14 — Sfond lulesh të arta
+
+Fotoja e luleve të arta u vu vetëm si prapavijë e faqes publike. Kartat dhe porosia nuk u prekën. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/img/pub-floral-gold.jpg` | fotoja e sfondit |
+| `public/css/r-public-menu.css` | sfond me atë foto |
+
+## 2026-11-14 — Dekorime prapa kartave
+
+Faqja publike: dritë e artë lart, vizatime të lehta (avull/gjethe/gotë) prapa produkteve. Kategoria ndërron dekorimin. Kartat mbeten të lexueshme. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/css/r-public-menu.css` | sfond + dekorime SVG |
+| `public/js/r.js` | motif sipas kategorisë |
+| `public/r.html` | shtresa e dritës |
+
+## 2026-11-14 — Adresa/telefoni/orari vetëm me klik
+
+Në fund të faqes publike, Adresa, Telefoni dhe Orari dalin vetëm si fjalë. Teksti hapet kur i trus. Nëse s’ka adresë ose telefon, ajo fjalë nuk del fare. Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` | Adresa/Telefoni/Orari me hapje |
+| `public/js/r.js` | Orari fshihet nëse s’ka orar |
+| `public/css/r-public-menu.css` | kutitë bosh nuk dalin |
+
+## 2026-11-14 — Faqja publike: pa boshllëk + sfond + Porosit poshtë
+
+Hapësira e madhe mes emrit dhe kategorive u hoq. Renditja: emri lart → MENUJA → kategori → karta. Adresa/orari shkojnë në fund. Butoni «Porosit online» është pas produkteve, jo mbi to. Kategoritë ngelen lart kur rrëshqet, pa shirit. Sfond i ngrohtë. Porosia e njëjtë (klik → takeaway). Pa build, pa deploy, pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` | hero i shkurtër; order-bar pas menusë; adresa në footer |
+| `public/css/r-public-menu.css` | pa boshllëk, sfond, sticky, pa scrollbar kategori |
+| `public/r-order.html` | CSS v=4 |
+
+## 2026-11-14 — Faqja publike si IN Caffe
+
+Pamja e `/piceri/{slug}` (dhe e njëjta faqe për çdo lokal POS) u bë e errët e ngrohtë: logo/emër lart, adresa dhe orari, kategori të rrëshqitshme, karta me foto/emër/përshkrim/çmim, fundi me rrjete. Porosia: klik → takeaway → shporta → POST `/api/r/{slug}/order` te POS. Nuk u prek waiter, URL, API. Nuk u bë build. Nuk u bë deploy. Nuk u bë git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` | struktura e re, ID e vjetra |
+| `public/r-order.html` | e njëjta pamje te porosia |
+| `public/css/r-public-menu.css` | stili |
+| `public/js/r.js` | karta me përshkrim |
+| `public/js/r-order.js` | karta + logo |
+
 ## 2026-11-10 — Çelësat e email-it te Njoftimet
 
 Në panelin e pronarit, skeda «Njoftimet» (telefoni) tani hapet për çdo pronar. Në krye të skedës, karta «Njoftimet me email» ka tre çelës: Raport javor, Stok i ulët, Raport AI. Hapja lexon GET `/api/owner/notification-preferences`. Çdo ndryshim bën PUT me slug-un e lokalit. Nisjen e kanë të fikur. Telegram/SMS mbetet poshtë dhe duket vetëm kur pakoja AI është aktive. Nuk u deploy-ua.

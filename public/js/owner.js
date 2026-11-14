@@ -2302,6 +2302,44 @@ function collectPublicHours() {
   return hours;
 }
 
+function setPublicThemeSelection(themeId) {
+  const theme = window.RPublicTheme?.BY_ID?.[themeId] || window.RPublicTheme?.THEMES?.[0];
+  if (!theme) return;
+  const hiddenId = document.getElementById("public-page-theme");
+  const hiddenColor = document.getElementById("public-theme");
+  if (hiddenId) hiddenId.value = theme.id;
+  if (hiddenColor) hiddenColor.value = theme.accent;
+  document.querySelectorAll("#public-theme-grid .public-theme-card").forEach(btn => {
+    const on = btn.getAttribute("data-theme") === theme.id;
+    btn.classList.toggle("is-selected", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+function renderPublicThemeGrid(selectedId) {
+  const grid = document.getElementById("public-theme-grid");
+  if (!grid || !window.RPublicTheme) return;
+  const themes = window.RPublicTheme.THEMES || [];
+  const id = window.RPublicTheme.resolveId({
+    public_page_theme: selectedId,
+    public_theme_color: document.getElementById("public-theme")?.value,
+  });
+  grid.innerHTML = themes.map(t => `
+    <button type="button" class="public-theme-card${t.id === id ? " is-selected" : ""}" data-theme="${t.id}" role="option" aria-pressed="${t.id === id ? "true" : "false"}">
+      <span class="public-theme-swatches">
+        ${t.swatch.map(c => `<span class="public-theme-swatch" style="background:${c}"></span>`).join("")}
+      </span>
+      <span class="public-theme-name">${t.label}</span>
+    </button>
+  `).join("");
+  grid.querySelectorAll(".public-theme-card").forEach(btn => {
+    btn.addEventListener("click", () => {
+      setPublicThemeSelection(btn.getAttribute("data-theme"));
+    });
+  });
+  setPublicThemeSelection(id);
+}
+
 function updatePublicLogoPreview(dataUrl) {
   const img = document.getElementById("public-logo-preview");
   const ph = document.getElementById("public-logo-placeholder");
@@ -2412,7 +2450,13 @@ async function loadPublicPage() {
     publicPageUrlPrefix = data.url_prefix || (data.storefront_type === "shop" ? "/s/" : "/r/");
     document.getElementById("public-enabled").checked = data.public_enabled !== false;
     document.getElementById("public-description").value = data.public_description || "";
-    document.getElementById("public-theme").value = data.public_theme_color || "#c2410c";
+    const themeId = window.RPublicTheme
+      ? window.RPublicTheme.resolveId(data)
+      : (data.public_page_theme || "brown-gold");
+    document.getElementById("public-theme").value = data.public_theme_color || "#c4a574";
+    const themeInput = document.getElementById("public-page-theme");
+    if (themeInput) themeInput.value = themeId;
+    renderPublicThemeGrid(themeId);
     document.getElementById("public-page-url").value = data.public_url || "";
     const slugInput = document.getElementById("public-page-slug");
     if (slugInput) slugInput.value = data.slug || "";
@@ -2458,6 +2502,7 @@ async function savePublicPage() {
       public_description: document.getElementById("public-description").value,
       public_hours: collectPublicHours(),
       public_theme_color: document.getElementById("public-theme").value,
+      public_page_theme: document.getElementById("public-page-theme")?.value || "brown-gold",
       public_daily_offer: document.getElementById("public-daily-offer").value,
       public_reviews: collectPublicReviews(),
       public_social_instagram: document.getElementById("public-social-instagram").value,

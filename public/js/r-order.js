@@ -100,12 +100,30 @@
     return (menu || []).slice().sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
   }
 
-  function applyTheme(color) {
+  function applyTheme(data) {
+    if (window.RPublicTheme) {
+      window.RPublicTheme.apply(data);
+      return;
+    }
+    const color = data?.theme_color;
     if (!color) return;
     document.documentElement.style.setProperty("--accent", color);
     document.documentElement.style.setProperty("--accent-dark", color);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", color);
+  }
+
+  function persistCart() {
+    try {
+      sessionStorage.setItem("r_cart", JSON.stringify(cart));
+    } catch { /* private mode */ }
+  }
+
+  function clearStoredCart() {
+    try {
+      sessionStorage.removeItem("r_cart");
+      sessionStorage.removeItem("r_pending_item");
+    } catch { /* private mode */ }
   }
 
   function setBackLinks(slug) {
@@ -140,10 +158,12 @@
     return cart.find(it => it.name === name && Number(it.price) === Number(price));
   }
 
-  function addToCart(item) {
+  function addToCart(item, qty) {
+    const amount = Math.max(1, Number(qty) || 1);
     const existing = findCartItem(item.name, item.price);
-    if (existing) existing.quantity += 1;
-    else cart.push({ name: item.name, price: Number(item.price), quantity: 1 });
+    if (existing) existing.quantity += amount;
+    else cart.push({ name: item.name, price: Number(item.price), quantity: amount });
+    persistCart();
     renderCart();
   }
 
@@ -154,6 +174,7 @@
     if (item.quantity <= 0) {
       cart = cart.filter(it => !(it.name === name && Number(it.price) === Number(price)));
     }
+    persistCart();
     renderCart();
   }
 
@@ -171,7 +192,7 @@
 
     if (!lines) return;
     if (!cart.length) {
-      lines.innerHTML = '<li class="order-cart-empty">Zgjidhni artikuj nga menuja.</li>';
+      lines.innerHTML = '<li class="order-cart-empty">Shporta është bosh. Kthehuni te menuja dhe shtoni artikuj, pastaj shtypni Porosit Tani.</li>';
     } else {
       lines.innerHTML = cart.map(it => `
         <li class="order-cart-line">
@@ -244,14 +265,18 @@
 
     grid.innerHTML = items.map(it => {
       const photoUrl = String(it.photo_url || "").trim();
+      const desc = String(it.description || "").trim();
       const photo = photoUrl
         ? `<span class="order-menu-item-photo"><img src="${escapeAttr(photoUrl)}" alt="" loading="lazy" decoding="async"></span>`
-        : "";
+        : `<span class="order-menu-item-photo pub-menu-emoji" aria-hidden="true">🍽️</span>`;
       return `
       <button type="button" class="order-menu-item${photoUrl ? " has-photo" : ""}" data-id="${escapeAttr(it.id)}" data-name="${escapeAttr(it.name)}" data-price="${it.price}" data-desc="${escapeAttr(it.description || "")}" data-photo="${escapeAttr(photoUrl)}">
+        <span class="pub-menu-body">
+          <span class="order-menu-item-name">${escapeHtml(it.name)}</span>
+          ${desc ? `<span class="order-menu-item-desc">${escapeHtml(desc)}</span>` : ""}
+          <span class="order-menu-item-price">${euro(it.price)}</span>
+        </span>
         ${photo}
-        <span class="order-menu-item-name">${escapeHtml(it.name)}</span>
-        <span class="order-menu-item-price">${euro(it.price)}</span>
         <span class="order-menu-item-add">+ Shto</span>
       </button>`;
     }).join("");
@@ -358,23 +383,44 @@
     } catch { /* ignore */ }
   }
 
+  function loadStoredCart() {
+    try {
+      const raw = JSON.parse(sessionStorage.getItem("r_cart") || "[]");
+      if (!Array.isArray(raw)) return;
+      raw.forEach(it => {
+        if (!it?.name) return;
+        addToCart({ name: String(it.name), price: Number(it.price) || 0 }, Number(it.quantity) || 1);
+      });
+    } catch { /* ignore */ }
+  }
+
   function renderPage(data) {
     pageData = data;
     document.title = `Porosit — ${data.name || "Restorant"}`;
-    applyTheme(data.theme_color);
+    applyTheme(data);
 
     const title = document.getElementById("order-title");
     const subtitle = document.getElementById("order-subtitle");
+    const logo = document.getElementById("order-logo");
     if (title) title.textContent = data.name || "Porosit online";
+    if (logo) {
+      if (data.logo_url) {
+        logo.src = data.logo_url;
+        logo.alt = data.name || "";
+        logo.hidden = false;
+      } else {
+        logo.removeAttribute("src");
+        logo.hidden = true;
+      }
+    }
     if (subtitle) {
       subtitle.textContent = orderType === "delivery"
         ? "Dërgesë në adresën tuaj"
         : "Marrje në restorant";
     }
 
-    activeCategory = MenuCatalog.pickDefaultCategory(data);
-    renderCategories();
-    renderMenu();
+    cart = [];
+    loadStoredCart();
     consumePendingItem();
     renderCart();
     showScreen("screen-order");
@@ -432,6 +478,8 @@
       if (msg) {
         msg.textContent = `Faleminderit ${data.customer_name || name}! Porosia juaj për ${kind} u dërgua te restoranti. Do t'ju kontaktojmë në ${phone}.`;
       }
+      cart = [];
+      clearStoredCart();
       startOrderTracking(slug, data.order_id || data.order?.id, data.track_token);
       showScreen("screen-success");
     } catch (err) {

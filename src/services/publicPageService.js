@@ -9,6 +9,11 @@ const { isShopStorefront, storefrontPrefix, buildStorefrontUrl } = require("../l
 const { urlTipiSegment, buildRolePath } = require("../lib/productUrls");
 const { qrPngBuffer, assertSameOriginUrl } = require("./qrService");
 const { getClientById } = require("./salesService");
+const {
+  PUBLIC_PAGE_THEMES,
+  accentForTheme,
+  resolvePublicPageTheme,
+} = require("../lib/publicPageThemes");
 
 const OWNER_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_OWNER_SLUG_LEN = 3;
@@ -271,7 +276,8 @@ async function getPublicRestaurantPage(slug, baseUrl) {
     hours,
     hours_display: formatHoursForDisplay(hours),
     logo_url: settings?.public_logo ? `/api/r/${encodeURIComponent(pageSlug)}/logo` : null,
-    theme_color: String(settings?.public_theme_color || "#c2410c").trim(),
+    theme_color: accentForTheme(resolvePublicPageTheme(settings)),
+    page_theme: resolvePublicPageTheme(settings),
     categories: menuData.categories,
     menu: menuData.menu || [],
     order_url,
@@ -364,7 +370,8 @@ async function getOwnerPublicPageSettings(clientId, baseUrl) {
     public_hours: normalizeHours(settings?.public_hours),
     has_logo: Boolean(settings?.public_logo),
     logo_preview: settings?.public_logo || null,
-    public_theme_color: String(settings?.public_theme_color || (prefix === "s" ? "#2563eb" : "#c2410c")).trim(),
+    public_theme_color: accentForTheme(resolvePublicPageTheme(settings)),
+    public_page_theme: resolvePublicPageTheme(settings),
     public_url: publicUrl,
     url_prefix: `/${prefix}/`,
     restaurant_name: String(settings?.restaurant_name || client.emri || "").trim(),
@@ -387,9 +394,12 @@ async function updateOwnerPublicPageSettings(clientId, body) {
     patch.public_description = String(body.public_description).trim().slice(0, 2000);
   }
   if (body.public_hours != null) patch.public_hours = normalizeHours(body.public_hours);
-  if (body.public_theme_color != null) {
+  if (body.public_page_theme != null && PUBLIC_PAGE_THEMES[String(body.public_page_theme).trim()]) {
+    const themeId = String(body.public_page_theme).trim();
+    patch.public_theme_color = accentForTheme(themeId);
+  } else if (body.public_theme_color != null) {
     const color = String(body.public_theme_color).trim();
-    patch.public_theme_color = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#c2410c";
+    patch.public_theme_color = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#c4a574";
   }
   if (body.public_logo !== undefined) {
     if (body.public_logo === null || body.public_logo === "") {

@@ -118,22 +118,74 @@
     navigator.serviceWorker.register(`/${encTipi}/${encSlug}/sw.js`, { scope: `/${encTipi}/${encSlug}/` }).catch(() => {});
   }
 
-  function applyTheme(color) {
+  function applyTheme(data) {
+    if (window.RPublicTheme) {
+      window.RPublicTheme.apply(data);
+      return;
+    }
+    const color = data?.theme_color;
     if (!color) return;
     document.documentElement.style.setProperty("--accent", color);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", color);
   }
 
+  function loadPublicCart() {
+    try {
+      const raw = JSON.parse(sessionStorage.getItem("r_cart") || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function savePublicCart(items) {
+    try {
+      sessionStorage.setItem("r_cart", JSON.stringify(items || []));
+    } catch { /* private mode */ }
+  }
+
+  function publicCartTotals(items) {
+    const list = Array.isArray(items) ? items : [];
+    const count = list.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0);
+    const total = list.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
+    return { count, total };
+  }
+
+  function renderPublicCartBar() {
+    const bar = document.getElementById("pub-cart-bar");
+    const countEl = document.getElementById("pub-cart-count");
+    const totalEl = document.getElementById("pub-cart-total");
+    const { count, total } = publicCartTotals(loadPublicCart());
+    if (countEl) countEl.textContent = count === 1 ? "1 artikull" : `${count} artikuj`;
+    if (totalEl) totalEl.textContent = euro(total);
+    if (bar) bar.hidden = count === 0;
+  }
+
+  function addToPublicCart(item) {
+    const name = String(item?.name || "").trim();
+    const price = Number(item?.price) || 0;
+    if (!name) return;
+    const cart = loadPublicCart();
+    const existing = cart.find(it => it.name === name && Number(it.price) === price);
+    if (existing) existing.quantity = (Number(existing.quantity) || 1) + 1;
+    else cart.push({ name, price, quantity: 1 });
+    savePublicCart(cart);
+    renderPublicCartBar();
+  }
+
   function renderHours(hoursDisplay) {
     const list = document.getElementById("hours-list");
+    const card = document.getElementById("hours-card");
     if (!list) return;
-    list.innerHTML = (hoursDisplay || []).map(row => `
+    const rows = Array.isArray(hoursDisplay) ? hoursDisplay : [];
+    list.innerHTML = rows.map(row => `
       <li>
         <span class="day">${escapeHtml(row.label)}</span>
         <span class="time">${escapeHtml(row.text)}</span>
       </li>
     `).join("");
+    if (card) card.hidden = rows.length === 0;
   }
 
   const ITEM_EMOJI = [
@@ -182,6 +234,14 @@
     return "📋";
   }
 
+  function menuMotif(category) {
+    const n = String(category || "").trim().toLowerCase();
+    if (/nxeht|kafe|espresso|çaj|caj|coffee|tea|latte|cappuccino/.test(n)) return "steam";
+    if (/ftoht|pije|drink|birra|beer|ver[eë]|wine|alkool|cola|juice/.test(n)) return "glass";
+    if (/salat|salad|perime|mish|peshk|grill|tradicional|shoq|mengjes|mëngjes/.test(n)) return "leaf";
+    return "swirl";
+  }
+
   function menuItemEmoji(item) {
     const name = String(item?.name || "").trim().toLowerCase();
     for (const [re, emoji] of ITEM_EMOJI) {
@@ -194,26 +254,15 @@
   let pageOrderUrl = "";
 
   function queueOrderItem(item) {
-    try {
-      sessionStorage.setItem("r_pending_item", JSON.stringify({
-        name: item.name,
-        price: Number(item.price) || 0,
-      }));
-    } catch { /* private mode */ }
+    addToPublicCart(item);
   }
 
   function goToOrderWithItem(item) {
-    queueOrderItem(item);
-    if (pageOrderUrl) {
-      window.location.assign(pageOrderUrl);
-      return;
-    }
-    const hero = document.getElementById("hero-order-btn");
-    if (hero?.href) window.location.assign(hero.href);
+    addToPublicCart(item);
   }
 
   function onPublicMenuItemClick(item) {
-    const add = () => goToOrderWithItem(item);
+    const add = () => addToPublicCart(item);
     try {
       if (window.MenuPosUI?.openItemDetailModal) {
         MenuPosUI.openItemDetailModal(item, {
@@ -243,6 +292,7 @@
   function renderMenuCards(menu, category) {
     const wrap = document.getElementById("menu-sections");
     if (!wrap) return;
+    wrap.dataset.motif = menuMotif(category);
 
     const items = (menu || []).filter(i => i && i.category === category && i.name);
     if (!items.length) {
@@ -256,16 +306,18 @@
         const safePrice = Number.isFinite(price) ? price : 0;
         const gold = safePrice >= 5;
         const photoUrl = String(it.photo_url || "").trim();
+        const desc = String(it.description || "").trim();
         const media = photoUrl
           ? `<div class="pub-menu-media"><img src="${escapeAttr(photoUrl)}" alt="" loading="lazy" width="120" height="120"></div>`
           : `<div class="pub-menu-media pub-menu-emoji" aria-hidden="true">${menuItemEmoji(it)}</div>`;
         return `
           <button type="button" class="pub-menu-card" data-idx="${idx}" aria-label="${escapeAttr(it.name)}">
-            ${media}
             <div class="pub-menu-body">
               <h3 class="pub-menu-name">${escapeHtml(it.name)}</h3>
+              ${desc ? `<p class="pub-menu-desc">${escapeHtml(desc)}</p>` : ""}
               <span class="pub-menu-price${gold ? " is-gold" : ""}">${euro(safePrice)}</span>
             </div>
+            ${media}
           </button>`;
       } catch {
         return "";
@@ -544,14 +596,13 @@
     if (card.tagName === "A") {
       const address = card.querySelector("#val-address")?.textContent?.trim()
         || card.textContent.replace(/Hap në Google Maps/gi, "").trim();
-      const div = document.createElement("div");
+      const div = document.createElement("details");
       div.id = "info-address";
       div.className = "info-card";
       div.hidden = card.hidden;
       div.innerHTML = `
-        <span class="info-icon" aria-hidden="true">📍</span>
+        <summary class="info-label">Mapa</summary>
         <div class="info-address-body">
-          <div class="info-label">Adresa</div>
           <div class="info-value" id="val-address"></div>
           <a class="maps-btn" id="btn-maps-address" href="#" target="_blank" rel="noopener noreferrer">
             <span class="maps-btn-icon" aria-hidden="true">🗺️</span>
@@ -593,10 +644,10 @@
 
   function renderAddress(data) {
     const address = String(data?.address || "").trim();
-    if (!address) return;
-
-    const mapsUrl = String(data?.maps_url || "").trim() || googleMapsUrl(address);
-    if (!mapsUrl) return;
+    const name = String(data?.name || "").trim();
+    const mapsUrl = String(data?.maps_url || "").trim()
+      || (address ? googleMapsUrl(address) : "")
+      || (name ? googleMapsUrl(name) : "");
 
     const card = ensureAddressCard();
     if (!card) return;
@@ -605,11 +656,13 @@
     const textEl = document.getElementById("val-address");
     if (textEl) textEl.textContent = address;
 
-    bindMapsButton(
-      document.getElementById("btn-maps-address"),
-      mapsUrl,
-      `Hap ${address} në Google Maps`,
-    );
+    if (mapsUrl) {
+      bindMapsButton(
+        document.getElementById("btn-maps-address"),
+        mapsUrl,
+        address ? `Hap ${address} në Google Maps` : "Hap në Google Maps",
+      );
+    }
   }
 
   function observeReveal(nodes) {
@@ -656,6 +709,7 @@
     const heroBtn = document.getElementById("hero-order-btn");
     if (!orderBar || !orderBtn) return;
 
+    const cartOrder = document.getElementById("pub-cart-order");
     if (pageOrderUrl) {
       orderBtn.href = pageOrderUrl;
       orderBar.hidden = false;
@@ -663,10 +717,14 @@
         heroBtn.href = pageOrderUrl;
         heroBtn.classList.remove("hidden");
       }
+      if (cartOrder) cartOrder.href = pageOrderUrl;
     } else {
       orderBtn.removeAttribute("href");
       orderBar.hidden = true;
       heroBtn?.classList.add("hidden");
+      if (cartOrder) cartOrder.removeAttribute("href");
+      const bar = document.getElementById("pub-cart-bar");
+      if (bar) bar.hidden = true;
     }
   }
 
@@ -680,7 +738,7 @@
     const appleIcon = document.getElementById("apple-icon");
     if (appleIcon && data.logo_url) appleIcon.href = data.logo_url;
 
-    applyTheme(data.theme_color);
+    applyTheme(data);
 
     const bizName = document.getElementById("biz-name");
     if (bizName) bizName.textContent = data.name || "Restorant";
@@ -724,13 +782,14 @@
 
     const phoneCard = document.getElementById("info-phone");
     const phoneEl = document.getElementById("val-phone");
-    if (data.phone && phoneCard && phoneEl) {
-      phoneCard.hidden = false;
+    if (phoneCard) phoneCard.hidden = false;
+    if (data.phone && phoneEl) {
       const tel = String(data.phone).replace(/\s/g, "");
       phoneEl.href = `tel:${tel}`;
       phoneEl.textContent = data.phone;
-    } else if (phoneCard) {
-      phoneCard.hidden = true;
+    } else if (phoneEl) {
+      phoneEl.removeAttribute("href");
+      phoneEl.textContent = "";
     }
 
     safeCall("hours", () => renderHours(data.hours_display));
@@ -740,6 +799,7 @@
     safeCall("contact", () => renderContactActions(data));
     safeCall("menu", () => renderMenu(data.categories, data.menu));
     safeCall("order-links", () => bindOrderLinks(data.order_url || ""));
+    safeCall("cart-bar", () => renderPublicCartBar());
     safeCall("reveal", () => initScrollReveal());
     showScreen("screen-main");
   }

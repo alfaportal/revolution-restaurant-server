@@ -2441,3 +2441,52 @@
   opacity: 0.55;
   cursor: default;
 }
+
+.public-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+
+@media (min-width: 640px) {
+  .public-theme-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.public-theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.public-theme-card.is-selected {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 1px #d4af37;
+}
+
+.public-theme-swatches {
+  display: flex;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.public-theme-swatch {
+  flex: 1;
+  display: block;
+}
+
+.public-theme-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
