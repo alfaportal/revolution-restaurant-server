@@ -12,9 +12,9 @@
   <link rel="stylesheet" href="/css/r-truffle.css?v=1">
   <link rel="stylesheet" href="/css/menu-pos.css?v=16">
   <link rel="stylesheet" href="/css/order-track.css?v=1">
-  <link rel="stylesheet" href="/css/r-public-menu.css?v=12">
+  <link rel="stylesheet" href="/css/r-public-menu.css?v=14">
 </head>
-<body class="order-page pub-page checkout-only">
+<body class="order-page pub-page">
   <div id="screen-loading" class="screen active">
     <div class="loader"></div>
     <p>Duke ngarkuar…</p>
@@ -28,6 +28,48 @@
     </div>
   </div>
 
+  <div id="screen-menu" class="screen hidden">
+    <div class="pub-ambient" aria-hidden="true"></div>
+    <header class="pub-topbar">
+      <div class="pub-brand">
+        <div class="hero-logo-wrap" id="menu-logo-wrap" hidden>
+          <img id="menu-logo" class="hero-logo" alt="" width="52" height="52">
+        </div>
+        <svg class="pub-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <g fill="none" stroke="#d4bc8a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 30h22c1.5 9 .8 18-11 22-11.8-4-12.6-13-11-22z"/>
+            <path d="M40 33c8 1 11 8 5 13-3.5 3-9 2.2-11 1.4"/>
+            <path d="M27 16c.6 4.5-1.6 7.2-1.8 11"/>
+            <path d="M33 14c1.8 5.2.2 8.2.8 12.5"/>
+            <path d="M22 46.5h16"/>
+            <path d="M16 52h26"/>
+          </g>
+        </svg>
+        <h1 id="menu-biz-name">Restorant</h1>
+      </div>
+      <button type="button" class="hero-cta hidden" id="hero-order-btn">Porosit tani</button>
+    </header>
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="pub-kicker">Menuja</p>
+      </div>
+    </header>
+    <section class="menu-section">
+      <h2 class="section-title">Menuja</h2>
+      <div class="cat-nav-wrap">
+        <nav class="cat-nav" id="cat-nav" aria-label="Kategoritë e menusë"></nav>
+      </div>
+      <div id="menu-sections" class="pub-menu-wrap"></div>
+    </section>
+    <div class="pub-cart-bar" id="pub-cart-bar" hidden>
+      <div class="pub-cart-bar-info">
+        <strong id="pub-cart-count">0 artikuj</strong>
+        <span id="pub-cart-total">0.00 €</span>
+      </div>
+      <button type="button" class="pub-cart-bar-btn" id="btn-porosit">Porosit Tani</button>
+    </div>
+  </div>
+
   <div id="screen-order" class="screen hidden">
     <div class="pub-ambient" aria-hidden="true"></div>
     <header class="order-header pub-topbar">
@@ -35,10 +77,9 @@
         <img id="order-logo" class="hero-logo" alt="" width="42" height="42" hidden>
         <h1 id="order-title">Porosit online</h1>
       </div>
-      <a class="order-back-link" id="back-link" href="#">← Kthehu</a>
+      <button type="button" class="order-back-link" id="back-to-menu">← Kthehu</button>
     </header>
     <p class="order-subtitle" id="order-subtitle"></p>
-
     <main class="order-main order-checkout">
       <section class="order-panel order-cart checkout-summary" id="order-cart">
         <div class="order-cart-head">
@@ -52,8 +93,7 @@
         </div>
         <p class="order-cart-hint">Porosia shkon te banaku/kuzhina — pagesa në dorëzim ose marrje.</p>
       </section>
-
-      <section class="order-panel">
+      <section class="order-panel" id="customer-form">
         <h2 class="order-panel-title">Të dhënat tuaja</h2>
         <div class="order-type-toggle" role="group" aria-label="Lloji i porosisë">
           <button type="button" class="order-type-btn active" data-type="takeaway">Marrje (Takeaway)</button>
@@ -99,7 +139,8 @@
   <script src="/js/menuCatalog.js"></script>
   <script src="/js/menu-pos.js?v=17"></script>
   <script src="/js/product-path.js?v=3"></script>
-  <script src="/js/r-public-theme.js?v=1"></script>
-  <script src="/js/r-order.js?v=12"></script>
+  <script src="/js/r-public-theme.js?v=3"></script>
+  <script src="/js/r-public-menu-ui.js?v=1"></script>
+  <script src="/js/r-order.js?v=13"></script>
 </body>
 </html>

@@ -1,5 +1,43 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-14 — Linqet te telefoni si te POS
+
+Te paneli i pronarit në telefon, skeda Linqet: të njëjtat linqe si te POS (Pronari, Banak, Kamarier cloud, Kamarier WiFi, Kuzhina, Kiosk, Takeaway, Faqja publike). URL-të nuk u ndryshuan. Pa build, pa git, pa deploy.
+
+## 2026-11-14 — 5 temat te Faqja publike e pronarit
+
+5 temat janë te paneli i pronarit, skeda Faqja publike. Kartat tregojnë faqen e vërtetë. Zgjedh + Ruaj. Pa build, pa git, pa deploy.
+
+## 2026-11-14 — Pamja e 5 temave, jo CSS
+
+Hapet `http://127.0.0.1:8090/tema` me 5 faqe të vërteta (jo skedar CSS). Kartat te paneli tregojnë mini-faqe. `?theme=` ndryshon temën. Pa build, pa git, pa deploy.
+
+## 2026-11-14 — 5 tema të plota, jo ngjyra
+
+Te Faqja publike: u hoq zgjedhësi i një ngjyre. Pronari sheh 5 karta me pamje (header, kategori, karta). Zgjedh një, ruan, menu/takeaway/QR ndryshojnë bashkë: sfond, dekorime, karta, tekst, butona. Fotot e produkteve mbeten. Pa build, pa git, pa deploy.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/lib/publicPageThemes.js` | 5 tema |
+| `public/js/r-public-theme.js` | emrat + pamja e kartave |
+| `public/css/r-public-menu.css` | identitet i plotë për 5 tema |
+| `public/css/owner.css` | karta me preview + shenjë |
+| `public/js/owner.js` | render i 5 pamjeve |
+| `public/owner/panel.html` | teksti i temës |
+
+## 2026-11-14 — Takeaway dhe QR me të njëjtën pamje
+
+Takeaway dhe QR (skanimi i tavolinës) kanë të njëjtën pamje si faqja publike: tema, lule, kategori, karta me foto. Porosit Tani te takeaway hap formularin (emër, telefon, adresë). Te QR nuk ka formular — vetëm shporta dhe Dërgo Porosinë, numri i tavolinës vjen nga linku. CSS i njëjtë. Pa build, pa git, pa deploy.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r-order.html` | menu si faqja publike + checkout |
+| `public/js/r-order.js` | Porosit Tani → formular |
+| `public/kiosk.html` | pamja publike për QR |
+| `public/js/kiosk.js` | Porosit Tani pa formular |
+| `public/js/r-public-menu-ui.js` | karta/kategori të përbashkëta |
+| `public/css/r-public-menu.css` | CSS i përbashkët |
+
 ## 2026-11-14 — Tema e pronarit + porosia vetëm formular
 
 Te «Faqja publike» pronari zgjedh 6 tema dhe ruan; faqja e klientit i ngarkon nga ngjyra e ruajtur. Logoja ekzistuese del lart. «Porosit Tani» hap vetëm formularin + listën e shportës, jo menunë. POST `/api/r/{slug}/order` i njëjtë. Pas dërgimit: mesazhi i konfirmimit. Commit + push + deploy.

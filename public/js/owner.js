@@ -342,19 +342,13 @@ async function loadClient() {
   const linksCard = document.getElementById("owner-links-card");
   if (linksCard) linksCard.classList.toggle("hidden", !!viewAll);
 
-  const waiterCloud = links.waiter_cloud || links.waiter || data.waiter_url || "";
   const kitchenCloud = links.kitchen_cloud || links.kitchen || data.kitchen_url || "";
   const barCloud = links.bar_cloud || links.bar || data.bar_url || "";
-
-  const cloudWaiterRow = document.getElementById("owner-link-waiter-cloud-row");
-  const cloudWaiterInput = document.getElementById("owner-waiter-cloud-url");
-  if (cloudWaiterRow) {
-    cloudWaiterRow.classList.add("hidden");
-    cloudWaiterRow.setAttribute("hidden", "");
-    cloudWaiterRow.setAttribute("aria-hidden", "true");
-    if (waiterCloud) cloudWaiterRow.dataset.cloudUrl = waiterCloud;
+  let waiterCloud = links.waiter_cloud || links.waiter || data.waiter_url || "";
+  if (!waiterCloud && barCloud) {
+    const fromBar = String(barCloud).replace(/\/bar(\?|$)/i, "/kamarier$1");
+    if (fromBar !== barCloud) waiterCloud = fromBar;
   }
-  if (cloudWaiterInput) cloudWaiterInput.value = waiterCloud || "";
 
   function setOwnerCloudLinkRow(rowId, inputId, enabled, url) {
     const row = document.getElementById(rowId);
@@ -399,7 +393,20 @@ async function loadClient() {
     }
   }
 
+  const localWaiterLbl = document.getElementById("owner-local-waiter-label");
+  if (localWaiterLbl) {
+    const venue = String(client?.emri || "").trim();
+    localWaiterLbl.textContent = venue ? `Kamarieri — WiFi lokal (${venue})` : "Kamarieri — WiFi lokal";
+  }
+
   setOwnerCloudLinkRow("owner-link-owner-row", "owner-owner-url", true, links.owner);
+  setOwnerCloudLinkRow("owner-link-bar-row", "owner-bar-url", !!features.kds, barCloud);
+  setOwnerCloudLinkRow(
+    "owner-link-waiter-cloud-row",
+    "owner-waiter-cloud-url",
+    !!features.waiter,
+    waiterCloud,
+  );
   setOwnerStaffLocalRow(
     "owner-link-waiter-wifi-row",
     "owner-waiter-wifi-url",
@@ -407,20 +414,7 @@ async function loadClient() {
     links.waiter_wifi || "",
     waiterCloud,
   );
-  setOwnerStaffLocalRow(
-    "owner-link-bar-row",
-    "owner-bar-url",
-    !!features.kds,
-    links.bar_wifi || "",
-    barCloud,
-  );
-  setOwnerStaffLocalRow(
-    "owner-link-kitchen-row",
-    "owner-kitchen-url",
-    !!features.kds,
-    links.kitchen_wifi || "",
-    kitchenCloud,
-  );
+  setOwnerCloudLinkRow("owner-link-kitchen-row", "owner-kitchen-url", !!features.kds, kitchenCloud);
   setOwnerCloudLinkRow("owner-link-kiosk-row", "owner-kiosk-url", features.kiosk, links.kiosk || links.menu);
   setOwnerCloudLinkRow("owner-link-takeaway-row", "owner-takeaway-url", features.online_orders, links.takeaway);
   setOwnerCloudLinkRow("owner-link-public-row", "owner-public-url", features.website, links.public_page);
@@ -454,10 +448,11 @@ async function loadClient() {
   const empty = document.getElementById("owner-links-empty");
   if (empty) {
     const anyLink =
-      !!features.waiter
+      !!(links.owner || "").trim()
+      || !!features.waiter
       || !!(links.waiter_wifi || "").trim()
       || !!features.kds
-      || !!(features.kds && (links.kitchen_wifi || links.bar_wifi || "").trim())
+      || !!(barCloud || kitchenCloud || "").trim()
       || !!(features.kiosk || features.website || features.online_orders);
     empty.classList.toggle("hidden", anyLink);
   }
@@ -2316,6 +2311,55 @@ function setPublicThemeSelection(themeId) {
   });
 }
 
+function publicThemePreviewUrl(themeId) {
+  const saved = document.getElementById("public-page-url")?.value?.trim();
+  if (!saved) return "";
+  try {
+    const u = new URL(saved, location.origin);
+    u.searchParams.set("theme", themeId);
+    return u.href;
+  } catch {
+    return "";
+  }
+}
+
+function publicThemePreviewMarkup(t) {
+  const src = publicThemePreviewUrl(t.id);
+  const p = t.preview || { bg: "#14110e", bar: "#241e18", card: "#2a231c", chip: t.accent, text: "#f4efe6" };
+  if (src) {
+    return `<span class="public-theme-preview is-live" aria-hidden="true"><iframe src="${src}" title="" tabindex="-1"></iframe></span>`;
+  }
+  return `<span class="public-theme-preview" style="background:${p.bg};color:${p.text}" aria-hidden="true">
+        <span class="ptp-bar" style="background:${p.bar}"><span class="ptp-logo" style="color:${p.chip}">KAFENE</span></span>
+        <span class="ptp-cats">
+          <span class="ptp-chip is-on" style="background:${p.chip};color:${p.bg}">Kafe</span>
+          <span class="ptp-chip" style="color:${p.text};border-color:${p.chip}">Ushqim</span>
+          <span class="ptp-chip" style="color:${p.text};border-color:${p.chip}">Pije</span>
+        </span>
+        <span class="ptp-cards">
+          <span class="ptp-card" style="background:${p.card};border-color:${p.chip}">
+            <span class="ptp-photo"></span>
+            <span class="ptp-name" style="background:${p.text}"></span>
+            <span class="ptp-price" style="background:${p.chip}"></span>
+          </span>
+          <span class="ptp-card" style="background:${p.card};border-color:${p.chip}">
+            <span class="ptp-photo"></span>
+            <span class="ptp-name" style="background:${p.text}"></span>
+            <span class="ptp-price" style="background:${p.chip}"></span>
+          </span>
+        </span>
+        <span class="ptp-cta" style="background:${p.chip};color:${p.bg}">Porosit</span>
+      </span>`;
+}
+
+function fitPublicThemePreviews() {
+  document.querySelectorAll("#public-theme-grid .public-theme-preview.is-live").forEach(box => {
+    const frame = box.querySelector("iframe");
+    if (!frame) return;
+    frame.style.transform = "scale(" + (box.clientWidth / 390) + ")";
+  });
+}
+
 function renderPublicThemeGrid(selectedId) {
   const grid = document.getElementById("public-theme-grid");
   if (!grid || !window.RPublicTheme) return;
@@ -2324,21 +2368,23 @@ function renderPublicThemeGrid(selectedId) {
     public_page_theme: selectedId,
     public_theme_color: document.getElementById("public-theme")?.value,
   });
-  grid.innerHTML = themes.map(t => `
+  grid.innerHTML = themes.map(t => {
+    return `
     <button type="button" class="public-theme-card${t.id === id ? " is-selected" : ""}" data-theme="${t.id}" role="option" aria-pressed="${t.id === id ? "true" : "false"}">
-      <span class="public-theme-swatches">
-        ${t.swatch.map(c => `<span class="public-theme-swatch" style="background:${c}"></span>`).join("")}
-      </span>
+      ${publicThemePreviewMarkup(t)}
       <span class="public-theme-name">${t.label}</span>
-    </button>
-  `).join("");
+    </button>`;
+  }).join("");
   grid.querySelectorAll(".public-theme-card").forEach(btn => {
     btn.addEventListener("click", () => {
       setPublicThemeSelection(btn.getAttribute("data-theme"));
     });
   });
   setPublicThemeSelection(id);
+  requestAnimationFrame(fitPublicThemePreviews);
 }
+
+window.addEventListener("resize", fitPublicThemePreviews);
 
 function updatePublicLogoPreview(dataUrl) {
   const img = document.getElementById("public-logo-preview");
@@ -2453,11 +2499,11 @@ async function loadPublicPage() {
     const themeId = window.RPublicTheme
       ? window.RPublicTheme.resolveId(data)
       : (data.public_page_theme || "brown-gold");
+    document.getElementById("public-page-url").value = data.public_url || "";
     document.getElementById("public-theme").value = data.public_theme_color || "#c4a574";
     const themeInput = document.getElementById("public-page-theme");
     if (themeInput) themeInput.value = themeId;
     renderPublicThemeGrid(themeId);
-    document.getElementById("public-page-url").value = data.public_url || "";
     const slugInput = document.getElementById("public-page-slug");
     if (slugInput) slugInput.value = data.slug || "";
     updatePublicSlugPreview(data.slug || "");

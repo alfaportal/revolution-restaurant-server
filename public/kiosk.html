@@ -2,202 +2,122 @@
 <html lang="sq">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14110e">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/logo-source.png">
-  <title>Tavolinë — Revolution Invest POS</title>
+  <title>Tavolinë — Revolution POS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/staff-brand.css">
-  <link rel="stylesheet" href="/css/waiter.css?v=8">
-  <link rel="stylesheet" href="/css/menu-pos.css?v=17">
-  <link rel="stylesheet" href="/css/waiter-phone-truffle.css?v=4">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/r.css?v=16">
+  <link rel="stylesheet" href="/css/r-truffle.css?v=1">
+  <link rel="stylesheet" href="/css/menu-pos.css?v=16">
   <link rel="stylesheet" href="/css/order-track.css?v=1">
-  <style>
-    .kiosk-badge {
-      display: inline-block;
-      margin-top: 0.35rem;
-      padding: 0.25rem 0.55rem;
-      border-radius: 999px;
-      background: rgba(255, 107, 53, 0.2);
-      color: #ffb088;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-    .kiosk-hint {
-      color: #94a3b8;
-      font-size: 0.82rem;
-      text-align: center;
-      margin: 0.5rem 0 0;
-      line-height: 1.4;
-    }
-    body.kiosk-body {
-      height: 100dvh;
-      overflow: hidden;
-      background: #1a1a2e;
-      font-family: "Inter", system-ui, sans-serif;
-      color: #fff;
-    }
-    #screen-order.kiosk-screen {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      max-height: 100dvh;
-      overflow: hidden;
-      background: #1a1a2e;
-    }
-    #screen-order.kiosk-screen .waiter-main.order-main {
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: var(--kiosk-cart-height, 12rem);
-      background: #1a1a2e !important;
-    }
-    #screen-order.kiosk-screen .menu-pos-wrap {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      background: #1a1a2e;
-    }
-    #screen-order.kiosk-screen .menu-photo-grid {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-      touch-action: pan-y;
-      background: #1a1a2e !important;
-    }
-    #screen-order.kiosk-screen .menu-photo-grid-inner {
-      padding-bottom: 1rem;
-    }
-    #screen-order.kiosk-screen .cart-bar .btn-primary,
-    #screen-order.kiosk-screen #btn-send {
-      background: #ff6b35 !important;
-      border: none !important;
-      border-radius: 14px !important;
-      color: #fff !important;
-      font-weight: 800 !important;
-      box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
-    }
-    #screen-order.kiosk-screen .cart-total {
-      color: #fff;
-    }
-    #screen-order.kiosk-screen #cart-total {
-      color: #ff6b35 !important;
-      font-weight: 800;
-    }
-    #screen-success.kiosk-success-screen {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100dvh;
-      padding: 1.5rem;
-      background: #1a1a2e;
-    }
-    #screen-success.kiosk-success-screen.active {
-      display: flex;
-    }
-    .kiosk-success-card {
-      width: 100%;
-      max-width: 22rem;
-      text-align: center;
-      padding: 2rem 1.5rem;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-    }
-    .kiosk-success-icon {
-      font-size: 3rem;
-      line-height: 1;
-      margin-bottom: 0.75rem;
-    }
-    .kiosk-success-card h1 {
-      margin: 0 0 0.65rem;
-      font-size: 1.35rem;
-      font-weight: 800;
-    }
-    .kiosk-success-card p {
-      margin: 0 0 1.25rem;
-      color: #94a3b8;
-      line-height: 1.55;
-      font-size: 0.95rem;
-    }
-    #btn-order-again {
-      width: 100%;
-      background: #ff6b35 !important;
-      border: none !important;
-      border-radius: 14px !important;
-      color: #fff !important;
-      font-weight: 800 !important;
-      padding: 0.85rem 1rem;
-      box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
-    }
-  </style>
+  <link rel="stylesheet" href="/css/r-public-menu.css?v=14">
 </head>
-<body class="kiosk-body">
-  <div id="screen-order" class="screen active kiosk-screen">
-    <div class="staff-app-bar">
-      <img src="/logo-source.png" width="28" height="28" alt="Revolution Invest POS">
-      <span>Revolution Invest POS</span>
-      <span class="staff-app-venue" id="kiosk-venue-name">Tavolinë</span>
-    </div>
-    <div class="waiter-header">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem">
-        <div>
-          <h1 id="kiosk-title" style="margin:0;font-size:1.1rem">Tavolinë</h1>
-          <div class="kiosk-badge" id="kiosk-table-label">T—</div>
-        </div>
-      </div>
-      <p class="kiosk-hint" id="sync-hint">Porosia shkon te kamarieri — jo faturë.</p>
-    </div>
-    <div class="waiter-main order-main">
-      <div id="order-err" class="err hidden"></div>
-      <div class="order-layout menu-pos-wrap">
-        <div id="menu-cat-bar"></div>
-        <div id="menu-grid" class="menu-photo-grid"></div>
-      </div>
-    </div>
-    <div id="cart-bar" class="cart-bar">
-      <div id="cart-lines" class="cart-lines"></div>
-      <div class="cart-total">
-        <span>Totali</span>
-        <span id="cart-total">0.00 €</span>
-      </div>
-      <div class="cart-actions">
-        <button type="button" class="btn btn-primary" id="btn-send">Dërgo porosinë te kamarieri</button>
-      </div>
+<body class="order-page pub-page kiosk-page">
+  <div id="screen-loading" class="screen active">
+    <div class="loader"></div>
+    <p>Duke ngarkuar…</p>
+  </div>
+
+  <div id="screen-error" class="screen hidden">
+    <div class="error-card">
+      <h1>Nuk u ngarkua</h1>
+      <p id="error-msg">Tavolina nuk u gjet.</p>
     </div>
   </div>
 
-  <div id="screen-success" class="screen kiosk-success-screen">
-    <div class="kiosk-success-card">
-      <div class="kiosk-success-icon" aria-hidden="true">✅</div>
+  <div id="screen-menu" class="screen hidden">
+    <div class="pub-ambient" aria-hidden="true"></div>
+    <header class="pub-topbar">
+      <div class="pub-brand">
+        <div class="hero-logo-wrap" id="menu-logo-wrap" hidden>
+          <img id="menu-logo" class="hero-logo" alt="" width="52" height="52">
+        </div>
+        <svg class="pub-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <g fill="none" stroke="#d4bc8a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 30h22c1.5 9 .8 18-11 22-11.8-4-12.6-13-11-22z"/>
+            <path d="M40 33c8 1 11 8 5 13-3.5 3-9 2.2-11 1.4"/>
+            <path d="M27 16c.6 4.5-1.6 7.2-1.8 11"/>
+            <path d="M33 14c1.8 5.2.2 8.2.8 12.5"/>
+            <path d="M22 46.5h16"/>
+            <path d="M16 52h26"/>
+          </g>
+        </svg>
+        <h1 id="kiosk-venue-name">Tavolinë</h1>
+      </div>
+      <span class="kiosk-table-chip" id="kiosk-table-label">T—</span>
+    </header>
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="pub-kicker">Menuja</p>
+      </div>
+    </header>
+    <section class="menu-section">
+      <h2 class="section-title">Menuja</h2>
+      <div class="cat-nav-wrap">
+        <nav class="cat-nav" id="cat-nav" aria-label="Kategoritë e menusë"></nav>
+      </div>
+      <div id="menu-sections" class="pub-menu-wrap"></div>
+    </section>
+    <div class="pub-cart-bar" id="pub-cart-bar" hidden>
+      <div class="pub-cart-bar-info">
+        <strong id="pub-cart-count">0 artikuj</strong>
+        <span id="pub-cart-total">0.00 €</span>
+      </div>
+      <button type="button" class="pub-cart-bar-btn" id="btn-porosit">Porosit Tani</button>
+    </div>
+  </div>
+
+  <div id="screen-order" class="screen hidden">
+    <div class="pub-ambient" aria-hidden="true"></div>
+    <header class="order-header pub-topbar">
+      <div class="pub-brand">
+        <img id="order-logo" class="hero-logo" alt="" width="42" height="42" hidden>
+        <h1 id="kiosk-title">Porosia</h1>
+      </div>
+      <button type="button" class="order-back-link" id="back-to-menu">← Kthehu</button>
+    </header>
+    <p class="order-subtitle" id="order-subtitle">Porosia shkon te kamarieri</p>
+    <main class="order-main order-checkout">
+      <section class="order-panel order-cart checkout-summary" id="order-cart">
+        <div class="order-cart-head">
+          <strong>Porosia juaj</strong>
+          <span id="cart-count">0 artikuj</span>
+        </div>
+        <div id="cart-lines" class="order-cart-lines"></div>
+        <div class="order-cart-total">
+          <span>Totali</span>
+          <strong id="cart-total">0.00 €</strong>
+        </div>
+        <p class="order-cart-hint" id="sync-hint">Porosia shkon te kamarieri — jo faturë.</p>
+        <button type="button" class="order-submit-btn" id="btn-send">Dërgo Porosinë</button>
+        <p class="order-form-error hidden" id="order-err"></p>
+      </section>
+    </main>
+  </div>
+
+  <div id="screen-success" class="screen hidden">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
       <h1>Porosia u dërgua!</h1>
       <p id="success-msg">Porosia juaj u dërgua te kamarieri.</p>
       <p class="order-track-status-label" id="order-track-label">Në pritje</p>
       <p class="order-track-status-detail" id="order-track-detail">Restoranti do ta pranojë porosinë tuaj.</p>
       <ul class="order-track-steps" id="order-track-steps" aria-label="Statusi i porosisë"></ul>
       <p class="order-track-updated" id="order-track-updated"></p>
-      <button type="button" class="btn btn-primary" id="btn-order-again">Porosi tjetër</button>
+      <button type="button" class="order-submit-btn" id="btn-order-again">Porosi tjetër</button>
     </div>
   </div>
 
-    <footer style="text-align:center; padding:10px; font-size:12px; color:#888; margin-top:20px;">
-      Powered by <a href="https://revolution-pos.com" style="color:#fff; font-weight:bold;">Revolution POS</a>
-    </footer>
   <script src="/js/menuCatalog.js?v=1"></script>
   <script src="/js/menu-pos.js?v=18"></script>
   <script src="/js/order-track.js?v=1"></script>
   <script src="/js/product-path.js?v=3"></script>
-  <script src="/js/kiosk.js?v=17"></script>
+  <script src="/js/r-public-theme.js?v=3"></script>
+  <script src="/js/r-public-menu-ui.js?v=1"></script>
+  <script src="/js/kiosk.js?v=18"></script>
 </body>
 </html>

@@ -119,6 +119,65 @@
     } catch { /* private mode */ }
   }
 
+  function showMenuView() {
+    document.body.classList.remove("checkout-only");
+    showScreen("screen-menu");
+    updateMenuCartBar();
+  }
+
+  function showCheckoutView() {
+    document.body.classList.add("checkout-only");
+    renderCart();
+    showScreen("screen-order");
+  }
+
+  function updateMenuCartBar() {
+    const bar = document.getElementById("pub-cart-bar");
+    const countEl = document.getElementById("pub-cart-count");
+    const totalEl = document.getElementById("pub-cart-total");
+    const hero = document.getElementById("hero-order-btn");
+    const count = cartCount();
+    if (countEl) countEl.textContent = count === 1 ? "1 artikull" : `${count} artikuj`;
+    if (totalEl) totalEl.textContent = euro(cartTotal());
+    if (bar) bar.hidden = count === 0;
+    if (hero) hero.classList.toggle("hidden", count === 0);
+  }
+
+  function renderPublicMenu() {
+    if (!pageData || !window.RPublicMenuUI) return;
+    const ui = window.RPublicMenuUI;
+    activeCategory = ui.render({
+      nav: document.getElementById("cat-nav"),
+      wrap: document.getElementById("menu-sections"),
+      categories: pageData.categories,
+      menu: pageData.menu,
+      activeCategory,
+      getPhotoUrl: it => String(it.photo_url || "").trim(),
+      onItemClick(item) {
+        ui.openItem(item, () => {
+          addToCart({ name: item.name, price: item.price });
+          updateMenuCartBar();
+        });
+      },
+      onCategory(cat) {
+        activeCategory = cat;
+        renderPublicMenu();
+      },
+    });
+  }
+
+  function fillVenueChrome(data) {
+    const name = data.name || "Restorant";
+    const menuName = document.getElementById("menu-biz-name");
+    if (menuName) menuName.textContent = name;
+    if (window.RPublicMenuUI) {
+      window.RPublicMenuUI.setLogo("menu-logo", "menu-logo-wrap", data.logo_url, name);
+      window.RPublicMenuUI.setLogo("order-logo", null, data.logo_url, name);
+    }
+    const title = document.getElementById("order-title");
+    if (title) title.textContent = name;
+  }
+
   function clearStoredCart() {
     try {
       sessionStorage.removeItem("r_cart");
@@ -398,21 +457,9 @@
     pageData = data;
     document.title = `Porosit — ${data.name || "Restorant"}`;
     applyTheme(data);
+    fillVenueChrome(data);
 
-    const title = document.getElementById("order-title");
     const subtitle = document.getElementById("order-subtitle");
-    const logo = document.getElementById("order-logo");
-    if (title) title.textContent = data.name || "Porosit online";
-    if (logo) {
-      if (data.logo_url) {
-        logo.src = data.logo_url;
-        logo.alt = data.name || "";
-        logo.hidden = false;
-      } else {
-        logo.removeAttribute("src");
-        logo.hidden = true;
-      }
-    }
     if (subtitle) {
       subtitle.textContent = orderType === "delivery"
         ? "Dërgesë në adresën tuaj"
@@ -423,7 +470,11 @@
     loadStoredCart();
     consumePendingItem();
     renderCart();
-    showScreen("screen-order");
+    renderPublicMenu();
+    updateMenuCartBar();
+
+    if (cart.length) showCheckoutView();
+    else showMenuView();
   }
 
   async function submitOrder() {
@@ -505,6 +556,9 @@
 
     initOrderTypeToggle();
     document.getElementById("btn-submit")?.addEventListener("click", submitOrder);
+    document.getElementById("btn-porosit")?.addEventListener("click", showCheckoutView);
+    document.getElementById("hero-order-btn")?.addEventListener("click", showCheckoutView);
+    document.getElementById("back-to-menu")?.addEventListener("click", showMenuView);
 
       const res = await fetch(`/api/r/${encodeURIComponent(slug)}`);
       const data = await res.json().catch(() => ({}));

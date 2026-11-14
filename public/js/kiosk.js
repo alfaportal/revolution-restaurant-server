@@ -26,8 +26,35 @@
 
   function showScreen(id) {
     document.querySelectorAll(".screen").forEach(el => {
-      el.classList.toggle("active", el.id === id);
+      const on = el.id === id;
+      el.classList.toggle("active", on);
+      el.classList.toggle("hidden", !on);
     });
+  }
+
+  function showMenuView() {
+    document.body.classList.remove("checkout-only");
+    showScreen("screen-menu");
+    updateMenuCartBar();
+  }
+
+  function showCheckoutView() {
+    document.body.classList.add("checkout-only");
+    renderCart();
+    showScreen("screen-order");
+  }
+
+  function updateMenuCartBar() {
+    const bar = $("pub-cart-bar");
+    const countEl = $("pub-cart-count");
+    const totalEl = $("pub-cart-total");
+    const count = cart.reduce((s, i) => s + (Number(i.quantity) || 1), 0);
+    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    if (countEl) countEl.textContent = count === 1 ? "1 artikull" : `${count} artikuj`;
+    if (totalEl) totalEl.textContent = formatEuro(total);
+    if (bar) bar.hidden = count === 0;
+    const send = $("btn-send");
+    if (send) send.disabled = count === 0;
   }
 
   function syncKioskLayout() {
@@ -195,54 +222,31 @@
     return (menu || []).slice().sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
   }
 
-  /** Ndërton tab-at e kategorive si në panel (POS sort_order). */
-  function ndertoTabetKategorive() {
-    const bar = $("menu-cat-bar");
-    if (!bar) return;
-    const menu = menuSortedLikePanel(bootstrap?.menu || []);
-    const categories = orderedMenuCategories(menu);
-
-    if (!categories.length) {
-      bar.innerHTML = "";
-      delete bar.dataset.catKey;
-      return;
-    }
-    if (!categories.includes(menuGroupFilter)) menuGroupFilter = categories[0];
-    const catKey = categories.join("\0");
-    if (bar.dataset.catKey === catKey) return;
-    bar.dataset.catKey = catKey;
-    MenuPosUI.buildCategoryTabs(bar, categories, cat => {
-      menuGroupFilter = cat;
-      renderMenuItems();
-    }, menuGroupFilter);
-  }
-
   function renderMenu() {
-    const menu = menuSortedLikePanel(bootstrap?.menu || []);
-    const grid = $("menu-grid");
-    if (!grid) return;
+    if (!window.RPublicMenuUI || !bootstrap) return;
+    const wrap = $("menu-sections");
+    if (!wrap) return;
+    const menu = menuSortedLikePanel(bootstrap.menu || []);
     if (!menu.length) {
-      grid.innerHTML = '<p class="hint">Menuja është bosh. Pronari shton artikuj te Menuja në panel, ose sinkronizoni menuën nga POS-i lokal.</p>';
+      wrap.innerHTML = '<p class="pub-menu-empty">Menuja është bosh. Pronari shton artikuj te Menuja në panel.</p>';
       return;
     }
-    ndertoTabetKategorive();
-    renderMenuItems();
-  }
-
-  function renderMenuItems() {
-    const menu = menuSortedLikePanel(bootstrap?.menu || []);
-    const grid = $("menu-grid");
-    if (!grid) return;
-    MenuPosUI.renderMenuGrid({
-      container: grid,
-      menuItems: menu,
-      groupFilter: menuGroupFilter,
-      formatEuro,
+    menuGroupFilter = window.RPublicMenuUI.render({
+      nav: $("cat-nav"),
+      wrap,
+      categories: orderedMenuCategories(menu),
+      menu,
+      activeCategory: menuGroupFilter,
       getPhotoUrl: kitchenPhotoUrl,
-      onSelectItem: (item, btn) => addToCart({
-        name: item.name,
-        price: Number(item.price),
-      }, btn),
+      onItemClick(item) {
+        window.RPublicMenuUI.openItem(item, () => {
+          addToCart({ name: item.name, price: Number(item.price) });
+        }, kitchenPhotoUrl);
+      },
+      onCategory(cat) {
+        menuGroupFilter = cat;
+        renderMenu();
+      },
     });
   }
 
@@ -261,38 +265,60 @@
 
     bootstrap = await api(apiPath("/menu"));
     const venue = bootstrap.restaurant_name || "Porosi tavoline";
-    $("kiosk-title").textContent = venue;
-    $("kiosk-table-label").textContent = `T${tableNumber}`;
+    const title = $("kiosk-title");
+    if (title) title.textContent = venue;
+    const tableLbl = $("kiosk-table-label");
+    if (tableLbl) tableLbl.textContent = `T${tableNumber}`;
     const venueBar = $("kiosk-venue-name");
     if (venueBar) venueBar.textContent = venue;
+    const sub = $("order-subtitle");
+    if (sub) sub.textContent = `Tavolina ${tableNumber} — porosia shkon te kamarieri`;
     document.title = `${venue} — T${tableNumber}`;
+
+    try {
+      const pubRes = await fetch(`/api/r/${encodeURIComponent(slug)}`, { cache: "no-store" });
+      const pub = await pubRes.json().catch(() => ({}));
+      if (pubRes.ok && pub.ok) {
+        if (window.RPublicTheme) window.RPublicTheme.apply(pub);
+        if (window.RPublicMenuUI) {
+          window.RPublicMenuUI.setLogo("menu-logo", "menu-logo-wrap", pub.logo_url, venue);
+          window.RPublicMenuUI.setLogo("order-logo", null, pub.logo_url, venue);
+        }
+      }
+    } catch { /* tema opsionale */ }
 
     updateSyncHint();
     renderMenu();
     renderCart();
+    showMenuView();
   }
 
-  function addToCart(item, btnEl) {
+  function addToCart(item) {
     const existing = cart.find(c => c.name === item.name);
     if (existing) existing.quantity += 1;
     else cart.push({ ...item, quantity: 1 });
-    if (btnEl) MenuPosUI.flashButton(btnEl);
     renderCart();
+    updateMenuCartBar();
   }
 
   function renderCart() {
     const lines = $("cart-lines");
+    if (!lines) return;
+    const countEl = $("cart-count");
+    const count = cart.reduce((s, i) => s + (Number(i.quantity) || 1), 0);
+    if (countEl) countEl.textContent = count === 1 ? "1 artikull" : `${count} artikuj`;
     if (!cart.length) {
-      lines.innerHTML = '<p class="hint" style="margin:0">Zgjidhni artikuj nga menuja</p>';
+      lines.innerHTML = '<p class="order-cart-empty">Shporta është bosh. Kthehuni te menuja dhe shtoni artikuj, pastaj shtypni Porosit Tani.</p>';
     } else {
       lines.innerHTML = cart.map((it, idx) => `
-        <div class="cart-line">
-          <span>${it.quantity}× ${escapeHtml(it.name)} <small class="cart-unit-price">${formatEuro(it.price)}</small></span>
-          <span class="cart-line-total">${formatEuro(it.price * it.quantity)}</span>
-          <span class="cart-line-actions">
-            <button type="button" class="btn btn-ghost" style="padding:0.2rem 0.4rem;margin-right:0.25rem" data-minus="${idx}">−</button>
-            <button type="button" class="btn btn-ghost" style="padding:0.2rem 0.4rem" data-plus="${idx}">+</button>
-          </span>
+        <div class="order-cart-line">
+          <div class="order-cart-line-name">${escapeHtml(it.name)}</div>
+          <div class="order-cart-line-controls">
+            <button type="button" class="qty-btn" data-minus="${idx}" aria-label="Zvogëlo">−</button>
+            <span class="qty-val">${it.quantity}</span>
+            <button type="button" class="qty-btn" data-plus="${idx}" aria-label="Shto">+</button>
+          </div>
+          <div class="order-cart-line-price">${formatEuro(it.price * it.quantity)}</div>
         </div>`).join("");
       lines.querySelectorAll("[data-minus]").forEach(b => {
         b.addEventListener("click", () => {
@@ -310,7 +336,9 @@
       });
     }
     const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    $("cart-total").textContent = formatEuro(total);
+    const totalEl = $("cart-total");
+    if (totalEl) totalEl.textContent = formatEuro(total);
+    updateMenuCartBar();
     scheduleKioskLayout();
   }
 
@@ -349,14 +377,13 @@
     orderSubmitting = false;
     cart = [];
     renderCart();
-    const btn = $("btn-send");
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = "Dërgo porosinë te kamarieri";
-    }
     showErr($("order-err"), "");
-    showScreen("screen-order");
-    scheduleKioskLayout();
+    const sendBtn = $("btn-send");
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Dërgo Porosinë";
+    }
+    showMenuView();
   }
 
   async function submitOrder() {
@@ -396,13 +423,15 @@
       orderSubmitting = false;
       btn.disabled = cart.length === 0;
       if ($("screen-order")?.classList.contains("active")) {
-        btn.textContent = "Dërgo porosinë te kamarieri";
+        btn.textContent = "Dërgo Porosinë";
       }
     }
   }
 
   bindTap($("btn-send"), submitOrder);
   bindTap($("btn-order-again"), startNewOrder);
+  bindTap($("btn-porosit"), showCheckoutView);
+  bindTap($("back-to-menu"), showMenuView);
 
   async function refreshMenu() {
     if (!bootstrap) return;
@@ -416,7 +445,11 @@
     } catch { /* ignore */ }
   }
 
-  loadBootstrap().catch(e => showErr($("order-err"), e.message));
+  loadBootstrap().catch(e => {
+    const el = $("error-msg");
+    if (el) el.textContent = e.message;
+    showScreen("screen-error");
+  });
   window.addEventListener("resize", scheduleKioskLayout);
   window.addEventListener("orientationchange", scheduleKioskLayout);
   setInterval(refreshMenu, 15000);
