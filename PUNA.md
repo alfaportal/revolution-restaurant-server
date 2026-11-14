@@ -2,7 +2,7 @@
 
 ## 2026-11-14 — Foto rrota/kafe te blu, e bardhë, e gjelbër
 
-Te temat Blu Nate, E Bardhë e Pastër dhe E Gjelbër Natyrale: e njëjta foto (rrota + mulli kafeje) në prapavijë, me ngjyrën e temës. Kafe Klasike dhe Elegante e Zezë mbeten me lule. Commit + push + deploy në këtë hap.
+Te temat Blu Nate, E Bardhë e Pastër dhe E Gjelbër Natyrale: e njëjta foto (rrota + mulli kafeje) në prapavijë, me ngjyrën e temës. Kafe Klasike dhe Elegante e Zezë mbeten me lule. `/img/` u shtua te rrugët e rezervuara që fotoja të dalë live. Commit + push + deploy.
 
 ## 2026-11-14 — Deploy live 231471a
 
