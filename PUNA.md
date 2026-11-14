@@ -1,5 +1,14 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-14 — URL revolution-pos.com poshtë Powered by
+
+Poshtë «Powered by Revolution POS» shkruhet `https://revolution-pos.com` — faqja publike, takeaway, QR tavoline. Pa waiter, pa build.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/r.html` `r-order.html` `kiosk.html` | URL poshtë Powered by |
+| `public/css/r-public-menu.css` | rreshti i URL-së |
+
 ## 2026-11-14 — Foto rrota/kafe te blu, e bardhë, e gjelbër
 
 Te temat Blu Nate, E Bardhë e Pastër dhe E Gjelbër Natyrale: e njëjta foto (rrota + mulli kafeje) në prapavijë, me ngjyrën e temës. Kafe Klasike dhe Elegante e Zezë mbeten me lule. `/img/` u shtua te rrugët e rezervuara që fotoja të dalë live. Commit + push + deploy.

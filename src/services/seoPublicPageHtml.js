@@ -75,7 +75,8 @@ const GOOGLE_SITE_VERIFICATION =
   '<meta name="google-site-verification" content="2QVw_7A49TsO9VnCz49wUW3DzlcLDyP4fqPCmoVwjUY" />';
 
 const POWERED_FOOTER = `<footer style="text-align:center; padding:10px; font-size:12px; color:#888; margin-top:20px;">
-  Powered by <a href="https://revolution-pos.com" style="color:#fff; font-weight:bold;">Revolution POS</a>
+  Powered by <strong style="color:#fff;">Revolution POS</strong><br>
+  <a href="https://revolution-pos.com" style="color:#fff; font-weight:bold;">https://revolution-pos.com</a>
 </footer>`;
 
 function buildHeadInjection(page, { storefront, origin }) {
