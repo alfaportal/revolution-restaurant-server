@@ -1,5 +1,13 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-14 — Foto rrota/kafe te blu, e bardhë, e gjelbër
+
+Te temat Blu Nate, E Bardhë e Pastër dhe E Gjelbër Natyrale: e njëjta foto (rrota + mulli kafeje) në prapavijë, me ngjyrën e temës. Kafe Klasike dhe Elegante e Zezë mbeten me lule. Commit + push + deploy në këtë hap.
+
+## 2026-11-14 — Deploy live 231471a
+
+Commit + push + deploy. `/health` git_commit `231471a`. Linqet te telefoni, 5 temat, takeaway/QR.
+
 ## 2026-11-14 — Linqet te telefoni si te POS
 
 Te paneli i pronarit në telefon, skeda Linqet: të njëjtat linqe si te POS (Pronari, Banak, Kamarier cloud, Kamarier WiFi, Kuzhina, Kiosk, Takeaway, Faqja publike). URL-të nuk u ndryshuan. Pa build, pa git, pa deploy.

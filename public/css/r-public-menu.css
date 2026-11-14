@@ -1026,8 +1026,9 @@ body.pub-page[data-theme="blue-silver"] {
   color: #e8eef5 !important;
   background-color: #07101c !important;
   background-image:
-    radial-gradient(ellipse 90% 50% at 50% -10%, rgba(143, 168, 194, 0.22), transparent 55%),
-    linear-gradient(#07101c, #0b1220) !important;
+    linear-gradient(rgba(7, 16, 28, 0.38), rgba(11, 18, 32, 0.42)),
+    url("/img/pub-gears-coffee.jpg") !important;
+  background-size: auto, 480px auto;
 }
 
 body.pub-page[data-theme="blue-silver"] .pub-ambient {
@@ -1097,7 +1098,9 @@ body.pub-page[data-theme="white-warm"] {
   color: #2c241c !important;
   background-color: #f7f3ea !important;
   background-image:
-    linear-gradient(180deg, #fbf8f2 0%, #f4eee4 100%) !important;
+    linear-gradient(rgba(251, 248, 242, 0.78), rgba(244, 238, 228, 0.74)),
+    url("/img/pub-gears-coffee.jpg") !important;
+  background-size: auto, 480px auto;
 }
 
 body.pub-page[data-theme="white-warm"] .pub-ambient {
@@ -1200,9 +1203,9 @@ body.pub-page[data-theme="green-cream"] {
   color: #f3efe4 !important;
   background-color: #0d1f16 !important;
   background-image:
-    radial-gradient(ellipse 40% 30% at 8% 18%, rgba(180, 200, 140, 0.16), transparent 70%),
-    radial-gradient(ellipse 36% 28% at 94% 82%, rgba(203, 184, 146, 0.14), transparent 68%),
-    linear-gradient(#0d1f16, #10261b) !important;
+    linear-gradient(rgba(18, 70, 42, 0.42), rgba(13, 31, 22, 0.52)),
+    url("/img/pub-gears-coffee.jpg") !important;
+  background-size: auto, 480px auto;
 }
 
 body.pub-page[data-theme="green-cream"] .pub-ambient {
