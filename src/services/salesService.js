@@ -954,7 +954,7 @@ async function getLiveTablesForOwner(clientId) {
     console.warn("[getLiveTablesForOwner] areas:", err.message);
   }
 
-  const { orderSourceLabel, WEB_KIOSK } = require("../lib/orderSource");
+  const { orderSourceLabel, WEB_KIOSK, WEB_PUBLIC, isKioskWaiterName } = require("../lib/orderSource");
   const { isOrderAccepted } = require("../lib/salesOrderSelect");
   const metaByTable = new Map();
   const activeByTable = new Map();
@@ -962,7 +962,13 @@ async function getLiveTablesForOwner(clientId) {
     const num = Number(o.table_number) || 0;
     if (num < 1 || metaByTable.has(num)) continue;
     const device = String(o.device_id || "").trim().toUpperCase();
-    const acceptPending = device === WEB_KIOSK && !isOrderAccepted(o);
+    if (
+      !isOrderAccepted(o)
+      && (device === WEB_KIOSK || device === WEB_PUBLIC || isKioskWaiterName(o.waiter_name))
+    ) {
+      continue;
+    }
+    const acceptPending = false;
     const src = orderSourceLabel(o);
     metaByTable.set(num, {
       id: o.id || null,

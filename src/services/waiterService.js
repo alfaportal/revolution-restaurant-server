@@ -18,9 +18,13 @@ const {
 const { isOrderAccepted } = require("../lib/salesOrderSelect");
 const { isOnlineSlotOrder } = require("./kdsService");
 
-/** Tavolinë e zënë për çdo porosi aktive (QR = klient porosit; mbyllje vetëm manuale). */
 function attachActiveOrderToWaiterTableLayout(row) {
-  return !!row && Number(row.table_number) >= 1;
+  if (!row || Number(row.table_number) < 1) return false;
+  if (isOrderAccepted(row)) return true;
+  const device = String(row.device_id || "").trim().toUpperCase();
+  if (device === WEB_KIOSK || device === WEB_PUBLIC) return false;
+  if (isKioskWaiterName(row.waiter_name)) return false;
+  return true;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
