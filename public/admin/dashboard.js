@@ -425,6 +425,9 @@ function syncNewClientForm() {
   show(".nc-tipi-security", program === "security");
   show(".nc-tipi-furra", program === "furra");
   show(".nc-tipi-simple", program === "kontabilisti" || program === "fiskale");
+  show(".nc-tipi-butika", program === "butika");
+  show(".nc-tipi-argjendari", program === "argjendari");
+  show(".nc-tipi-dyqanet", program === "dyqanet");
   const pkgField = document.getElementById("nc-package")?.closest(".field");
   if (pkgField) pkgField.classList.toggle("hidden", program === "market");
   populateNcPackageOptions(program);
@@ -468,7 +471,10 @@ function ncSelectedTipi(program) {
   if (program === "security") return document.getElementById("nc-vepr")?.value || "kompani_sigurie";
   if (program === "furra") return document.getElementById("nc-tipi-furra")?.value || "furre_buke";
   if (program === "kontabilisti" || program === "fiskale") return "tjeter";
-  if (["butika", "dyqanet", "argjendari", "barnatore"].includes(program)) return program;
+  if (program === "butika") return document.getElementById("nc-tipi-butika")?.value || "Veshje";
+  if (program === "argjendari") return document.getElementById("nc-tipi-argjendari")?.value || "Argjendari";
+  if (program === "dyqanet") return document.getElementById("nc-tipi-dyqanet")?.value || "Shtëpi & Dekor";
+  if (program === "barnatore") return program;
   return document.getElementById("nc-tipi")?.value || "kafene";
 }
 
@@ -3118,7 +3124,7 @@ async function boot() {
     ncSlugTouched = true;
     updateNcSlugPreview();
   });
-  ["nc-program", "nc-tipi", "nc-tipi-hotel", "nc-tipi-market", "nc-vepr", "nc-tipi-furra"].forEach((id) => {
+  ["nc-program", "nc-tipi", "nc-tipi-hotel", "nc-tipi-market", "nc-vepr", "nc-tipi-furra", "nc-tipi-butika", "nc-tipi-argjendari", "nc-tipi-dyqanet"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", updateNcSlugPreview);
   });
 
@@ -3311,6 +3317,7 @@ async function boot() {
       hardware_id: hardwareId || undefined,
       celesi: licenseKey || undefined,
       license_key: licenseKey || undefined,
+      lami: ["butika", "dyqanet", "argjendari"].includes(program) ? tipi : undefined,
       max_terminals: Number(document.getElementById("nc-max-terminals")?.value || 1),
     };
 

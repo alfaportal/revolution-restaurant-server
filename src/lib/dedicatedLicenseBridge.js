@@ -299,7 +299,16 @@ async function registerRetailClient(product, body = {}) {
       license_key: body.celesi || body.license_key,
     },
   });
-  const lic = data.license || {};
+  let lic = data.license || {};
+  const lami = String(body.lami || "").trim();
+  const lid = String(lic.id || "").trim();
+  if (lami && lid && product !== "barnatore") {
+    const patched = await request(product, `/licenses/${encodeURIComponent(lid)}`, {
+      method: "PATCH",
+      body: { lami },
+    });
+    lic = patched.license || lic;
+  }
   return {
     client: data.client || lic.clients || { id: lic.client_id, emri: body.emri || "" },
     license: lic,

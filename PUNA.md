@@ -1,5 +1,15 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-17 — Tipi i biznesit te Butik, Argjendari, Dyqan
+
+Te klienti i ri, kur zgjidhet Butik, Argjendari ose Dyqan, del lista e kategorive. Zgjedhja ruhet te licenca. Barnatorja mbetet pa listë. Pa build. Pa git. Live jo.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/admin/dashboard.html` | Tri lista |
+| `public/admin/dashboard.js` | Lista hapet sipas programit dhe dërgohet kategoria |
+| `src/lib/dedicatedLicenseBridge.js` | Kategoria ruhet pas regjistrimit |
+
 ## 2026-11-17 — Dera për Butik, Dyqan, Barnatore, Argjendari
 
 Dera i çon `/butika`, `/dyqanet`, `/barnatore`, `/argjendari` te serveri i secilit. Adresa merret nga env. Pa env kthen «Mungon …_UPSTREAM». Rrugët e vjetra nuk u prekën. Pa build. Pa git. Live jo.
