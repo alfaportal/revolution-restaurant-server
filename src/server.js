@@ -119,6 +119,18 @@ const KONTABILISTI_UPSTREAM = String(
   .replace(/^https?:\/\//, "")
   .replace(/\/$/, "");
 
+function cleanUpstreamHost(raw) {
+  return String(raw || "")
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+}
+
+const BUTIKA_UPSTREAM = cleanUpstreamHost(process.env.BUTIKA_UPSTREAM);
+const DYQANET_UPSTREAM = cleanUpstreamHost(process.env.DYQANET_UPSTREAM);
+const BARNATORE_UPSTREAM = cleanUpstreamHost(process.env.BARNATORE_UPSTREAM);
+const ARGJENDARI_UPSTREAM = cleanUpstreamHost(process.env.ARGJENDARI_UPSTREAM);
+
 function proxyUpstreamPath(req, product) {
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
   const parts = (req.path || "").split("/").filter(Boolean);
@@ -404,6 +416,34 @@ function proxyToKontabilisti(req, res) {
   req.pipe(proxyReq);
 }
 
+function proxyKeepPrefix(upstreamHost, missingText, failText) {
+  return function proxyPrefixed(req, res) {
+    if (!upstreamHost) {
+      if (!res.headersSent) res.status(502).send(missingText);
+      return;
+    }
+    const upstreamPath = req.originalUrl || "/";
+    const headers = { ...req.headers, host: upstreamHost };
+    const proxyReq = https.request(
+      {
+        hostname: upstreamHost,
+        port: 443,
+        path: upstreamPath,
+        method: req.method,
+        headers,
+      },
+      (proxyRes) => {
+        res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+        proxyRes.pipe(res);
+      },
+    );
+    proxyReq.on("error", () => {
+      if (!res.headersSent) res.status(502).send(failText);
+    });
+    req.pipe(proxyReq);
+  };
+}
+
 app.use("/security", proxyToSecurity);
 /** Link i gabuar pa /hotel/{slug}/ — ridrejto te forma e saktë. */
 app.get("/recepsion/:slug", (req, res) => {
@@ -438,6 +478,10 @@ app.use("/hotel", proxyToHotel);
 app.use("/market", proxyToMarket);
 app.use("/fiskalizim", proxyToFiskalizim);
 app.use("/kontabilisti", proxyToKontabilisti);
+app.use("/butika", proxyKeepPrefix(BUTIKA_UPSTREAM, "Mungon BUTIKA_UPSTREAM", "Butik upstream nuk përgjigjet"));
+app.use("/dyqanet", proxyKeepPrefix(DYQANET_UPSTREAM, "Mungon DYQANET_UPSTREAM", "Dyqan upstream nuk përgjigjet"));
+app.use("/barnatore", proxyKeepPrefix(BARNATORE_UPSTREAM, "Mungon BARNATORE_UPSTREAM", "Barnatore upstream nuk përgjigjet"));
+app.use("/argjendari", proxyKeepPrefix(ARGJENDARI_UPSTREAM, "Mungon ARGJENDARI_UPSTREAM", "Argjendari upstream nuk përgjigjet"));
 
 // Stripe webhook — RAW body (para express.json)
 app.post(

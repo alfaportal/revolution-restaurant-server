@@ -1,5 +1,17 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-17 — Dera për Butik, Dyqan, Barnatore, Argjendari
+
+Dera i çon `/butika`, `/dyqanet`, `/barnatore`, `/argjendari` te serveri i secilit. Adresa merret nga env. Pa env kthen «Mungon …_UPSTREAM». Rrugët e vjetra nuk u prekën. Pa build. Pa git. Live jo.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `src/server.js` | Katër porta të reja, rruga e plotë si te Fiskalizimi |
+
+## 2026-11-16 — Dosja website (Next.js)
+
+U krijua `website/` në rrënjë. Next.js 16.4.6 (jo 14 — komanda ishte @latest), TypeScript, Tailwind 4, App Router, `src/`, alias `@/*`. U instalua `framer-motion` ^14.14.0. Pa build, pa server, pa git. Serveri i vjetër, marketing-blog dhe public nuk u prekën.
+
 ## 2026-11-14 — URL revolution-pos.com poshtë Powered by
 
 Poshtë «Powered by Revolution POS» shkruhet `https://revolution-pos.com` — faqja publike, takeaway, QR tavoline. Pa waiter, pa build.
