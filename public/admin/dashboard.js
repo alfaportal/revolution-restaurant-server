@@ -612,7 +612,25 @@ const TITLES = {
   faturimi: ["Faturimi", "Pagesa bankare + fatura PDF"],
   raportet: ["Probleme", "Vetëm probleme — pa shitje"],
   cilesimet: ["Cilësimet", "Admini, çmimet e pakove, AI"],
+  udhezuesi: ["Udhëzuesi", "Një udhëzues për çdo projekt dhe për çdo pako"],
 };
+
+async function loadUdhezues() {
+  const data = await api("/api/admin/udhezues");
+  const box = document.getElementById("udhezues-lista");
+  if (!box) return;
+  box.innerHTML = (data.projektet || [])
+    .map((p) => {
+      const rreshtat = (p.paketat || [])
+        .map(
+          (pk) =>
+            `<div class="copy-row"><div class="mono-box">${esc(pk.emri)} — ${esc(pk.cmimi)} / vit</div><button type="button" class="btn btn-primary btn-sm" data-udh-slug="${esc(p.slug)}" data-udh-pako="${esc(pk.id)}">Gjenero</button></div>`,
+        )
+        .join("");
+      return `<div class="card" style="margin-top:0.75rem"><div class="card-title">${esc(p.emri)}</div>${rreshtat}</div>`;
+    })
+    .join("");
+}
 
 function euro(n) {
   return `${Number(n || 0).toLocaleString("sq-AL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
@@ -703,6 +721,7 @@ function openSection(name) {
     loadSettings().catch((ex) => console.warn(ex));
     loadEmergencyCode().catch((ex) => console.warn(ex));
   }
+  if (name === "udhezuesi") loadUdhezues().catch((ex) => console.warn(ex));
   // Sinkron: kur hap Probleme ose Klientët, rifresko të dyja në background
   if (name === "klientet" || name === "raportet") {
     Promise.all([
@@ -3388,6 +3407,31 @@ async function boot() {
   document.getElementById("nav-list").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-section]");
     if (btn) openSection(btn.dataset.section);
+  });
+  document.getElementById("udhezues-lista")?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-udh-slug]");
+    if (!btn) return;
+    const slug = btn.dataset.udhSlug;
+    const pako = btn.dataset.udhPako;
+    btn.disabled = true;
+    btn.textContent = "Duke gjeneruar…";
+    try {
+      const res = await api(
+        `/api/admin/udhezues.pdf?slug=${encodeURIComponent(slug)}&pako=${encodeURIComponent(pako)}`,
+      );
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `udhezues-${slug}-${pako}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (ex) {
+      alert(ex.message || "Nuk u gjenerua");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Gjenero";
+    }
   });
   document.getElementById("btn-refresh-clients").addEventListener("click", (e) => {
     e.preventDefault();

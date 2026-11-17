@@ -935,4 +935,29 @@ router.post(
   }),
 );
 
+router.get(
+  "/udhezues",
+  asyncHandler(async (_req, res) => {
+    const { listo } = require("../lib/udhezuesPaketa");
+    res.json({ ok: true, projektet: listo() });
+  }),
+);
+
+router.get(
+  "/udhezues.pdf",
+  asyncHandler(async (req, res) => {
+    const { gjenero, emriSkedarit } = require("../lib/udhezuesPaketa");
+    try {
+      const pdf = await gjenero(req.query.slug, req.query.pako);
+      const emri = emriSkedarit(req.query.slug, req.query.pako);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${emri}"`);
+      res.send(pdf);
+    } catch (e) {
+      const status = e.code === "NOT_FOUND" ? 404 : 400;
+      res.status(status).json({ ok: false, gabim: e.message || "Nuk u gjenerua." });
+    }
+  }),
+);
+
 module.exports = router;

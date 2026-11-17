@@ -52,6 +52,7 @@
           <button type="button" class="nav-item" data-section="faturimi"><span class="nav-ico">🧾</span> Faturimi</button>
           <button type="button" class="nav-item" data-section="raportet"><span class="nav-ico">⚠️</span> Probleme</button>
           <button type="button" class="nav-item" data-section="cilesimet"><span class="nav-ico">⚙️</span> Cilësimet</button>
+          <button type="button" class="nav-item" data-section="udhezuesi"><span class="nav-ico">📄</span> Udhëzuesi</button>
         </nav>
         <div class="sidebar-foot">
           <div class="user" id="user-label">—</div>
@@ -610,6 +611,14 @@
             <div id="settings-msg" class="alert alert-ok hidden" style="margin-top:0.75rem"></div>
           </div>
         </section>
+
+        <section class="section" id="sec-udhezuesi">
+          <div class="card">
+            <div class="card-title">Udhëzuesit sipas projektit dhe pakos</div>
+            <p class="sub">Çdo pako ka udhëzuesin e vet, sepse paketat nuk janë të njëjta.</p>
+          </div>
+          <div id="udhezues-lista"></div>
+        </section>
       </main>
     </div>
   </div>
@@ -640,6 +649,6 @@
 
   <div id="admin-toast-stack" class="admin-toast-stack" aria-live="polite"></div>
 
-  <script src="/admin/dashboard.js?v=54"></script>
+  <script src="/admin/dashboard.js?v=55"></script>
 </body>
 </html>

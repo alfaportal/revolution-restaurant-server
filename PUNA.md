@@ -1,5 +1,195 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-17 — Udhëzuesi te Super Admini
+
+Te Master Admini, pas Cilësimeve, u shtua Udhëzuesi. Gjeneron një udhëzues për çdo projekt dhe për çdo pako. 15 projekte, 49 pako. Pakoja e vogël nuk i merr pjesët e pakos së madhe. Pa build. Pa git. Nuk është live. Nuk del në telefon derisa të vihet serveri.
+
+Prova: u gjeneruan 49 PDF. SECURITY Roja ka Pikat, Ndërrimet, Hyrjen dhe daljen, dhe «150 euro për vit». Nuk ka raportin e natës. KAFENE Basic ka 9 faqe. KAFENE Full ka 20 faqe dhe e ka kuzhinën.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `public/admin/dashboard.html` | Udhëzuesi pas Cilësimeve |
+| `public/admin/dashboard.js` | Lista dhe butoni Gjenero |
+| `src/lib/udhezuesPaketa.js` | Projektet, paketat, PDF |
+| `src/routes/admin.js` | /api/admin/udhezues dhe PDF |
+| `package.json` | Mjeti që bën PDF |
+
+## 2026-11-17 — Ballina dhe Udhëzuesi në menu
+
+Vetëm `website/`. Në menunë lart, Ballina është para Produkteve. Udhëzuesi është pas Kontaktit. Ballina kthen te fillimi. Udhëzuesi hap faqen me fjalinë e klientëve të licencuar. Pa build. Pa git. Nuk është live.
+
+Prova: faqja e parë 200, rendi Ballina, Produktet, … Kontakti, Udhëzuesi. /udhezuesi 200 me fjalinë. Klikimi te Udhëzuesi e hap faqen.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/components/Navbar.tsx` | Ballina para Produkteve, Udhëzuesi pas Kontaktit |
+| `website/src/i18n/tekstet.ts` | Emrat në SQ, EN, DE, SR |
+| `website/src/app/udhezuesi/page.tsx` | Faqja e udhëzuesit |
+
+## 2026-11-17 — Fotot te faqet e programeve
+
+Vetëm `website/`. Te çdo faqe programi, tri kartat bosh u zëvendësuan me foto që përputhen me shkrimin poshtë. 15 programe, 45 foto. Pa build. Pa git. Nuk është live. Nuk janë foto të ekranit të programit. Nuk dalin te telefoni dhe as te paneli i pronarit.
+
+Prova: 15 faqet kthejnë 200 dhe e kanë foton e duhur. Fotoja e parë e secilit kthen 200. Te /security duken Pikat (pika e rojes), Ndërrimi (dy roje), Raporti (raporti i natës). Fjala PAMJE nuk del.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/public/pamje/` | 45 foto të reja |
+| `website/src/components/Pamje.tsx` | Fotoja dhe shkrimi poshtë |
+| `website/src/components/FaqjaProduktit.tsx` | Çdo shkrim lidhet me foton e vet |
+
+## 2026-11-17 — Çmimet për vit
+
+Vetëm `website/`. Çmimet janë për vit, jo për muaj. Te KAFENE, Ditari dhe Fiskalizimi janë në të katër paketat. AI është te Pro dhe Full. Pa build. Pa git. Nuk është live.
+
+Prova: /kafene 200 me €150, Ditari, Fiskalizimi dhe parashikimet. /hotel ka €400. /market ka €300. /furra ka €220. Faqja e parë ka «Duke filluar nga» dhe €150. «Bazë» nuk del.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/data/produktet.ts` | Çmimet për vit, ditari, fiskalizimi, AI |
+| `website/src/components/FaqjaProduktit.tsx` | Shënimi /vit |
+| `website/src/components/Pricing.tsx` | Faqja e parë me paketat e programit |
+| `website/src/i18n/tekstet.ts` | «Çmimi për vit» dhe «Duke filluar nga» |
+
+## 2026-11-17 — Përshkrimet dhe paketat te faqet e programeve
+
+Vetëm `website/`. Te faqja e çdo programi u ndryshua titulli, përshkrimi, llojet e bizneseve dhe paketat. Faqja kryesore mban çmimet e vjetra. Pa build. Pa git. Nuk është live.
+
+Çmimet €150, €180, €220, €250 janë nga lista e firmës për Pakon 1–4. Pako 5 e MARKET nuk ka çmim të vet në atë listë, prandaj nuk iu vu shifër. Shtatë programe nuk kanë paketa në kod (DISTRIBUTOR, FISKALIZIM, KONTABILISTI, SECURITY, MJEKËSIA, POSTA/TAXI, RENTACAR): aty nivelet janë ndarje e thjeshtë, jo emra nga programi.
+
+Prova: /kafene 200 me «Sistemi i Plotë për Lokale Gastronomike», Basic, Full, «Më i Popullarizuar», pa «Bazë». /hotel ka Bazik dhe Premium. /market ka Pako 1 dhe Pako 5. /furra ka «Pako me AI».
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/data/produktet.ts` | Titujt, llojet, paketat |
+| `website/src/components/FaqjaProduktit.tsx` | Shenjat dhe paketat e programit |
+| `website/src/i18n/produktet-gjuhe.ts` | Të njëjtat në EN, DE, SR |
+| `website/src/i18n/tekstet.ts` | Shënimi «Më i Popullarizuar» |
+
+## 2026-11-17 — Udhëzuesit e 15 programeve
+
+Vetëm `website/`. 15 udhëzues në shqip, një link që hapet një herë, dhe një fjali te faqja e çdo programi. Pa build. Pa git. Nuk është live.
+
+Katër programe nuk janë në këtë kompjuter: DISTRIBUTOR, MJEKËSIA, POSTA/TAXI, RENTACAR. Te ato udhëzuesi thotë se skedat nuk janë lexuar. Nuk u shpik numër telefoni.
+
+Prova: faqja /kafene, /hotel, /rentacar kthejnë 200 dhe e kanë fjalinë e klientëve të licencuar, pa link shkarkimi. Link i gabuar kthen 410 me «Ky link ka skaduar ose është përdorur tashmë». Link i ri shkarkon PDF-në një herë, hera e dytë 410. Fjalëkalimi i gabuar kthen 401. /admin/manuals kthen 200. Titulli i MARKET është «Revolution MARKET — Udhëzues Përdorimi».
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/public/manuals/manual-*.pdf` | 15 udhëzues |
+| `website/scripts/gjenero-manualet.js` | Si u shkruan udhëzuesit |
+| `website/src/app/api/download-manual/route.ts` | Linku një herë |
+| `website/src/app/api/admin/manuals/route.ts` | Krijimi i linkut |
+| `website/src/app/admin/manuals/page.tsx` | Faqja ku krijohen linket |
+| `website/src/lib/manualet.ts` | Leximi i listës së linkeve |
+| `website/src/lib/manualet-lista.ts` | 15 programet |
+| `website/data/manual-tokens.json` | Linket |
+| `website/src/components/FaqjaProduktit.tsx` | Fjalia për klientët e licencuar |
+| `website/package.json` | U shtua pdfkit |
+
+## 2026-11-17 — Shkrimi Revolution POS pranë R-së
+
+Vetëm `website/`. Shenja R mbetet pa katror. Pranë saj u kthye shkrimi «Revolution POS», lart dhe poshtë. Pa build. Pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/components/Navbar.tsx` | Shkrimi pranë logos |
+| `website/src/components/Footer.tsx` | Shkrimi pranë logos |
+
+## 2026-11-17 — Vetëm shenja R, më e madhe
+
+Vetëm `website/`. U hoq katrori dhe shkrimi «Revolution POS» nga fotografia. Mbetet shenja R, më e madhe, lart dhe poshtë. Pa build. Pa git.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/assets/revolution-marka.png` | Vetëm R-ja, pa katror |
+| `website/src/components/Navbar.tsx` | Logo më e madhe lart |
+| `website/src/components/Footer.tsx` | Logo më e madhe poshtë |
+
+## 2026-11-17 — Logoja e re në faqe
+
+Vetëm `website/`. Logoja e re (R dhe Revolution POS) te menuja dhe te fundi i faqes. Pa build. Pa git. Nuk është live.
+
+Prova: faqja lokale kthen 200 dhe e mban `revolution-pos-logo`. E hapa në shfletues.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/assets/revolution-pos-logo.jpg` | Logoja e re |
+| `website/src/components/Navbar.tsx` | Logoja lart |
+| `website/src/components/Footer.tsx` | Logoja poshtë |
+
+## 2026-11-17 — Katër gjuhë në faqen lokale
+
+Vetëm `website/`. SQ, EN, DE, SR. Butonat janë lart djathtas. Serbishtja është me shkronja latine. Emrat e programeve mbeten. Çmimet mbeten. Pa build. Pa git. Nuk është live.
+
+Prova: tsc kaloi. Në shfletues EN «The POS system», DE «Das Kassensystem», SR «POS sistem». Faqja /kafene në SR «Restorani i kafići», pastaj SQ «Restorante dhe kafene».
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/i18n/tekstet.ts` | Tekstet e faqes |
+| `website/src/i18n/produktet-gjuhe.ts` | Tekstet e 15 programeve |
+| `website/src/i18n/gjuha.tsx` | Zgjedhja e gjuhës |
+| `website/src/app/layout.tsx` | Mbështjellësi i gjuhës |
+| `website/src/components/*.tsx` | Tekstet nga gjuha |
+
+## 2026-11-17 — Pajisjet te përparësia
+
+Vetëm `website/`. Në fund të përparësisë: Windows, Android, iPhone/iPad, Mac. Klikimi zgjedh pajisjen dhe të çon te demo. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/components/Perparesia.tsx` | Katër pajisjet në fund |
+
+## 2026-11-17 — Foto dhe pika te kartat
+
+Vetëm `website/`. Çdo kartë ka foto të veprimtarisë dhe gjashtë pika. KAFENE: pasqyra, raporte, telefon për kamarier. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/public/veprimtari/*.jpg` | 15 foto |
+| `website/src/data/produktet.ts` | Fotoja dhe pikat e veçanta |
+| `website/src/components/Products.tsx` | Foto në vend të kutisë bosh |
+
+## 2026-11-17 — Përparësia, ballina dhe produktet
+
+Vetëm `website/`. Katër pika pas ballinës. Te çdo produkt, «Pse Revolution?» para çmimeve. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/components/Perparesia.tsx` | Katër pikat |
+| `website/src/app/page.tsx` | Pjesa pas ballinës |
+| `website/src/components/FaqjaProduktit.tsx` | Versioni i shkurtër para çmimeve |
+| `website/package.json` | Ikona lucide-react |
+
+## 2026-11-17 — Faqet e 15 produkteve
+
+Vetëm `website/`. Kartat e ballinës hapin faqen e produktit. Menuja ka listën. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/data/produktet.ts` | 15 produktet, grupet, çmimet |
+| `website/src/components/Products.tsx` | Kartë me pamje dhe lidhje |
+| `website/src/components/Navbar.tsx` | Lista Produktet |
+| `website/src/components/Footer.tsx` | Lidhjet shkojnë te faqja e produktit |
+| `website/src/components/FaqjaProduktit.tsx` | Pamja e njëjtë për çdo produkt |
+| `website/src/app/[slug]/page.tsx` | 15 rrugët |
+
+## 2026-11-17 — Ballina lokale website/
+
+Vetëm `website/`. Tema e errët mbeti. 15 produkte, kupon shembull, çmim që ndryshon, pyetje, demo. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/app/page.tsx` | Renditja e re e ballinës |
+| `website/src/components/Hero.tsx` | 15 produkte, pika, kornizë e ekranit |
+| `website/src/components/Products.tsx` | 15 karta |
+| `website/src/components/Fiskal.tsx` | Kupon shembull dhe 5 hapa |
+| `website/src/components/HowItWorks.tsx` | 4 hapa |
+| `website/src/components/Pricing.tsx` | Llogaritësi |
+| `website/src/components/Faq.tsx` | Pyetjet |
+| `website/src/components/Contact.tsx` | Kërkesa për demo |
+| `website/src/components/Navbar.tsx` `Footer.tsx` | Lidhje të gjalla, 15 produkte |
+
 ## 2026-11-17 — Tipi i biznesit te Butik, Argjendari, Dyqan
 
 Te klienti i ri, kur zgjidhet Butik, Argjendari ose Dyqan, del lista e kategorive. Zgjedhja ruhet te licenca. Barnatorja mbetet pa listë. Pa build. Pa git. Live jo.
