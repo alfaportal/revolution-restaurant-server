@@ -1052,7 +1052,14 @@ async function createClient(body) {
   };
 
   let { data, error } = await db.from("clients").insert(row).select().single();
-  if (error && /product_line/i.test(error.message || "")) {
+  if (
+    error
+    && /product_line/i.test(error.message || "")
+    && productLine !== "distributor"
+    && productLine !== "mjekesia"
+    && productLine !== "posta_taxi"
+    && productLine !== "rentacar"
+  ) {
     delete row.product_line;
     ({ data, error } = await db.from("clients").insert(row).select().single());
   }
@@ -1105,6 +1112,8 @@ async function updateClient(id, body) {
     if (isDedicatedProduct(product) && (pl === "market" || pl === "hotel")) {
       patch.product_line = product;
     } else if (pl === "kafene" || pl === "security") {
+      patch.product_line = pl;
+    } else if (pl === "distributor" || pl === "mjekesia" || pl === "posta_taxi" || pl === "rentacar") {
       patch.product_line = pl;
     }
   }
@@ -1416,7 +1425,14 @@ async function createLicense(body) {
   if (hwToStore) row.hardware_id = hwToStore;
 
   let { data, error } = await db.from("licenses").insert(row).select("*, clients(emri, tipi)").single();
-  if (error && /product_line/i.test(error.message || "")) {
+  if (
+    error
+    && /product_line/i.test(error.message || "")
+    && productLine !== "distributor"
+    && productLine !== "mjekesia"
+    && productLine !== "posta_taxi"
+    && productLine !== "rentacar"
+  ) {
     delete row.product_line;
     ({ data, error } = await db.from("licenses").insert(row).select("*, clients(emri, tipi)").single());
   }

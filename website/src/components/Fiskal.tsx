@@ -15,7 +15,7 @@ export default function Fiskal() {
     <section id="fiskalizimi" className="bg-[#12121A] px-6 py-24">
       <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.85fr_1.15fr]">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 1, y: 0 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5 }}
@@ -63,7 +63,7 @@ export default function Fiskal() {
               <motion.li
                 key={hapi.nr}
                 className="flex gap-4 rounded-2xl border border-white/5 bg-[#0A0A0F] p-4"
-                initial={{ opacity: 0, x: 16 }}
+                initial={{ opacity: 1, x: 0 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.4, delay: index * 0.06 }}

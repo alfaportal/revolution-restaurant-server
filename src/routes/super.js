@@ -208,7 +208,8 @@ router.get(
       return res.json({ ok: true, ...detail, product_line: product });
     }
     const detail = await getClientDetail(req.params.id);
-    res.json({ ok: true, ...detail, product_line: "kafene" });
+    const shownLine = product === "distributor" || product === "mjekesia" || product === "posta_taxi" || product === "rentacar" ? product : "kafene";
+    res.json({ ok: true, ...detail, product_line: shownLine });
   }),
 );
 
@@ -958,6 +959,63 @@ router.post(
         celesi: license?.celesi || null,
         hardware_id: license?.hardware_id || hardwareId || null,
         product_line: "furra",
+      });
+    }
+
+    if (product === "distributor" || product === "mjekesia" || product === "posta_taxi" || product === "rentacar") {
+      const { createClient, createLicense } = require("../services/licenseService");
+      const {
+        normalizeClientTipi,
+        DISTRIBUTOR_REGISTER_TIPI,
+        MJEKESIA_REGISTER_TIPI,
+        POSTA_TAXI_REGISTER_TIPI,
+        RENTACAR_REGISTER_TIPI,
+      } = require("../utils/businessTipi");
+      const allowed = product === "distributor"
+        ? DISTRIBUTOR_REGISTER_TIPI
+        : product === "mjekesia"
+          ? MJEKESIA_REGISTER_TIPI
+          : product === "posta_taxi"
+            ? POSTA_TAXI_REGISTER_TIPI
+            : RENTACAR_REGISTER_TIPI;
+      let tipi = normalizeClientTipi(req.body?.tipi || allowed[0]);
+      if (!allowed.includes(tipi)) tipi = allowed[0];
+      const client = await createClient({
+        ...(req.body || {}),
+        tipi,
+        product_line: product,
+        package_tier: "pako_3",
+      });
+      let license = null;
+      if (wantLicense) {
+        license = await createLicense({
+          client_id: client.id,
+          product_line: product,
+          license_type: licenseType,
+          muaj: licenseType === "trial" ? 1 : req.body?.muaj || 12,
+          max_terminals: req.body?.max_terminals || 1,
+          celesi: celesi || undefined,
+          hardware_id: hwHex.length === 16 ? hardwareId : undefined,
+          data_skadimit: dataSkadimit || undefined,
+          trial_ends_at: licenseType === "trial" ? (trialEndsAt || undefined) : null,
+        });
+      }
+      await logAdminActivity({
+        ...activityFromReq(req),
+        action: "client_create",
+        targetType: "client",
+        targetId: client.id,
+        targetLabel: client.emri || req.body?.emri || product,
+        details: { license_key: license?.celesi || null, product_line: product },
+      }).catch(() => {});
+      return res.status(201).json({
+        ok: true,
+        client,
+        license,
+        license_key: license?.celesi || null,
+        celesi: license?.celesi || null,
+        hardware_id: license?.hardware_id || hardwareId || null,
+        product_line: product,
       });
     }
 

@@ -11,7 +11,7 @@ export default function Udhezuesi() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#09090b] px-6 pb-24 pt-36">
+      <main className="min-h-screen bg-[#09090b] px-6 pb-24 pt-10">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold text-white md:text-5xl">Udhëzuesi</h1>
           <p className="mt-5 text-lg leading-relaxed text-[#94A3B8]">

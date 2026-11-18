@@ -177,7 +177,7 @@ function buildExpiryLists(clients, licByClient) {
   };
 }
 
-const TAB_PRODUCT_IDS = ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore"];
+const TAB_PRODUCT_IDS = ["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore", "distributor", "mjekesia", "posta_taxi", "rentacar"];
 
 function buildProductTabBadges(licensesAll, clientsAll) {
   const badges = {};
@@ -261,11 +261,45 @@ const FISKALE_ADMIN_SECTORS = [
   },
 ];
 
+const DISTRIBUTOR_ADMIN_SECTORS = [
+  { num: 1, id: "distribucion_pijesh", label: "Distribucion pijesh", tipet: ["distribucion_pijesh"], keywords: ["pijesh"] },
+  { num: 2, id: "distribucion_cigaresh", label: "Distribucion cigaresh", tipet: ["distribucion_cigaresh"], keywords: ["cigaresh"] },
+  { num: 3, id: "distribucion_ushqimesh", label: "Distribucion ushqimesh", tipet: ["distribucion_ushqimesh"], keywords: ["ushqimesh"] },
+  { num: 4, id: "distribucion_mallrash", label: "Distribucion mallrash", tipet: ["distribucion_mallrash"], keywords: ["mallrash"] },
+  { num: 5, id: "shumice", label: "Shumicë", tipet: ["shumice"], keywords: ["shumice"] },
+];
+
+const MJEKESIA_ADMIN_SECTORS = [
+  { num: 1, id: "klinike", label: "Klinikë", tipet: ["klinike"], keywords: ["klinike"] },
+  { num: 2, id: "ordinance", label: "Ordinancë", tipet: ["ordinance"], keywords: ["ordinance"] },
+  { num: 3, id: "praktike_mjekesore", label: "Praktikë mjekësore", tipet: ["praktike_mjekesore"], keywords: ["praktike"] },
+  { num: 4, id: "stomatologji", label: "Stomatologji", tipet: ["stomatologji"], keywords: ["stomatologji"] },
+  { num: 5, id: "laborator", label: "Laborator", tipet: ["laborator"], keywords: ["laborator"] },
+];
+
+const POSTA_TAXI_ADMIN_SECTORS = [
+  { num: 1, id: "sherbim_postar", label: "Shërbim postar", tipet: ["sherbim_postar"], keywords: ["postar"] },
+  { num: 2, id: "dergesa", label: "Dërgesa", tipet: ["dergesa"], keywords: ["dergesa"] },
+  { num: 3, id: "taxi", label: "Taxi", tipet: ["taxi"], keywords: ["taxi"] },
+  { num: 4, id: "transport", label: "Transport", tipet: ["transport"], keywords: ["transport"] },
+  { num: 5, id: "logjistike", label: "Logjistikë", tipet: ["logjistike"], keywords: ["logjistike"] },
+];
+
+const RENTACAR_ADMIN_SECTORS = [
+  { num: 1, id: "rent_a_car", label: "Rent a Car", tipet: ["rent_a_car"], keywords: ["rent"] },
+  { num: 2, id: "qiradhenie_automjetesh", label: "Qiradhënie automjetesh", tipet: ["qiradhenie_automjetesh"], keywords: ["qira"] },
+  { num: 3, id: "flote_automjetesh", label: "Flotë automjetesh", tipet: ["flote_automjetesh"], keywords: ["flote"] },
+];
+
 function sectorDefsForProduct(product) {
   const p = normalizeProductLine(product || "kafene");
   if (p === "furra") return FURRA_ADMIN_SECTORS;
   if (p === "kontabilisti") return KONTABILISTI_ADMIN_SECTORS;
   if (p === "fiskale") return FISKALE_ADMIN_SECTORS;
+  if (p === "distributor") return DISTRIBUTOR_ADMIN_SECTORS;
+  if (p === "mjekesia") return MJEKESIA_ADMIN_SECTORS;
+  if (p === "posta_taxi") return POSTA_TAXI_ADMIN_SECTORS;
+  if (p === "rentacar") return RENTACAR_ADMIN_SECTORS;
   return CLIENT_SECTORS;
 }
 
@@ -277,6 +311,18 @@ function sectorBucketForClient(product, tipi) {
   if (p === "furra") {
     if (t === "pasticeri") return FURRA_ADMIN_SECTORS[1];
     return FURRA_ADMIN_SECTORS[0];
+  }
+  if (p === "distributor") {
+    return DISTRIBUTOR_ADMIN_SECTORS.find((s) => s.tipet.includes(t)) || DISTRIBUTOR_ADMIN_SECTORS[0];
+  }
+  if (p === "mjekesia") {
+    return MJEKESIA_ADMIN_SECTORS.find((s) => s.tipet.includes(t)) || MJEKESIA_ADMIN_SECTORS[0];
+  }
+  if (p === "posta_taxi") {
+    return POSTA_TAXI_ADMIN_SECTORS.find((s) => s.tipet.includes(t)) || POSTA_TAXI_ADMIN_SECTORS[0];
+  }
+  if (p === "rentacar") {
+    return RENTACAR_ADMIN_SECTORS.find((s) => s.tipet.includes(t)) || RENTACAR_ADMIN_SECTORS[0];
   }
   return sectorForTipi(t);
 }
@@ -788,8 +834,8 @@ async function getClientsGrouped({ product } = {}) {
       tipi_label: labelForTipi(c.tipi),
       kitchen_slug: c.kitchen_slug || "",
       package_tier: c.package_tier,
-      package_label: packageLabel(c.package_tier),
-      package_contents: packageContents(c.package_tier),
+      package_label: p === "distributor" ? "Pako 1 — €250/vit" : p === "mjekesia" || p === "posta_taxi" || p === "rentacar" ? "Së shpejti" : packageLabel(c.package_tier),
+      package_contents: p === "distributor" || p === "mjekesia" || p === "posta_taxi" || p === "rentacar" ? "" : packageContents(c.package_tier),
       status: c.aktiv === false ? "joaktiv" : activeLic ? "aktiv" : "joaktiv",
       sales_today: Number((salesToday.byClient.get(c.id) || 0).toFixed(2)),
       email: c.email || "",

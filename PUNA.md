@@ -1,5 +1,160 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — POSTA / TAXI dhe RENTACAR te paneli
+
+Paneli i super adminit. U shtuan POSTA / TAXI (5 lloje, Së shpejti) dhe RENTACAR (3 lloje, Së shpejti). Lista e programeve tani ka 15. Skedarët: `public/admin/dashboard.html`, `public/admin/dashboard.js`, `src/utils/businessTipi.js`, `src/utils/productLine.js`, `src/services/superAdminDashboardService.js`, `src/routes/super.js`, `src/services/licenseService.js`, `supabase/migrations/083_distributor_mjekesia_tipi.sql`. Faqja e internetit nuk u prek. SQL-ja nuk u ekzekutua. Pa build. Pa git.
+
+## 2026-11-18 — DISTRIBUTOR dhe MJEKËSIA te paneli
+
+Paneli i super adminit. Skedarët: `public/admin/dashboard.html`, `public/admin/dashboard.js`, `src/utils/businessTipi.js`, `src/utils/productLine.js`, `src/services/superAdminDashboardService.js`, `src/routes/super.js`, `src/services/licenseService.js`, `supabase/migrations/083_distributor_mjekesia_tipi.sql`. DISTRIBUTOR: 5 lloje dhe Pako 1 €250/vit. MJEKËSIA: 5 lloje dhe «Së shpejti». Faqja e internetit nuk u prek. SQL-ja nuk u ekzekutua në databazë. Pa build. Pa git.
+
+## 2026-11-18 — Çmimet ndërrojnë me programin
+
+`website/src/components/Pricing.tsx`, tekstet, dhe `website/next.config.ts`. Kur zgjedh programin, dalin paketat e atij programi dhe emri lart. Poshtë është tabela Llogaria: 1 projekt, 2 projekte, dhe sa projekte (numri). Shuma është çmimi i pakos herë sa. Mjekësia, Posta dhe Rentacar mbeten «Së shpejti». Faqja te 127.0.0.1 tani përgjigjet kur zgjedh. E prova: HOTEL doli €150, €300, €400. Pa build. Pa git.
+
+## 2026-11-18 — Ekrani i ballinës lëviz përsëri
+
+`website/src/components/HeroScreens.tsx`. Pamjet brenda ekranit (Arka, Ditari, Raportet e të tjerat) hyjnë përsëri me lëvizje. Ndërrohen vetë çdo pak sekonda. Pa build. Pa git.
+
+## 2026-11-18 — Rreshti Ballina në mes
+
+`website/src/components/Navbar.tsx`. Rreshti Ballina, Produktet, Fiskalizimi, Si Funksionon, Çmimet, Pyetjet, Kontakti, Udhëzuesi është në mes të faqes. Logoja mbetet majtas. Pa build. Pa git.
+
+## 2026-11-18 — Security si kartat e tjera
+
+`website/src/data/produktet.ts`, vetëm pikat e kartës te Security. Në ballinë mbetën 6: Pikat e rojes, Ndërrimet, Raporti i natës, Hyrja dhe dalja, Incidentet, Orari i rojes. Pakoja €250 mbeti e plotë. Pa build. Pa git.
+
+## 2026-11-18 — Menyja qëndron, ballina në qoshe
+
+Përshkrimi i ballinës u kthye majtas. Rreshti Ballina dhe Produktet mbetet poshtë logos dhe nuk qëndron mbi tekstin kur zbret faqja. Pa build. Pa git.
+
+## 2026-11-18 — Përshkrimi në mes, më i trashë
+
+`website/src/components/Hero.tsx`. Titulli dhe përshkrimi janë në mes, jo në qoshe. Përshkrimi është i trashë. Pa build. Pa git.
+
+## 2026-11-18 — Ballina nuk del bosh
+
+Teksti dhe fotoja e ballinës nisin të dukshme. Nuk mbeten të fshehura. E pashë: «Sistemi POS për çdo biznes» dhe fotoja e arkës dalin. Pa build. Pa git.
+
+## 2026-11-18 — Fotot me përshkrime u kthyen
+
+Kartat e Mjekësisë, Postës dhe Rentacarit kishin mbetur pa pikat nën foto. U kthyen përshkrimet. «Së shpejti» mbetet shtesë, jo në vend të tyre. Distributor mban foton me 6 përshkrimet; 18 pikat janë te pakoja. Pa build. Pa git.
+
+## 2026-11-18 — Menyja një rresht poshtë
+
+`website/src/components/Navbar.tsx`. Ballina dhe lidhjet pas saj zbritën një rresht, nën logon R Revolution POS. Ballina e faqes dhe faqet e produkteve fillojnë një rresht më poshtë. Pa build. Pa git.
+
+## 2026-11-18 — Të dhënat në karta
+
+Në ballinë dilnin pikat e vjetra. Tani Distributor tregon Pako 1, €250/vit dhe 18 pikat. Mjekësia, Posta / Taxi dhe Rentacar tregojnë «Së shpejti — Kontaktoni për më shumë». Produktet e tjera nuk u prekën. Pa build. Pa git.
+
+## 2026-11-18 — Distributor, Mjekësia, Posta/Taxi, Rentacar
+
+Katër produktet ishin në listë me pako bosh («skedat nuk u lexuan»). U ndryshuan vetëm ato. Produktet e tjera mbetën. Pa build. Pa git. Nuk është live.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/data/produktet.ts` | Distributor: 1 pako €250/vit, 18 pika, spiashpejti false. Mjekësia, Posta / Taxi, Rentacar: pa pako, spiashpejti true |
+| `website/src/components/FaqjaProduktit.tsx` | Kur është së shpejti: «Së shpejti — Kontaktoni për më shumë» dhe butoni Kontaktoni |
+| `website/src/components/Pricing.tsx` | E njëjta gjë te çmimet. Emri POSTA / TAXI |
+
+## 2026-11-18 — Multi Arka te pakoja e fundit
+
+`website/src/data/produktet.ts`. Te pakoja e fundit e Hotelit, Marketit, Dyqaneve dhe Butikut u shtua «Multi Arka (çdo arkë ka POS ID të vetën)», njësoj si te Kafene. Kafene nuk u prek. Pakot e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Security: vetëm emrat
+
+`website/src/data/produktet.ts`, `slug: "security"`. Te «Çka bën» dhe te Pako 1 u hoqën shpjegimet në kllapa. Mbetën vetëm emrat: Pasqyra, Punonjësit, Lokacionet, GPS, Evidenca, Produktet, Pajisjet, Blerjet, Furnitorët, Faturat, QR Kodet, Barkodet, Raportet, Raporte të avancuara, Ditari, AI, Arka, Kuponët, Audit, Bllok letrë, Fiskalizimi, Licenca, Cilësimet, Kontabilisti, Telefoni i pronarit, Telefoni i punonjësit, SOS, Automjetet, Njoftime urgjente. Çmimi mbeti €250 në vit. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Security: veçoritë e shkurtra
+
+`website/src/data/produktet.ts`, `slug: "security"`. «Çka bën» dhe pikat e kartës u zëvendësuan me 29 tekstet e shkurtra. Pako 1 mbeti €250 në vit. Përshkrimi, 7 veprimtaritë dhe produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Security: 1 pako
+
+`website/src/data/produktet.ts`, `slug: "security"`. Hyrja u ndërrua. Veprimtaritë u bënë 7: siguri, transport, ndërtim, pastrim, mirëmbajtje, magazinim, marketing në terren. Posta nuk u shtua. Mbeti vetëm Pako 1, €250 në vit, me 24 skedat dhe telefonin, SOS, automjetet dhe njoftimin. U hoqën Roja €150, Objektet €220 dhe E plotë €300. Produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Kontabilisti: 1 pako
+
+`website/src/data/produktet.ts`, `slug: "kontabilisti"`. Hyrja u ndërrua me përshkrimin e ri. Paketat u bënë vetëm Pako 1, €220 në vit: 11 skedat dhe Njoftime Urgjente. U hoqën Librat €150, Muaji €220 dhe ATK €300. Titulli, bizneset dhe produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Furra: 2 pako
+
+`website/src/data/produktet.ts`, rreshtat e `slug: "furra"`, vetëm `paketat`. Pako 1 €150 në vit: Arka (Kasa), Produktet, Kuponët, Ditari, Raportet, Audit, Printer & TVSh, Punonjësit, Blloku i letrës, Licenca, Lokal & biznesi, Fiskalizimi, Pasqyra, Importo Produkte, Stoku, QR Kodet, Cloud & linke, Blerjet, Furnitorët. Pako 2 €220 në vit, më e popullarizuara: Gjithçka në Pako 1, Raporte të avancuara, Kontabilisti, AI, Faqja publike. Hyrja, bizneset dhe produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Dyqane dhe Barnatore: 3 pako
+
+`website/src/data/produktet.ts`. Dyqani kaloi nga 4 pako në 3. Barnatorja kaloi nga 2 pako në 3. Çmimet: Pako 1 €150, Pako 2 €220, Pako 3 €250 në vit. Te Dyqani u shkrua butoni Vagë. Te Barnatorja u shkrua skeda Skadime dhe butoni Vagë. Skadime është te Pako 2. Produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Butika dhe Argjendari: 3 pako
+
+`website/src/data/produktet.ts`. Butiku dhe Argjendaria kaluan nga 4 pako në 3: Pako 1 €150, Pako 2 €220, Pako 3 €250 në vit. Skedat janë ato që dha Naseri. Te Argjendaria u shkrua butoni Vagë te përshkrimi dhe te «Çka bën». Butiku nuk e ka. Produktet e tjera nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Market: Cloud dhe linke te Pako 3
+
+`website/src/data/produktet.ts`. Te Pako 3 e Marketit, «Cloud» u bë «Cloud dhe linke (lidh pronarin me kamarierët në telefon, faqen publike dhe porositë online)», njësoj si te Hoteli. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Market: raportet te Pako 1
+
+`website/src/data/produktet.ts`. Te Marketi, «Raportet» u hoq nga Pako 3. Te Pako 1 u vendosën: Raporti X (Modi X), Raporti Z Fiskal, Raport Periodik, Raport i shkurtër periodik, Raporti mujor (memoria ATK), Përmbledhje Ditore. «Raporte të avancuara» mbeti te Pako 4. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Kafene dhe Hotel: 6 raportet te Pako 1
+
+`website/src/data/produktet.ts`. Te Pako 1 e Kafenesë dhe e Hotelit u shtuan: Raporti X (Modi X), Raporti Z Fiskal, Raport Periodik, Raport i shkurtër periodik, Raporti mujor (memoria ATK), Përmbledhje Ditore. Fjala «Raportet» u hoq nga Pako 2, sepse këto gjashtë janë te Pako 1. «Raporte të avancuara» mbeti te pakoja e lartë. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Fiskalizim: 15 skedat e programit
+
+`website/src/data/produktet.ts`, Pako 1 e Fiskalizimit. U hoqën emrat që programi nuk i ka. Mbetën 15 skedat e programit: Arka, Produktet, Kuponët, Ditari, Raporti X, Raporti Z, Periodik, Audit, Printeri, Punonjësit, Blloku i letrës, Licenca, Lokal & biznesi, Rivendos, Cilësimet SEF. Çmimi mbeti €150 në vit. Marketi nuk u prek. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Market dhe Fiskalizim: pakot
+
+`website/src/data/produktet.ts`. Marketi tani ka 4 pako: €150, €180, €250, €350 në vit. Fiskalizimi ka vetëm Pako 1, €150 në vit. Skedat janë ato që dha Naseri. Kafene dhe Hoteli nuk u prekën. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Hotel: 3 pakot
+
+`website/src/data/produktet.ts`. Hoteli tani ka Pako 1 €150, Pako 2 €300, Pako 3 €400 në vit. Skedat janë ato që dha Naseri. «QR Kodetloud» u nda në QR Kodet dhe Cloud dhe linke. Kafene nuk u prek. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Kafene: 4 pakot
+
+`website/src/data/produktet.ts`. Pakot e Kafenesë u quajtën Pako 1–4. Çmimet mbetën €150, €180, €220, €250. Pikat janë skedat që dha Naseri. Hoteli nuk u prek, sepse lista e Hotelit nuk erdhi. Pa build. Pa git. Nuk është live.
+
+## 2026-11-18 — Kafene: pikat si në foto
+
+`website/src/data/produktet.ts` dhe `website/src/i18n/produktet-gjuhe.ts`. Pastiçeri u quajt Ëmbëltore. Katering u quajt Gjelltore. Ushqimore u hoq. U shtuan Doner / Kebab, Fish restaurant dhe Sushi bar. Emrat u rregulluan: Restorant, Bar, Lounge bar, Fast food. Pa git. Nuk është live.
+
+## 2026-11-18 — Marketi: 8 llojet e dyqanit
+
+`website/src/data/produktet.ts` dhe `website/src/i18n/produktet-gjuhe.ts`. Te Marketi pikat u rregulluan si në program: Mini-market, Market, Supermarket, Dyqan ushqimor, Pemë dhe Perime, Mishtore, Bulmetore, Peshkatore. Pa git. Nuk është live.
+
+## 2026-11-18 — Butika: kategoritë nga fotoja
+
+`website/src/data/produktet.ts` dhe `website/src/i18n/produktet-gjuhe.ts`. Te Butika u shtuan Veshje, Këpucë, Çanta, Aksesore, Bebe Shop, Kozmetikë, Parfumeri, Syze, Lëkurë, Sportive. Të vjetrat mbetën. Pa git. Nuk është live.
+
+## 2026-11-18 — Argjendaria pa Dyqane ari dhe Stoli
+
+`website/src/data/produktet.ts` dhe `website/src/i18n/produktet-gjuhe.ts`. Te Argjendaria u hoqën «Dyqane ari» dhe «Stoli». Mbetën Argjendari, Orë, Bizhuteri, Gurë të çmuar. Pa git. Nuk është live.
+
+## 2026-11-17 — Dyqanet: përshkrimi dhe kategoritë
+
+`website/src/data/produktet.ts` dhe `website/src/i18n/produktet-gjuhe.ts`. Titulli u bë «Sistemi për çdo lloj dyqani». Përshkrimi thotë se është i përgjithshëm dhe përshtatet. Pikat janë 12 kategoritë e Dyqaneve: Shtëpi & Dekor, Shtepiake, Librari & Kancelari, Teknologji & Elektronikë, Auto-Pjesë & Vegla, Mobilje, Tepih & Perde, Kioska, Sallone, Tekstil shtëpie, Bagazhë & Valixhe, Dhurata. Pa git. Nuk është live.
+
+## 2026-11-17 — Paketat sipas kodit të programeve
+
+Vetëm `website/src/data/produktet.ts`. Pikat e çdo pakoje u zëvendësuan me skedat që programi i hap vërtet. Çmimet mbetën. Pa build. Pa git. Nuk është live. Nuk del në telefon.
+
+KAFENE: Basic, Standard, Pro, Full. Ditari vetëm te Full. AI nuk hapet në asnjë pako.
+HOTEL: Bazik, Standard, Premium. Shërbimet dhe Promocionet nga Standard. QR, Kontabilisti, AI dhe Raportet e avancuara vetëm te Premium.
+MARKET: 5 pako. Stoku nga Pako 2. Ditari nga Pako 3. AI nga Pako 4. Kontrollet dhe Detyra vetëm te Pako 5.
+FURRA: dy pako. AI vetëm te Pako me AI.
+DYQANE, BUTIKA, ARGJENDARI: të njëjtat 4 pako sipas skedave.
+BARNATORE: Pako 1 dhe Pako 2. AI vetëm te Pako 2.
+FISKALIZIM, KONTABILISTI, SECURITY: tri çmime, por kodi nuk i mbyll skedat. Të njëjtat skeda në të tria.
+DISTRIBUTOR, MJEKËSIA, POSTA/TAXI, RENTACAR: nuk janë në këtë kompjuter. Nuk u shkruan skeda të shpikura.
+
+| Skedar | Ndryshimi |
+|--------|-----------|
+| `website/src/data/produktet.ts` | Pikat e pakove sipas kodit. Çmimet të njëjta. |
+
 ## 2026-11-17 — Udhëzuesi te Super Admini
 
 Te Master Admini, pas Cilësimeve, u shtua Udhëzuesi. Gjeneron një udhëzues për çdo projekt dhe për çdo pako. 15 projekte, 49 pako. Pakoja e vogël nuk i merr pjesët e pakos së madhe. Pa build. Pa git. Nuk është live. Nuk del në telefon derisa të vihet serveri.

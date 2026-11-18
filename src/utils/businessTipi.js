@@ -45,6 +45,36 @@ const HOTEL_REGISTER_TIPI = [
 /** Tipet HOTEL (të reja + legacy hotel_restorant / ville / bujtinë). */
 const HOTEL_TIPI = [...HOTEL_REGISTER_TIPI, "hotel_restorant", "ville", "bujtine"];
 
+const DISTRIBUTOR_REGISTER_TIPI = [
+  "distribucion_pijesh",
+  "distribucion_cigaresh",
+  "distribucion_ushqimesh",
+  "distribucion_mallrash",
+  "shumice",
+];
+
+const MJEKESIA_REGISTER_TIPI = [
+  "klinike",
+  "ordinance",
+  "praktike_mjekesore",
+  "stomatologji",
+  "laborator",
+];
+
+const POSTA_TAXI_REGISTER_TIPI = [
+  "sherbim_postar",
+  "dergesa",
+  "taxi",
+  "transport",
+  "logjistike",
+];
+
+const RENTACAR_REGISTER_TIPI = [
+  "rent_a_car",
+  "qiradhenie_automjetesh",
+  "flote_automjetesh",
+];
+
 /**
  * Tipet e lejuara në DB — përfshin edhe tipet e vjetra (klientë ekzistues).
  * Regjistrimi i ri POS përdor POS_REGISTER_TIPI; MARKET përdor MARKET_REGISTER_TIPI.
@@ -76,6 +106,10 @@ const ADMIN_CLIENT_TIPI = [
   "berber",
   "sallon_bukurie",
   "tjeter",
+  ...DISTRIBUTOR_REGISTER_TIPI,
+  ...MJEKESIA_REGISTER_TIPI,
+  ...POSTA_TAXI_REGISTER_TIPI,
+  ...RENTACAR_REGISTER_TIPI,
 ];
 
 const ALLOWED_CLIENT_TIPI = [...ADMIN_CLIENT_TIPI];
@@ -413,6 +447,24 @@ const TIPI_LABELS = {
   berber: "Berber",
   sallon_bukurie: "Sallon Bukurie",
   tjeter: "Tjetër",
+  distribucion_pijesh: "Distribucion pijesh",
+  distribucion_cigaresh: "Distribucion cigaresh",
+  distribucion_ushqimesh: "Distribucion ushqimesh",
+  distribucion_mallrash: "Distribucion mallrash",
+  shumice: "Shumicë",
+  klinike: "Klinikë",
+  ordinance: "Ordinancë",
+  praktike_mjekesore: "Praktikë mjekësore",
+  stomatologji: "Stomatologji",
+  laborator: "Laborator",
+  sherbim_postar: "Shërbim postar",
+  dergesa: "Dërgesa",
+  taxi: "Taxi",
+  transport: "Transport",
+  logjistike: "Logjistikë",
+  rent_a_car: "Rent a Car",
+  qiradhenie_automjetesh: "Qiradhënie automjetesh",
+  flote_automjetesh: "Flotë automjetesh",
 };
 
 function normalizeClientTipi(raw) {
@@ -477,6 +529,10 @@ module.exports = {
   MARKET_TIPI,
   HOTEL_REGISTER_TIPI,
   HOTEL_TIPI,
+  DISTRIBUTOR_REGISTER_TIPI,
+  MJEKESIA_REGISTER_TIPI,
+  POSTA_TAXI_REGISTER_TIPI,
+  RENTACAR_REGISTER_TIPI,
   ADMIN_CLIENT_TIPI,
   ALLOWED_CLIENT_TIPI,
   HOSPITALITY_TIPET,

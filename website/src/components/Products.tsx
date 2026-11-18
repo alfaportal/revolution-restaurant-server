@@ -26,7 +26,7 @@ export default function Products() {
           return (
           <motion.div
             key={product.slug}
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.45, delay: (index % 6) * 0.05 }}
@@ -42,6 +42,9 @@ export default function Products() {
               />
               <h3 className="mt-4 font-semibold text-white">{product.emri}</h3>
               <p className="mt-1 text-sm text-[#94A3B8]">{product.pershkrimi}</p>
+              {product.spiashpejti ? (
+                <p className="mt-3 text-sm font-semibold text-white">Së shpejti — Kontaktoni për më shumë</p>
+              ) : null}
               <ul className="mt-4 flex flex-col gap-2">
                 {product.pikat.map((pika) => (
                   <li key={pika} className="text-sm text-zinc-300">

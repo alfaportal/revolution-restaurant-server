@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import logo from "@/assets/revolution-marka.png";
 import { grupet, produktiNgaSlug } from "@/data/produktet";
@@ -16,30 +16,49 @@ export default function Navbar() {
     { href: "/#kontakti", label: t.nav.kontakti },
     { href: "/udhezuesi", label: t.nav.udhezuesi },
   ];
-  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [produktetHapur, setProduktetHapur] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors ${
-        scrolled || open || produktetHapur ? "bg-[#0A0A0F]/90 backdrop-blur-md" : "bg-transparent"
-      }`}
-    >
-      <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6">
+    <header className="relative z-50 bg-[#0A0A0F]">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex h-24 items-center justify-between">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <img src={logo.src} alt="" className="h-16 w-auto" />
           <span className="text-xl font-semibold tracking-wide text-white">Revolution POS</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <div className="flex items-center gap-2">
+          <Gjuhet />
+          <div className="hidden items-center gap-3 md:flex">
+            <a
+              href="/#kontakti"
+              className="rounded-full border border-white/40 bg-transparent px-4 py-2 text-sm text-white transition-colors duration-200 hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
+            >
+              {t.nav.kycu}
+            </a>
+            <a
+              href="/#kontakti"
+              className="rounded-full bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
+            >
+              {t.nav.fillo}
+            </a>
+          </div>
+          <button
+            type="button"
+            className="flex flex-col gap-1.5 lg:hidden"
+            aria-label={open ? t.nav.mbyll : t.nav.hap}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span className="block h-0.5 w-6 bg-white" />
+            <span className="block h-0.5 w-6 bg-white" />
+            <span className="block h-0.5 w-6 bg-white" />
+          </button>
+        </div>
+        </div>
+
+        <nav className="hidden items-center justify-center gap-6 pb-4 lg:flex">
           <a
             href="/#ballina"
             className="text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"
@@ -98,36 +117,6 @@ export default function Navbar() {
             </a>
           ))}
         </nav>
-
-        <div className="flex items-center gap-2">
-          <Gjuhet />
-          <div className="hidden items-center gap-3 md:flex">
-            <a
-              href="/#kontakti"
-              className="rounded-full border border-white/40 bg-transparent px-4 py-2 text-sm text-white transition-colors duration-200 hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
-            >
-              {t.nav.kycu}
-            </a>
-            <a
-              href="/#kontakti"
-              className="rounded-full bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
-            >
-              {t.nav.fillo}
-            </a>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="flex flex-col gap-1.5 lg:hidden"
-          aria-label={open ? t.nav.mbyll : t.nav.hap}
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-        >
-          <span className="block h-0.5 w-6 bg-white" />
-          <span className="block h-0.5 w-6 bg-white" />
-          <span className="block h-0.5 w-6 bg-white" />
-        </button>
       </div>
 
       {open ? (

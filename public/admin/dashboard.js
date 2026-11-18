@@ -6,7 +6,7 @@ let sectorsCache = [];
 let openSectorIds = new Set();
 /** Produkti aktiv: kafene (POS), security, ose hotel (bridge te serveri i veçantë) */
 let currentProduct = localStorage.getItem("rip_admin_product") || "kafene";
-if (!["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore"].includes(currentProduct)) {
+if (!["kafene", "security", "hotel", "market", "furra", "kontabilisti", "fiskale", "butika", "dyqanet", "argjendari", "barnatore", "distributor", "mjekesia", "posta_taxi", "rentacar"].includes(currentProduct)) {
   currentProduct = "kafene";
 }
 
@@ -66,6 +66,36 @@ const FALLBACK_KONTABILISTI_SECTORS = [
   { num: 1, id: "kontabiliste", label: "Kontabilistë / zyra kontabiliteti", keywords: ["kontabilist"], clients: [] },
 ];
 
+const FALLBACK_DISTRIBUTOR_SECTORS = [
+  { num: 1, id: "distribucion_pijesh", label: "Distribucion pijesh", keywords: ["pijesh"], clients: [] },
+  { num: 2, id: "distribucion_cigaresh", label: "Distribucion cigaresh", keywords: ["cigaresh"], clients: [] },
+  { num: 3, id: "distribucion_ushqimesh", label: "Distribucion ushqimesh", keywords: ["ushqimesh"], clients: [] },
+  { num: 4, id: "distribucion_mallrash", label: "Distribucion mallrash", keywords: ["mallrash"], clients: [] },
+  { num: 5, id: "shumice", label: "Shumicë", keywords: ["shumice"], clients: [] },
+];
+
+const FALLBACK_MJEKESIA_SECTORS = [
+  { num: 1, id: "klinike", label: "Klinikë", keywords: ["klinike"], clients: [] },
+  { num: 2, id: "ordinance", label: "Ordinancë", keywords: ["ordinance"], clients: [] },
+  { num: 3, id: "praktike_mjekesore", label: "Praktikë mjekësore", keywords: ["praktike"], clients: [] },
+  { num: 4, id: "stomatologji", label: "Stomatologji", keywords: ["stomatologji"], clients: [] },
+  { num: 5, id: "laborator", label: "Laborator", keywords: ["laborator"], clients: [] },
+];
+
+const FALLBACK_POSTA_TAXI_SECTORS = [
+  { num: 1, id: "sherbim_postar", label: "Shërbim postar", keywords: ["postar"], clients: [] },
+  { num: 2, id: "dergesa", label: "Dërgesa", keywords: ["dergesa"], clients: [] },
+  { num: 3, id: "taxi", label: "Taxi", keywords: ["taxi"], clients: [] },
+  { num: 4, id: "transport", label: "Transport", keywords: ["transport"], clients: [] },
+  { num: 5, id: "logjistike", label: "Logjistikë", keywords: ["logjistike"], clients: [] },
+];
+
+const FALLBACK_RENTACAR_SECTORS = [
+  { num: 1, id: "rent_a_car", label: "Rent a Car", keywords: ["rent"], clients: [] },
+  { num: 2, id: "qiradhenie_automjetesh", label: "Qiradhënie automjetesh", keywords: ["qira"], clients: [] },
+  { num: 3, id: "flote_automjetesh", label: "Flotë automjetesh", keywords: ["flote"], clients: [] },
+];
+
 const PRODUCT_LABELS = {
   kafene: "RESTAURANT",
   security: "Security",
@@ -78,6 +108,10 @@ const PRODUCT_LABELS = {
   dyqanet: "DYQANE",
   argjendari: "ARGJENDARI",
   barnatore: "BARNATORE",
+  distributor: "DISTRIBUTOR",
+  mjekesia: "MJEKËSIA",
+  posta_taxi: "POSTA / TAXI",
+  rentacar: "RENTACAR",
 };
 
 /** REVOLUTION MARKET — 8 kategori dyqanesh. */
@@ -115,6 +149,10 @@ function ensureAllSectors(apiSectors) {
   else if (currentProduct === "kontabilisti") fb = FALLBACK_KONTABILISTI_SECTORS;
   else if (currentProduct === "furra") fb = FALLBACK_FURRA_SECTORS;
   else if (currentProduct === "fiskale") fb = FALLBACK_FISKALE_SECTORS;
+  else if (currentProduct === "distributor") fb = FALLBACK_DISTRIBUTOR_SECTORS;
+  else if (currentProduct === "mjekesia") fb = FALLBACK_MJEKESIA_SECTORS;
+  else if (currentProduct === "posta_taxi") fb = FALLBACK_POSTA_TAXI_SECTORS;
+  else if (currentProduct === "rentacar") fb = FALLBACK_RENTACAR_SECTORS;
   return ensureSectors(apiSectors, fb);
 }
 
@@ -162,6 +200,8 @@ function formatSqDate(iso) {
 function pakoLabel(tier, productLine) {
   const t = String(tier || "").trim();
   const pl = productLine || drawerProduct || currentProduct;
+  if (pl === "distributor") return "Pako 1 — €250/vit";
+  if (pl === "mjekesia" || pl === "posta_taxi" || pl === "rentacar") return "Së shpejti";
   if (pl === "market") return PAKO_LABELS_MARKET[t] || t || "—";
   if (pl === "hotel") return PAKO_LABELS_HOTEL[normalizeHotelPackageTier(t)] || t || "—";
   return PAKO_LABELS[t] || t || "—";
@@ -188,6 +228,10 @@ function presenceHeadline(c) {
 }
 
 function drawerUrlTipi(c, product) {
+  if (product === "distributor") return "distributor";
+  if (product === "mjekesia") return "mjekesia";
+  if (product === "posta_taxi") return "posta_taxi";
+  if (product === "rentacar") return "rentacar";
   if (product === "furra") return "furra";
   if (product === "kontabilisti") return "kontabilist";
   if (product === "fiskale") return "fiskale";
@@ -358,6 +402,10 @@ function updateProductUiHints() {
       else if (currentProduct === "kontabilisti") n = FALLBACK_KONTABILISTI_SECTORS.length;
       else if (currentProduct === "furra") n = FALLBACK_FURRA_SECTORS.length;
       else if (currentProduct === "fiskale") n = FALLBACK_FISKALE_SECTORS.length;
+      else if (currentProduct === "distributor") n = FALLBACK_DISTRIBUTOR_SECTORS.length;
+      else if (currentProduct === "mjekesia") n = FALLBACK_MJEKESIA_SECTORS.length;
+      else if (currentProduct === "posta_taxi") n = FALLBACK_POSTA_TAXI_SECTORS.length;
+      else if (currentProduct === "rentacar") n = FALLBACK_RENTACAR_SECTORS.length;
       sub.textContent = `${n} kategori — gjithmonë të dukshme`;
     }
   }
@@ -381,6 +429,10 @@ function setProductTab(product, { reload = true } = {}) {
     dyqanet: 1,
     argjendari: 1,
     barnatore: 1,
+    distributor: 1,
+    mjekesia: 1,
+    posta_taxi: 1,
+    rentacar: 1,
   };
   currentProduct = allowed[product] ? product : "kafene";
   localStorage.setItem("rip_admin_product", currentProduct);
@@ -403,6 +455,10 @@ function setProductTab(product, { reload = true } = {}) {
       dyqanet: "dyqanet",
       argjendari: "argjendari",
       barnatore: "barnatore",
+      distributor: "distributor",
+      mjekesia: "mjekesia",
+      posta_taxi: "posta_taxi",
+      rentacar: "rentacar",
     };
     nc.value = tabToProgram[currentProduct] || "pos";
     syncNewClientForm();
@@ -428,6 +484,10 @@ function syncNewClientForm() {
   show(".nc-tipi-butika", program === "butika");
   show(".nc-tipi-argjendari", program === "argjendari");
   show(".nc-tipi-dyqanet", program === "dyqanet");
+  show(".nc-tipi-distributor", program === "distributor");
+  show(".nc-tipi-mjekesia", program === "mjekesia");
+  show(".nc-tipi-posta_taxi", program === "posta_taxi");
+  show(".nc-tipi-rentacar", program === "rentacar");
   const pkgField = document.getElementById("nc-package")?.closest(".field");
   if (pkgField) pkgField.classList.toggle("hidden", program === "market");
   populateNcPackageOptions(program);
@@ -475,6 +535,10 @@ function ncSelectedTipi(program) {
   if (program === "argjendari") return document.getElementById("nc-tipi-argjendari")?.value || "Argjendari";
   if (program === "dyqanet") return document.getElementById("nc-tipi-dyqanet")?.value || "Shtëpi & Dekor";
   if (program === "barnatore") return program;
+  if (program === "distributor") return document.getElementById("nc-tipi-distributor")?.value || "distribucion_pijesh";
+  if (program === "mjekesia") return document.getElementById("nc-tipi-mjekesia")?.value || "klinike";
+  if (program === "posta_taxi") return document.getElementById("nc-tipi-posta_taxi")?.value || "sherbim_postar";
+  if (program === "rentacar") return document.getElementById("nc-tipi-rentacar")?.value || "rent_a_car";
   return document.getElementById("nc-tipi")?.value || "kafene";
 }
 
@@ -531,6 +595,10 @@ function populateNcPackageOptions(program) {
     opts.push(["standard", "Standard"], ["premium", "Premium"]);
   } else if (program === "fiskale") {
     opts.push(["standard", "Standard"]);
+  } else if (program === "distributor") {
+    opts.push(["pako_3", "Pako 1 — €250/vit"]);
+  } else if (program === "mjekesia" || program === "posta_taxi" || program === "rentacar") {
+    opts.push(["pako_3", "Së shpejti"]);
   } else {
     opts.push(["pako_5", "Pako 4"]);
   }
@@ -1012,6 +1080,8 @@ function selectDrawerPakoOpts(productLine, tier) {
 }
 
 function drawerPakoOpts(productLine) {
+  if (productLine === "distributor") return [["pako_3", "Pako 1 — €250/vit"]];
+  if (productLine === "mjekesia" || productLine === "posta_taxi" || productLine === "rentacar") return [["pako_3", "Së shpejti"]];
   if (productLine === "market") return DRAWER_PAKO_OPTS_MARKET;
   if (productLine === "hotel") return DRAWER_PAKO_OPTS_HOTEL;
   return DRAWER_PAKO_OPTS;
@@ -1201,6 +1271,36 @@ const DRAWER_HOTEL_TIPI_OPTS = [
   ["ville_me_qira", "Villa"],
   ["hostel", "Hostel"],
   ["resort", "Resort"],
+];
+
+const DRAWER_DISTRIBUTOR_TIPI_OPTS = [
+  ["distribucion_pijesh", "Distribucion pijesh"],
+  ["distribucion_cigaresh", "Distribucion cigaresh"],
+  ["distribucion_ushqimesh", "Distribucion ushqimesh"],
+  ["distribucion_mallrash", "Distribucion mallrash"],
+  ["shumice", "Shumicë"],
+];
+
+const DRAWER_MJEKESIA_TIPI_OPTS = [
+  ["klinike", "Klinikë"],
+  ["ordinance", "Ordinancë"],
+  ["praktike_mjekesore", "Praktikë mjekësore"],
+  ["stomatologji", "Stomatologji"],
+  ["laborator", "Laborator"],
+];
+
+const DRAWER_POSTA_TAXI_TIPI_OPTS = [
+  ["sherbim_postar", "Shërbim postar"],
+  ["dergesa", "Dërgesa"],
+  ["taxi", "Taxi"],
+  ["transport", "Transport"],
+  ["logjistike", "Logjistikë"],
+];
+
+const DRAWER_RENTACAR_TIPI_OPTS = [
+  ["rent_a_car", "Rent a Car"],
+  ["qiradhenie_automjetesh", "Qiradhënie automjetesh"],
+  ["flote_automjetesh", "Flotë automjetesh"],
 ];
 
 const DRAWER_MARKET_TIPI_OPTS = [
@@ -1406,6 +1506,42 @@ async function openClientDetail(id, opts = {}) {
       : product === "market"
         ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
       <label>Tipi i dyqanit (MARKET)<select id="dr-tipi">${selectOpts(DRAWER_MARKET_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
+      : product === "distributor"
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
+      <label>Tipi i biznesit (DISTRIBUTOR)<select id="dr-tipi">${selectOpts(DRAWER_DISTRIBUTOR_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
+      : product === "mjekesia"
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
+      <label>Tipi i biznesit (MJEKËSIA)<select id="dr-tipi">${selectOpts(DRAWER_MJEKESIA_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
+      : product === "posta_taxi"
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
+      <label>Tipi i biznesit (POSTA / TAXI)<select id="dr-tipi">${selectOpts(DRAWER_POSTA_TAXI_TIPI_OPTS, c.tipi)}</select></label>
+      <label>Paketa
+        <div class="nc-input-row">
+          <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-drawer-change-pako">Ndrysho</button>
+        </div>
+      </label>`
+      : product === "rentacar"
+        ? `<label>Adresa<input id="dr-adresa" value="${esc(displayAdresa)}" autocomplete="street-address"></label>
+      <label>Tipi i biznesit (RENTACAR)<select id="dr-tipi">${selectOpts(DRAWER_RENTACAR_TIPI_OPTS, c.tipi)}</select></label>
       <label>Paketa
         <div class="nc-input-row">
           <select id="dr-pako">${selectOpts(drawerPakoOpts(product), c.package_tier)}</select>
@@ -3130,6 +3266,10 @@ async function boot() {
       dyqanet: "dyqanet",
       argjendari: "argjendari",
       barnatore: "barnatore",
+      distributor: "distributor",
+      mjekesia: "mjekesia",
+      posta_taxi: "posta_taxi",
+      rentacar: "rentacar",
     };
     const p = map[e.target.value] || "kafene";
     if (p !== currentProduct) setProductTab(p);
@@ -3143,7 +3283,7 @@ async function boot() {
     ncSlugTouched = true;
     updateNcSlugPreview();
   });
-  ["nc-program", "nc-tipi", "nc-tipi-hotel", "nc-tipi-market", "nc-vepr", "nc-tipi-furra", "nc-tipi-butika", "nc-tipi-argjendari", "nc-tipi-dyqanet"].forEach((id) => {
+  ["nc-program", "nc-tipi", "nc-tipi-hotel", "nc-tipi-market", "nc-vepr", "nc-tipi-furra", "nc-tipi-butika", "nc-tipi-argjendari", "nc-tipi-dyqanet", "nc-tipi-distributor", "nc-tipi-mjekesia", "nc-tipi-posta_taxi", "nc-tipi-rentacar"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", updateNcSlugPreview);
   });
 
@@ -3366,6 +3506,10 @@ async function boot() {
         dyqanet: "dyqanet",
         argjendari: "argjendari",
         barnatore: "barnatore",
+        distributor: "distributor",
+        mjekesia: "mjekesia",
+        posta_taxi: "posta_taxi",
+        rentacar: "rentacar",
       };
       setProductTab(tabMap[program] || "kafene");
       await Promise.all([loadClients().catch(() => null), loadLicenses().catch(() => null)]);

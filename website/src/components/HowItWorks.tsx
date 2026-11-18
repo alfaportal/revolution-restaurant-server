@@ -20,7 +20,7 @@ export default function HowItWorks() {
           <motion.article
             key={step.title}
             className="rounded-2xl border border-[#1E293B] bg-[#0F172A] p-6"
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.45, delay: index * 0.08 }}

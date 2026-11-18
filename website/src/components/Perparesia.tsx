@@ -76,7 +76,7 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
           <motion.article
             key={pika.titulli}
             className="group rounded-2xl border border-[#1E293B] bg-[#0F172A] p-6 transition duration-300 hover:-translate-y-1 hover:border-[#0EA5E9]/50 hover:shadow-[0_0_36px_rgba(14,165,233,0.14)]"
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.45, delay: index * 0.08 }}

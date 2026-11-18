@@ -33,7 +33,7 @@ export default function FaqjaProduktit({ produkti: burimi }: { produkti: Produkt
   return (
     <>
       <Navbar />
-      <main className="bg-[#09090b] pt-28">
+      <main className="bg-[#09090b] pt-10">
         <section className="px-6 pb-16">
           <div className="mx-auto max-w-3xl">
             <p className="text-sm font-medium tracking-[0.2em] text-[#0EA5E9]">{produkti.emri}</p>
@@ -87,45 +87,59 @@ export default function FaqjaProduktit({ produkti: burimi }: { produkti: Produkt
 
         <section className="px-6 py-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-3xl font-bold text-white">{t.paketat.titulli}</h2>
-            <p className="mt-3 text-center text-sm text-[#94A3B8]">{t.paketat.nentitulli}</p>
-            <div
-              className={`mt-8 grid grid-cols-1 gap-4 ${produkti.paketat.length >= 5 ? "md:grid-cols-2 xl:grid-cols-3" : produkti.paketat.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : produkti.paketat.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
-            >
-              {produkti.paketat.map((paketa) => (
-                <article
-                  key={paketa.emri}
-                  className={`rounded-2xl border bg-[#12121A] p-6 ${paketa.popullor ? "border-[#0EA5E9]" : "border-[#0EA5E9]/15"}`}
+            {burimi.spiashpejti ? (
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-white">Së shpejti — Kontaktoni për më shumë</h2>
+                <Link
+                  href="/#kontakti"
+                  className="mt-8 inline-block rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
                 >
-                  {paketa.popullor ? (
-                    <p className="mb-3 inline-block rounded-full bg-[#0EA5E9] px-3 py-1 text-xs font-semibold text-white">
-                      {t.paketat.popullor}
-                    </p>
-                  ) : null}
-                  <h3 className="text-lg font-semibold text-white">{paketa.emri}</h3>
-                  {paketa.cmimi ? (
-                    <p className="mt-2 text-3xl font-bold text-white">
-                      {paketa.cmimi}
-                      <span className="ml-1 text-base font-medium text-[#94A3B8]">/{t.cmimet.neVit}</span>
-                    </p>
-                  ) : null}
-                  <ul className="mt-5 flex flex-col gap-2">
-                    {paketa.pikat.map((pika) => (
-                      <li key={pika} className="text-sm text-[#94A3B8]">
-                        <span className="text-[#0EA5E9]">✓ </span>
-                        {pika}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href="/#kontakti"
-                    className="mt-6 block rounded-full border border-white/30 py-2.5 text-center text-sm font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
-                  >
-                    {t.paketat.demo}
-                  </Link>
-                </article>
-              ))}
-            </div>
+                  Kontaktoni
+                </Link>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-center text-3xl font-bold text-white">{t.paketat.titulli}</h2>
+                <p className="mt-3 text-center text-sm text-[#94A3B8]">{t.paketat.nentitulli}</p>
+                <div
+                  className={`mt-8 grid grid-cols-1 gap-4 ${produkti.paketat.length >= 5 ? "md:grid-cols-2 xl:grid-cols-3" : produkti.paketat.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : produkti.paketat.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+                >
+                  {produkti.paketat.map((paketa) => (
+                    <article
+                      key={paketa.emri}
+                      className={`rounded-2xl border bg-[#12121A] p-6 ${paketa.popullor ? "border-[#0EA5E9]" : "border-[#0EA5E9]/15"}`}
+                    >
+                      {paketa.popullor ? (
+                        <p className="mb-3 inline-block rounded-full bg-[#0EA5E9] px-3 py-1 text-xs font-semibold text-white">
+                          {t.paketat.popullor}
+                        </p>
+                      ) : null}
+                      <h3 className="text-lg font-semibold text-white">{paketa.emri}</h3>
+                      {paketa.cmimi ? (
+                        <p className="mt-2 text-3xl font-bold text-white">
+                          {paketa.cmimi}
+                          <span className="ml-1 text-base font-medium text-[#94A3B8]">/{t.cmimet.neVit}</span>
+                        </p>
+                      ) : null}
+                      <ul className="mt-5 flex flex-col gap-2">
+                        {paketa.pikat.map((pika) => (
+                          <li key={pika} className="text-sm text-[#94A3B8]">
+                            <span className="text-[#0EA5E9]">✓ </span>
+                            {pika}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href="/#kontakti"
+                        className="mt-6 block rounded-full border border-white/30 py-2.5 text-center text-sm font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
+                      >
+                        {t.paketat.demo}
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
 

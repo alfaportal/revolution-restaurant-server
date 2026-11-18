@@ -53,7 +53,7 @@ export default function Contact() {
       <div className="mx-auto mt-12 flex max-w-5xl flex-col gap-12 md:flex-row">
         <motion.div
           className="flex flex-1 flex-col gap-4"
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 1, y: 0 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5 }}
@@ -86,7 +86,7 @@ export default function Contact() {
           <motion.form
             className="flex flex-1 flex-col gap-4"
             onSubmit={onSubmit}
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5, delay: 0.1 }}

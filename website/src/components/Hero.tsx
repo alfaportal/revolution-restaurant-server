@@ -54,11 +54,9 @@ export default function Hero() {
       {/* ── Main content: BetterStack layout ── */}
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 lg:px-12">
         <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          {/* LEFT SIDE — Text */}
           <div className="max-w-xl">
-            {/* ATK Badge */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-2 backdrop-blur-sm"
@@ -68,9 +66,8 @@ export default function Hero() {
                 {t.hero.badge}
               </span>
             </motion.div>
-            {/* Heading */}
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
               className="text-[clamp(2.5rem,5vw,4.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-white"
@@ -81,9 +78,8 @@ export default function Hero() {
                 {t.hero.rreshti2}
               </span>
             </motion.h1>
-            {/* Subtitle */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.25 }}
               className="mt-6 max-w-md text-[17px] leading-relaxed text-zinc-400"
@@ -91,7 +87,7 @@ export default function Hero() {
               {t.hero.nentitulli}
             </motion.p>
             <motion.form
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.4 }}
               onSubmit={(e) => {
@@ -114,7 +110,7 @@ export default function Hero() {
               </button>
             </motion.form>
             <motion.ul
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.55 }}
               className="mt-8 grid max-w-md grid-cols-1 gap-2 sm:grid-cols-2"
@@ -127,7 +123,7 @@ export default function Hero() {
               ))}
             </motion.ul>
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.7 }}
               className="mt-10 flex items-center gap-10"
@@ -144,7 +140,7 @@ export default function Hero() {
             </motion.div>
           </div>
           <motion.div
-            initial={{ opacity: 0, x: 60 }}
+            initial={{ opacity: 1, x: 0 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.3 }}
             className="relative"
