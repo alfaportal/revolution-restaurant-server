@@ -176,18 +176,18 @@ const PAKO_LABELS = {
 };
 
 const PAKO_LABELS_MARKET = {
-  pako_3: "Pako 1 — Bazik",
-  pako_4: "Pako 2 — Standard",
-  pako_2: "Pako 3 — Profesional",
-  pako_5: "Pako 4 — Biznes + AI",
-  pako_premium: "Pako 5 — Premium",
+  pako_3: "Pako 1",
+  pako_4: "Pako 2",
+  pako_2: "Pako 3",
+  pako_5: "Pako 4",
+  pako_premium: "Pako 4",
 };
 
 /** HOTEL — 3 tier (pako_1…pako_3), përputhet me revolution-hotel-server. */
 const PAKO_LABELS_HOTEL = {
-  pako_1: "Pako 1 — Bazik",
-  pako_2: "Pako 2 — Standard",
-  pako_3: "Pako 3 — Premium",
+  pako_1: "Pako 1",
+  pako_2: "Pako 2",
+  pako_3: "Pako 3",
 };
 
 function formatSqDate(iso) {
@@ -579,28 +579,25 @@ function populateNcPackageOptions(program) {
     opts.push(["pako_3", "Pako 1"], ["pako_4", "Pako 2"], ["pako_2", "Pako 3"], ["pako_5", "Pako 4"]);
   } else if (program === "market") {
     opts.push(
-      ["pako_3", "Pako 1 — Bazik"],
-      ["pako_4", "Pako 2 — Standard"],
-      ["pako_2", "Pako 3 — Profesional"],
-      ["pako_5", "Pako 4 — Biznes + AI"],
-      ["pako_premium", "Pako 5 — Premium"],
+      ["pako_3", "Pako 1"],
+      ["pako_4", "Pako 2"],
+      ["pako_2", "Pako 3"],
+      ["pako_5", "Pako 4"],
     );
   } else if (program === "hotel") {
     opts.push(
-      ["pako_1", "Pako 1 Bazik"],
-      ["pako_2", "Pako 2 Standard"],
-      ["pako_3", "Pako 3 Premium"],
+      ["pako_1", "Pako 1"],
+      ["pako_2", "Pako 2"],
+      ["pako_3", "Pako 3"],
     );
-  } else if (program === "security" || program === "kontabilisti") {
-    opts.push(["standard", "Standard"], ["premium", "Premium"]);
-  } else if (program === "fiskale") {
-    opts.push(["standard", "Standard"]);
+  } else if (program === "security" || program === "kontabilisti" || program === "fiskale") {
+    opts.push(["standard", "Pako 1"]);
   } else if (program === "distributor") {
     opts.push(["pako_3", "Pako 1 — €250/vit"]);
   } else if (program === "mjekesia" || program === "posta_taxi" || program === "rentacar") {
     opts.push(["pako_3", "Së shpejti"]);
   } else {
-    opts.push(["pako_5", "Pako 4"]);
+    opts.push(["pako_1", "Pako 1"], ["pako_2", "Pako 2"], ["pako_3", "Pako 3"]);
   }
   const prev = sel.value;
   sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
@@ -1031,21 +1028,20 @@ const DRAWER_PAKO_OPTS = [
   ["pako_3", "Pako 1"],
   ["pako_4", "Pako 2"],
   ["pako_2", "Pako 3"],
-  ["pako_5", "Pako 4 (AI)"],
+  ["pako_5", "Pako 4"],
 ];
 
 const DRAWER_PAKO_OPTS_MARKET = [
-  ["pako_3", "Pako 1 — Bazik"],
-  ["pako_4", "Pako 2 — Standard"],
-  ["pako_2", "Pako 3 — Profesional"],
-  ["pako_5", "Pako 4 — Biznes + AI"],
-  ["pako_premium", "Pako 5 — Premium"],
+  ["pako_3", "Pako 1"],
+  ["pako_4", "Pako 2"],
+  ["pako_2", "Pako 3"],
+  ["pako_5", "Pako 4"],
 ];
 
 const DRAWER_PAKO_OPTS_HOTEL = [
-  ["pako_1", "Pako 1 Bazik"],
-  ["pako_2", "Pako 2 Standard"],
-  ["pako_3", "Pako 3 Premium"],
+  ["pako_1", "Pako 1"],
+  ["pako_2", "Pako 2"],
+  ["pako_3", "Pako 3"],
 ];
 
 function normalizeHotelPackageTier(tier) {
@@ -1055,7 +1051,7 @@ function normalizeHotelPackageTier(tier) {
     .replace(/\./g, "_")
     .replace(/\s+/g, "_");
   const legacy = {
-    pako_4: "pako_2",
+    pako_4: "pako_3",
     pako_5: "pako_3",
     pako_premium: "pako_3",
     legacy: "pako_1",
@@ -1070,6 +1066,7 @@ function normalizeHotelPackageTier(tier) {
 }
 
 function selectDrawerPakoOpts(productLine, tier) {
+  if (productLine === "market" && (tier === "pako_premium" || tier === "premium")) tier = "pako_5";
   if (productLine === "hotel") {
     const sel = normalizeHotelPackageTier(tier);
     return DRAWER_PAKO_OPTS_HOTEL.map(

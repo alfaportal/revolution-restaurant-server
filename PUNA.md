@@ -816,3 +816,9 @@ Provë: SELECT pas insert → 2 rreshta; `bcrypt.compare` mbi hash-in në DB = t
 
 - Login real kafene + hotel me llogari prod.
 - Plan i ri: redirect hotel te panel hotel-server pa `panel-hotel.html` (**nuk u implementua**).
+
+## 2026-11-18 — Emrat e pakove në panel
+
+- `public/admin/dashboard.js`: u hoqën Bazik, Standard, Premium. MARKET ka Pako 1–4. HOTEL ka Pako 1–3. DYQANE, BUTIKA, ARGJENDARI, BARNATORE kanë Pako 1–3. SECURITY, KONTABILISTI, FISKALIZIM kanë vetëm Pako 1.
+- `src/lib/packages.js`: emrat e shkurtër janë Pako 1, Pako 2, Pako 3, Pako 4.
+- Paneli i ri del vetëm pas deploy. Nuk u bë deploy.

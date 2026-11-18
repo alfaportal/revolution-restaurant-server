@@ -31,7 +31,7 @@ const TIER_LABELS_NEW = Object.freeze({
   pako_1: "Pako 1",
   pako_2: "Pako 2",
   pako_3: "Pako 3",
-  pako_4: "Pako 4 (AI)",
+  pako_4: "Pako 4",
 });
 
 function normalizeTierKey(tier) {

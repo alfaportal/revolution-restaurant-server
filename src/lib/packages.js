@@ -103,19 +103,19 @@ const TIER_FEATURES = {
 };
 
 const TIER_LABELS = {
-  pako_1: "Legacy — POS & faqe",
-  pako_2: "Pako 3 — Full (POS, KDS, kamarier, cloud, kiosk, porosi online — pa AI)",
-  pako_3: "Pako 1 — Standard (POS, KDS, kamarier, cloud, kiosk)",
-  pako_4: "Pako 2 — Pro (Standard + porosi online)",
-  pako_5: "Pako 4 — AI Profesionale (krejt + AI)",
+  pako_1: "Pako 1",
+  pako_2: "Pako 3",
+  pako_3: "Pako 1",
+  pako_4: "Pako 2",
+  pako_5: "Pako 4",
 };
 
 const TIER_SHORT_LABELS = {
-  pako_1: "Legacy",
-  pako_2: "Pako 3 (pa AI)",
+  pako_1: "Pako 1",
+  pako_2: "Pako 3",
   pako_3: "Pako 1",
   pako_4: "Pako 2",
-  pako_5: "Pako 4 (AI)",
+  pako_5: "Pako 4",
 };
 
 const TIER_CONTENTS = {
