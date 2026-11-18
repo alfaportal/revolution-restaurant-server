@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Kubi mbi Përparësia, me ndarje
 
-`Kubi.tsx` dhe `Perparesia.tsx`. Kubi është mbi «PËRPARËSIA JONË». Lëviz dhe ndahet në pjesë si te Resend. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+`Kubi.tsx` dhe `Perparesia.tsx`. Kubi është mbi «PËRPARËSIA JONË». Lëviz dhe ndahet në pjesë si te Resend. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `e82dbae`. Te faqja e gjallë kubi me ndarje del.
 
 ## 2026-11-18 — Ballina një ngjyrë me poshtë
 
