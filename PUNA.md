@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Kosovë, 7 ditë, llogaria pranë programit
 
-`website/src/i18n/tekstet.ts`: vendi është Kosovë, jo Ferizaj. Prova falas është 7 ditë, edhe te pyetja. `website/src/components/Pricing.tsx`: poshtë fjalëve «Çmimet për vit», programi është majtas dhe llogaria djathtas, në një vijë. E pashë te faqja lokale: Kosovë del, 14 ditë nuk del, 7 ditë del, tabela është djathtas. Nuk u publikua.
+`website/src/i18n/tekstet.ts`: vendi është Kosovë, jo Ferizaj. Prova falas është 7 ditë, edhe te pyetja. `website/src/components/Pricing.tsx`: poshtë fjalëve «Çmimet për vit», programi është majtas dhe llogaria djathtas, në një vijë. U publikua `a39b071`. Te faqja e gjallë: Kosovë del, 7 ditë del, Ferizaj dhe 14 ditë nuk dalin, llogaria del.
 
 ## 2026-11-18 — Faqja një ngjyrë, bankat me shenjë, ballina më lart
 
