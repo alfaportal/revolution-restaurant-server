@@ -1,5 +1,13 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Laptopi i zi në ballinë
+
+`website/src/components/Hero.tsx` dhe `HeroScreens.tsx`. Laptopi është i zi, jo i kaltër. Brenda, shkrimi është më i madh dhe ekranet janë të errëta, me tabela dhe grafikë. Paketat e vogla janë në të njëjtin ndërtim. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+
+## 2026-11-18 — Paketat më të vogla
+
+`website/src/components/Pricing.tsx`. Kartat e pakove u ngushtuan. Pako 1 ka 21 pika në dy shtylla, jo një listë të gjatë. Të katërta janë në një rresht dhe të njëjtën lartësi. Butoni mbetet «Kërko Demo». E pashë te faqja lokale. `npm run build` kaloi: 207 skedarë, 19 faqe HTML te `website/out/`. Nuk u kopjuan te serveri. Nuk u publikua.
+
 ## 2026-11-18 — Kosovë, 7 ditë, llogaria pranë programit
 
 `website/src/i18n/tekstet.ts`: vendi është Kosovë, jo Ferizaj. Prova falas është 7 ditë, edhe te pyetja. `website/src/components/Pricing.tsx`: poshtë fjalëve «Çmimet për vit», programi është majtas dhe llogaria djathtas, në një vijë. U publikua `a39b071`. Te faqja e gjallë: Kosovë del, 7 ditë del, Ferizaj dhe 14 ditë nuk dalin, llogaria del.

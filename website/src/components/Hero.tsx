@@ -145,18 +145,18 @@ export default function Hero() {
             transition={{ duration: 0.9, delay: 0.3 }}
             className="relative"
           >
-            <div className="relative" style={{ perspective: "1600px" }}>
-              <div className="rounded-2xl border border-white/10 bg-[#0b1220]/80 p-3 shadow-[0_40px_90px_rgba(0,0,0,0.45),0_0_60px_rgba(14,165,233,0.12)]">
-                <div className="mb-3 flex items-center gap-2 px-1">
-                  <span className="h-2 w-2 rounded-full bg-[#0EA5E9]" />
-                  <span className="h-2 w-2 rounded-full bg-white/20" />
-                  <span className="h-2 w-2 rounded-full bg-white/20" />
-                  <span className="ml-2 text-xs text-zinc-400">{emriEkranit}</span>
+            <div className="relative">
+              <div className="rounded-[1.35rem] border border-white/15 bg-[#050506] p-2.5 shadow-[0_30px_80px_rgba(0,0,0,0.65)]">
+                <div className="mb-2 flex items-center justify-between px-2">
+                  <span className="flex gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-white/15" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-white/10" />
+                  </span>
+                  <span className="text-[11px] tracking-wide text-zinc-500">{emriEkranit}</span>
+                  <span className="h-1.5 w-8 rounded-full bg-white/10" />
                 </div>
-              <div
-                className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#1d5a96] ring-1 ring-white/10"
-                style={{ transform: "rotateY(14deg) rotateX(6deg)", transformOrigin: "70% 50%" }}
-              >
+              <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-black ring-1 ring-white/10">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={slide}
@@ -171,8 +171,10 @@ export default function Hero() {
                 </AnimatePresence>
               </div>
               </div>
+              <div className="mx-auto h-2.5 w-[94%] rounded-b-xl bg-[#141416]" />
+              <div className="mx-auto h-1.5 w-[22%] rounded-b-md bg-[#2a2a2e]" />
             </div>
-            <p className="mt-6 text-center text-[13px] text-zinc-400">
+            <p className="mt-4 text-center text-[13px] text-zinc-400">
               {emriEkranit}
             </p>
             <div className="mt-3 flex items-center justify-center gap-4">
@@ -191,7 +193,7 @@ export default function Hero() {
                     type="button"
                     aria-label={t.ekranet[p.emri as keyof typeof t.ekranet] ?? p.emri}
                     onClick={() => setSlide(i)}
-                    className={`h-1.5 rounded-full transition-all ${slide === i ? "w-5 bg-sky-400" : "w-1.5 bg-white/20"}`}
+                    className={`h-1.5 rounded-full transition-all ${slide === i ? "w-5 bg-white" : "w-1.5 bg-white/20"}`}
                   />
                 ))}
               </div>

@@ -114,27 +114,27 @@ export default function Pricing() {
         <div key={slug}>
         <h3 className="mt-10 text-center text-2xl font-bold text-white">{produkti?.emri}</h3>
         <div
-          className={`mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-4 ${paketat.length >= 5 ? "md:grid-cols-2 xl:grid-cols-3" : paketat.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : paketat.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+          className={`mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-3 ${paketat.length >= 5 ? "md:grid-cols-2 xl:grid-cols-3" : paketat.length === 4 ? "lg:grid-cols-4" : paketat.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
         >
           {paketat.map((paketa, index) => (
             <article
               key={`${slug}-${paketa.emri}`}
-              className={`relative flex flex-col rounded-2xl border bg-[#12121A] p-6 ${paketa.popullor ? "border-[#0EA5E9]" : "border-[#0EA5E9]/10"}`}
+              className={`relative flex h-full flex-col rounded-xl border bg-[#12121A] p-3 ${paketa.popullor ? "border-[#0EA5E9]" : "border-[#0EA5E9]/10"}`}
             >
               {paketa.popullor ? (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0EA5E9] px-3 py-1 text-xs text-white">
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0EA5E9] px-2 py-0.5 text-[10px] text-white">
                   {t.paketat.popullor}
                 </span>
               ) : null}
-              <h3 className="text-xl font-semibold text-white">{paketa.emri}</h3>
-              <p className="mt-3 text-3xl font-bold text-white">
-                {index === 0 ? <span className="mr-2 text-base font-medium text-[#94A3B8]">{t.cmimet.nga}</span> : null}
+              <h3 className="text-sm font-semibold text-white">{paketa.emri}</h3>
+              <p className="mt-1 text-xl font-bold text-white">
+                {index === 0 ? <span className="mr-1 text-xs font-medium text-[#94A3B8]">{t.cmimet.nga}</span> : null}
                 {paketa.cmimi}
-                <span className="ml-1 text-base font-medium text-[#94A3B8]">/{t.cmimet.neVit}</span>
+                <span className="ml-1 text-xs font-medium text-[#94A3B8]">/{t.cmimet.neVit}</span>
               </p>
-              <ul className="mt-6 flex flex-1 flex-col gap-3">
+              <ul className={`mt-2 grid flex-1 gap-x-2 gap-y-0.5 ${paketa.pikat.length > 10 ? "grid-cols-2" : "grid-cols-1"}`}>
                 {paketa.pikat.map((pika) => (
-                  <li key={pika} className="text-sm text-[#94A3B8]">
+                  <li key={pika} className="text-[11px] leading-4 text-[#94A3B8]">
                     <span className="text-[#0EA5E9]">✓ </span>
                     {pika}
                   </li>
@@ -151,7 +151,7 @@ export default function Pricing() {
                   );
                   window.dispatchEvent(new Event("revolution-pako"));
                 }}
-                className="mt-8 rounded-full border border-white/40 px-4 py-3 text-center text-sm font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
+                className="mt-3 rounded-full border border-white/40 px-3 py-1.5 text-center text-xs font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
               >
                 {t.paketat.demo}
               </a>

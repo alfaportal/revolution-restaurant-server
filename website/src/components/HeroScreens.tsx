@@ -1,11 +1,11 @@
 function Anash({ zgjedhur, pikat }: { zgjedhur: string; pikat: string[] }) {
   return (
-    <aside className="flex w-[68px] shrink-0 flex-col gap-0.5 border-r border-white/10 bg-[#123e72] px-1 py-1.5 text-white">
-      <div className="mb-1 px-1 text-[8px] font-bold tracking-wide">POS</div>
+    <aside className="flex w-[78px] shrink-0 flex-col gap-0.5 border-r border-white/10 bg-[#0a0a0c] px-1.5 py-2 text-white">
+      <div className="mb-1 px-1 text-[10px] font-semibold tracking-[0.14em] text-zinc-500">POS</div>
       {pikat.map((e) => (
         <div
           key={e}
-          className={`truncate rounded px-1 py-[3px] text-[7px] font-medium ${e === zgjedhur ? "bg-white/20 text-white" : "text-sky-100/80"}`}
+          className={`truncate rounded px-1 py-1 text-[10px] font-medium ${e === zgjedhur ? "bg-white/10 text-white" : "text-zinc-500"}`}
         >
           {e}
         </div>
@@ -18,12 +18,12 @@ function Koka({ titulli, nentitulli }: { titulli: string; nentitulli: string }) 
   return (
     <div className="flex items-center justify-between border-b border-white/10 px-2 py-1">
       <div className="min-w-0">
-        <div className="truncate text-[10px] font-semibold text-white">{titulli}</div>
-        <div className="truncate text-[7px] text-sky-100/80">{nentitulli}</div>
+        <div className="truncate text-[12px] font-semibold text-white">{titulli}</div>
+        <div className="truncate text-[10px] text-zinc-500">{nentitulli}</div>
       </div>
       <div className="flex shrink-0 gap-1">
-        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[7px] text-sky-50">Sot</span>
-        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[7px] text-sky-50">Arka 1</span>
+        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-zinc-300">Sot</span>
+        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-zinc-300">Arka 1</span>
       </div>
     </div>
   );
@@ -33,7 +33,7 @@ function Tabela({ krye, rreshta }: { krye: string[]; rreshta: string[][] }) {
   const kolona = `repeat(${krye.length}, minmax(0, 1fr))`;
   return (
     <div className="min-h-0 flex-1 overflow-hidden">
-      <div className="grid bg-[#164a86] px-1.5 py-1 text-[7px] font-semibold uppercase tracking-wide text-sky-100" style={{ gridTemplateColumns: kolona }}>
+      <div className="grid bg-white/[0.04] px-2 py-1.5 text-[10px] font-medium tracking-wide text-zinc-500" style={{ gridTemplateColumns: kolona }}>
         {krye.map((k) => (
           <span key={k} className="truncate">{k}</span>
         ))}
@@ -41,7 +41,7 @@ function Tabela({ krye, rreshta }: { krye: string[]; rreshta: string[][] }) {
       {rreshta.map((r, i) => (
         <div
           key={i}
-          className={`grid items-center border-t border-white/10 px-1.5 py-[3px] text-[8px] text-white ${i % 2 ? "bg-white/[0.04]" : ""}`}
+          className={`grid items-center border-t border-white/[0.06] px-2 py-1 text-[11px] text-zinc-200 ${i % 2 ? "bg-white/[0.03]" : ""}`}
           style={{ gridTemplateColumns: kolona }}
         >
           {r.map((c, j) => (
@@ -75,7 +75,7 @@ function Shtylla({ lartesite }: { lartesite: number[] }) {
   return (
     <div className="flex h-full items-end gap-[2px]">
       {lartesite.map((h, i) => (
-        <div key={i} className="min-w-0 flex-1 rounded-t-sm bg-sky-100/90" style={{ height: `${h}%` }} />
+        <div key={i} className="min-w-0 flex-1 rounded-t-sm bg-white/80" style={{ height: `${h}%` }} />
       ))}
     </div>
   );
@@ -92,16 +92,16 @@ function VijaShitjeve() {
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
       {[22, 44, 66, 88].map((y) => (
-        <line key={y} x1="28" x2={w} y1={y} y2={y} stroke="rgba(255,255,255,0.16)" strokeWidth="0.6" />
+        <line key={y} x1="28" x2={w} y1={y} y2={y} stroke="rgba(255,255,255,0.16)" strokeWidth="1" />
       ))}
       {[70, 140, 210, 280].map((x) => (
         <line key={x} x1={x} x2={x} y1="8" y2="100" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
       ))}
-      <path d={d} fill="none" stroke="#38bdf8" strokeWidth="1.8" />
-      <text x="2" y="26" fill="#bae6fd" fontSize="7">600</text>
-      <text x="2" y="48" fill="#bae6fd" fontSize="7">400</text>
-      <text x="2" y="70" fill="#bae6fd" fontSize="7">200</text>
-      <text x="2" y="92" fill="#bae6fd" fontSize="7">0</text>
+      <path d={d} fill="none" stroke="#ffffff" strokeWidth="2" />
+      <text x="2" y="26" fill="#a1a1aa" fontSize="9">600</text>
+      <text x="2" y="48" fill="#a1a1aa" fontSize="9">400</text>
+      <text x="2" y="70" fill="#a1a1aa" fontSize="9">200</text>
+      <text x="2" y="92" fill="#a1a1aa" fontSize="9">0</text>
     </svg>
   );
 }
@@ -140,18 +140,18 @@ function Rreth({ pjeset, fundi }: { pjeset: { emri: string; vlera: number; ngjyr
 export function EkraniArkes() {
   const artikujt = ["Espresso 1.50", "Kapuçino 2.00", "Makiatto 1.80", "Ujë 1.00", "Buke 1.20", "Sallatë 4.50", "Çaj 1.30", "Lëng 2.20"];
   return (
-    <div className="flex h-full bg-[#1d5a96] text-white">
+    <div className="flex h-full bg-[#070709] text-white">
       <Anash zgjedhur="Arka" pikat={MENU} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Koka titulli="Arka · Shitja e hapur" nentitulli="Tavolina 4 · Arta · 16:12" />
         <div className="grid flex-1 grid-cols-4 content-start gap-1 p-1.5">
           {artikujt.map((a) => (
-            <div key={a} className="rounded bg-[#2f78c4] px-1 py-1.5 text-center text-[8px] font-semibold leading-tight">{a}</div>
+            <div key={a} className="rounded-md border border-white/10 bg-white/[0.05] px-1 py-1.5 text-center text-[10px] font-medium leading-tight text-zinc-100">{a}</div>
           ))}
         </div>
       </div>
-      <aside className="flex w-[30%] flex-col border-l border-white/10 bg-[#164e86]">
-        <div className="border-b border-white/10 px-1.5 py-1 text-[8px] font-semibold">Fatura 1842</div>
+      <aside className="flex w-[30%] flex-col border-l border-white/10 bg-[#121216]">
+        <div className="border-b border-white/10 px-2 py-1.5 text-[11px] font-medium text-zinc-300">Fatura 1842</div>
         <Tabela
           krye={["Artikulli", "Sasia", "€"]}
           rreshta={[
@@ -161,7 +161,7 @@ export function EkraniArkes() {
             ["Ujë", "2", "2.00"],
           ]}
         />
-        <div className="m-1 rounded bg-sky-200 py-1 text-center text-[11px] font-bold text-[#0b2a4a]">11.50€</div>
+        <div className="m-1.5 rounded-md bg-white py-1.5 text-center text-[12px] font-semibold text-black">11.50€</div>
       </aside>
     </div>
   );
@@ -172,13 +172,13 @@ export function EkraniDitarit() {
     <div className="flex h-full bg-[#07111c] text-white">
       <div className="flex min-w-0 flex-1 flex-col p-2">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-[11px] font-semibold">Shitjet</span>
-          <span className="text-[8px] text-sky-300">486.20€ sot · 18 porosi</span>
+          <span className="text-[13px] font-semibold">Shitjet</span>
+          <span className="text-[11px] text-zinc-400">486.20€ sot · 18 porosi</span>
         </div>
         <div className="min-h-0 flex-1">
           <VijaShitjeve />
         </div>
-        <div className="mt-1 flex gap-3 text-[8px] text-sky-200">
+        <div className="mt-1 flex gap-3 text-[11px] text-zinc-300">
           <span>Cash 312€</span>
           <span>Kartë 174€</span>
           <span>TVSH 74€</span>
@@ -206,25 +206,25 @@ export function EkraniRaporteve() {
     ["Buke", "88", 47, "#f59e0b"],
   ];
   return (
-    <div className="flex h-full flex-col bg-[#eef3f8] p-2 text-[#0f172a]">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-[11px] font-semibold">Raportet</span>
-        <span className="text-[8px] text-slate-500">12,480€ · TVSH 2,246€ · fitim 3,261€</span>
+    <div className="flex h-full flex-col bg-[#070709] p-2.5 text-white">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-[13px] font-semibold">Raportet</span>
+        <span className="text-[11px] text-zinc-400">12,480€ · TVSH 2,246€ · fitim 3,261€</span>
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-1">
-        <div className="flex flex-col rounded-md bg-white p-1">
-          <div className="text-[7px] text-slate-500">Pagesa</div>
-          <div className="min-h-0 flex-1"><Rreth pjeset={pagesa} fundi="#ffffff" /></div>
+      <div className="grid min-h-0 flex-1 grid-cols-3 gap-1.5">
+        <div className="flex flex-col rounded-lg border border-white/10 bg-[#121216] p-1.5">
+          <div className="text-[10px] text-zinc-400">Pagesa</div>
+          <div className="min-h-0 flex-1"><Rreth pjeset={pagesa} fundi="#121216" /></div>
         </div>
-        <div className="flex flex-col rounded-md bg-white p-1">
-          <div className="text-[7px] text-slate-500">TVSH</div>
-          <div className="min-h-0 flex-1"><Rreth pjeset={tvsh} fundi="#ffffff" /></div>
+        <div className="flex flex-col rounded-lg border border-white/10 bg-[#121216] p-1.5">
+          <div className="text-[10px] text-zinc-400">TVSH</div>
+          <div className="min-h-0 flex-1"><Rreth pjeset={tvsh} fundi="#121216" /></div>
         </div>
-        <div className="flex flex-col justify-center gap-1 rounded-md bg-white p-1.5">
+        <div className="flex flex-col justify-center gap-1.5 rounded-lg border border-white/10 bg-[#121216] p-2">
           {artikujt.map(([emri, vlera, barra, ngjyra]) => (
             <div key={emri}>
-              <div className="flex justify-between text-[7px]"><span>{emri}</span><span>{vlera}</span></div>
-              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="flex justify-between text-[10px] text-zinc-300"><span>{emri}</span><span>{vlera}</span></div>
+              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full" style={{ width: `${barra}%`, background: ngjyra }} />
               </div>
             </div>
@@ -237,7 +237,7 @@ export function EkraniRaporteve() {
 
 export function EkraniHotelit() {
   return (
-    <div className="flex h-full bg-[#1d5a96] text-white">
+    <div className="flex h-full bg-[#070709] text-white">
       <Anash zgjedhur="Hoteli" pikat={["Pritja", "Dhomat", "Rezervime", "Faturat"]} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Koka titulli="Pritja · dhomat" nentitulli="101–108 · 3 të lira · 4 të zëna · 1 check-out" />
@@ -260,7 +260,7 @@ export function EkraniHotelit() {
 
 export function EkraniStokut() {
   return (
-    <div className="flex h-full bg-[#1d5a96] text-white">
+    <div className="flex h-full bg-[#070709] text-white">
       <Anash zgjedhur="Stoku" pikat={MENU} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Koka titulli="Stoku" nentitulli="Artikulli · barkodi · sasia · minimumi · gjendja" />
@@ -300,24 +300,24 @@ export function EkraniKontabilistit() {
     ["Fitimi", "9,820€", 53, "#16a34a"],
   ];
   return (
-    <div className="flex h-full flex-col bg-[#eef3f8] p-2 text-[#0f172a]">
-      <div className="mb-1 text-[11px] font-semibold">Kontabilisti</div>
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-1">
-        <div className="flex flex-col rounded-md bg-white p-1">
-          <div className="text-[7px] text-slate-500">Pagesa</div>
-          <div className="min-h-0 flex-1"><Rreth pjeset={pagesa} fundi="#ffffff" /></div>
-          <div className="text-[7px] text-slate-600">Cash · Kartë</div>
+    <div className="flex h-full flex-col bg-[#070709] p-2.5 text-white">
+      <div className="mb-1.5 text-[13px] font-semibold">Kontabilisti</div>
+      <div className="grid min-h-0 flex-1 grid-cols-3 gap-1.5">
+        <div className="flex flex-col rounded-lg border border-white/10 bg-[#121216] p-1.5">
+          <div className="text-[10px] text-zinc-400">Pagesa</div>
+          <div className="min-h-0 flex-1"><Rreth pjeset={pagesa} fundi="#121216" /></div>
+          <div className="text-[10px] text-zinc-500">Cash · Kartë</div>
         </div>
-        <div className="flex flex-col rounded-md bg-white p-1">
-          <div className="text-[7px] text-slate-500">Bilanci</div>
-          <div className="min-h-0 flex-1"><Rreth pjeset={llogarit} fundi="#ffffff" /></div>
-          <div className="text-[7px] text-slate-600">Shitje · Fitim</div>
+        <div className="flex flex-col rounded-lg border border-white/10 bg-[#121216] p-1.5">
+          <div className="text-[10px] text-zinc-400">Bilanci</div>
+          <div className="min-h-0 flex-1"><Rreth pjeset={llogarit} fundi="#121216" /></div>
+          <div className="text-[10px] text-zinc-500">Shitje · Fitim</div>
         </div>
-        <div className="flex flex-col justify-center gap-1 rounded-md bg-white p-1.5">
+        <div className="flex flex-col justify-center gap-1.5 rounded-lg border border-white/10 bg-[#121216] p-2">
           {shiritat.map(([emri, vlera, barra, ngjyra]) => (
             <div key={emri}>
-              <div className="flex justify-between text-[7px]"><span>{emri}</span><span>{vlera}</span></div>
-              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="flex justify-between text-[10px] text-zinc-300"><span>{emri}</span><span>{vlera}</span></div>
+              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full" style={{ width: `${barra}%`, background: ngjyra }} />
               </div>
             </div>
@@ -330,13 +330,13 @@ export function EkraniKontabilistit() {
 
 export function EkraniNderrimit() {
   return (
-    <div className="flex h-full bg-[#1d5a96] text-white">
+    <div className="flex h-full bg-[#070709] text-white">
       <Anash zgjedhur="Ndërrimi" pikat={["Ndërrimi", "Cash", "Kartë", "Diferenca"]} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Koka titulli="Mbyllja e ndërrimit · Arta" nentitulli="08:00–16:00 · Arka 1" />
         <div className="grid min-h-0 flex-1 grid-cols-2 gap-1 p-1.5">
-          <div className="overflow-hidden rounded bg-[#164e86]">
-            <div className="px-1.5 py-1 text-[8px] font-semibold">Numërimi i cash-it</div>
+          <div className="overflow-hidden rounded bg-[#121216]">
+            <div className="px-2 py-1.5 text-[11px] font-medium text-zinc-200">Numërimi i cash-it</div>
             <Tabela
               krye={["Copë", "Vlera", "Shuma"]}
               rreshta={[
@@ -348,7 +348,7 @@ export function EkraniNderrimit() {
               ]}
             />
           </div>
-          <div className="flex flex-col rounded bg-[#164e86] p-1.5 text-[8px]">
+          <div className="flex flex-col rounded-lg border border-white/10 bg-[#121216] p-2 text-[11px]">
             <div className="mb-1 font-semibold">Krahasimi</div>
             {[
               ["Cash", "312.00€"],
@@ -358,7 +358,7 @@ export function EkraniNderrimit() {
               ["Diferenca", "-0.20€"],
             ].map(([e, v]) => (
               <div key={e} className="flex justify-between border-t border-white/10 py-1">
-                <span className="text-sky-100">{e}</span>
+                <span className="text-zinc-400">{e}</span>
                 <span className="font-semibold">{v}</span>
               </div>
             ))}
@@ -371,7 +371,7 @@ export function EkraniNderrimit() {
 
 export function EkraniFatures() {
   return (
-    <div className="flex h-full bg-[#1d5a96] text-white">
+    <div className="flex h-full bg-[#070709] text-white">
       <Anash zgjedhur="Fatura" pikat={["Fatura", "Blerësi", "TVSH", "Pagesa"]} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Koka titulli="Fatura e shitjes 1842" nentitulli="16.11.2026 16:12 · Arka 1 · Cash · Fiskalizuar" />
@@ -384,10 +384,10 @@ export function EkraniFatures() {
             ["4", "Ujë 0.5L", "2", "1.00", "18%", "2.00€"],
           ]}
         />
-        <div className="grid grid-cols-3 gap-1 p-1.5 text-[8px]">
-          <div className="rounded bg-[#164e86] px-1.5 py-1">Pa TVSH 9.75€</div>
-          <div className="rounded bg-[#164e86] px-1.5 py-1">TVSH 1.75€</div>
-          <div className="rounded bg-sky-200 px-1.5 py-1 text-center font-bold text-[#0b2a4a]">Totali 11.50€</div>
+        <div className="grid grid-cols-3 gap-1.5 p-2 text-[11px]">
+          <div className="rounded-md border border-white/10 bg-[#121216] px-2 py-1.5 text-zinc-300">Pa TVSH 9.75€</div>
+          <div className="rounded-md border border-white/10 bg-[#121216] px-2 py-1.5 text-zinc-300">TVSH 1.75€</div>
+          <div className="rounded-md bg-white px-2 py-1.5 text-center font-semibold text-black">Totali 11.50€</div>
         </div>
       </div>
     </div>
