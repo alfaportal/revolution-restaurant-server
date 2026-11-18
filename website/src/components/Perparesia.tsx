@@ -68,14 +68,14 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
 
   return (
     <section id="perparesia" className="bg-[#12121A] px-6 py-24">
+      <div className="mx-auto mb-8">
+        <Kubi />
+      </div>
       <p className="text-center text-sm font-medium tracking-[0.2em] text-[#0EA5E9]">{t.perparesia.sy}</p>
       <h2 className="mx-auto mt-3 max-w-3xl text-center text-3xl font-bold text-white md:text-4xl">
         {t.perparesia.titulli}
       </h2>
-      <div className="mx-auto mt-10">
-        <Kubi />
-      </div>
-      <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2">
         {pikat.map((pika, index) => (
           <motion.article
             key={pika.titulli}

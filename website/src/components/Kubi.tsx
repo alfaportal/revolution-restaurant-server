@@ -1,21 +1,78 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
-const fytyrat = [
-  { transform: "rotateY(0deg) translateZ(70px)" },
-  { transform: "rotateY(90deg) translateZ(70px)" },
-  { transform: "rotateY(180deg) translateZ(70px)" },
-  { transform: "rotateY(-90deg) translateZ(70px)" },
-  { transform: "rotateX(90deg) translateZ(70px)" },
-  { transform: "rotateX(-90deg) translateZ(70px)" },
-];
+const MADHESIA = 34;
+const BAZA = 2;
+
+function Fytyra() {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(circle at 22% 18%, rgba(255,255,255,0.28), transparent 45%),
+            linear-gradient(145deg, #3a3a42 0%, #1c1c22 55%, #0d0d12 100%)
+          `,
+          boxShadow: "inset 0 0 14px rgba(0,0,0,0.4), 0 0 10px rgba(255,255,255,0.04)",
+        }}
+      />
+      <div
+        className="absolute inset-[5px] opacity-80"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.26) 0.55px, transparent 0.65px)",
+          backgroundSize: "6px 6px",
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/18 via-transparent to-black/35" />
+    </>
+  );
+}
+
+function KubikInner() {
+  const fytyrat = [
+    { transform: `rotateY(0deg) translateZ(${MADHESIA / 2}px)` },
+    { transform: `rotateY(90deg) translateZ(${MADHESIA / 2}px)` },
+    { transform: `rotateY(180deg) translateZ(${MADHESIA / 2}px)` },
+    { transform: `rotateY(-90deg) translateZ(${MADHESIA / 2}px)` },
+    { transform: `rotateX(90deg) translateZ(${MADHESIA / 2}px)` },
+    { transform: `rotateX(-90deg) translateZ(${MADHESIA / 2}px)` },
+  ];
+  return (
+    <>
+      {fytyrat.map((fytyra, index) => (
+        <div
+          key={index}
+          className="absolute inset-0 overflow-hidden rounded-[5px] border border-white/20"
+          style={{
+            transform: fytyra.transform,
+            backfaceVisibility: "hidden",
+          }}
+        >
+          <Fytyra />
+        </div>
+      ))}
+    </>
+  );
+}
 
 export default function Kubi() {
-  const boxRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
   const mouseTarget = useRef({ x: 0, y: 0 });
   const mouseSmooth = useRef({ x: 0, y: 0 });
+  const pjeset = useMemo(() => {
+    const lista: Array<{ x: number; y: number; z: number }> = [];
+    for (let x = 0; x < 3; x += 1) {
+      for (let y = 0; y < 3; y += 1) {
+        for (let z = 0; z < 3; z += 1) {
+          lista.push({ x, y, z });
+        }
+      }
+    }
+    return lista;
+  }, []);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -24,8 +81,8 @@ export default function Kubi() {
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       mouseTarget.current = {
-        x: Math.max(-1, Math.min(1, (e.clientX - cx) / 280)),
-        y: Math.max(-1, Math.min(1, (e.clientY - cy) / 220)),
+        x: Math.max(-1, Math.min(1, (e.clientX - cx) / 320)),
+        y: Math.max(-1, Math.min(1, (e.clientY - cy) / 240)),
       };
     };
     window.addEventListener("mousemove", onMove);
@@ -36,17 +93,30 @@ export default function Kubi() {
     let animId = 0;
     let time = 0;
     const tick = () => {
-      time += 0.006;
+      time += 0.007;
       mouseSmooth.current.x += (mouseTarget.current.x - mouseSmooth.current.x) * 0.05;
       mouseSmooth.current.y += (mouseTarget.current.y - mouseSmooth.current.y) * 0.05;
       const mx = mouseSmooth.current.x;
       const my = mouseSmooth.current.y;
-      const floatY = Math.sin(time) * 8;
-      const rotY = time * 18 + mx * 18;
-      const rotX = 18 + Math.sin(time * 0.6) * 6 - my * 12;
+      const floatY = Math.sin(time) * 7;
+      const rotY = time * 16 + mx * 20;
+      const rotX = 22 + Math.sin(time * 0.55) * 5 - my * 12;
+      const ndarja = (Math.sin(time * 0.55) + 1) / 2;
+      const gap = BAZA + ndarja * 14;
       if (boxRef.current) {
         boxRef.current.style.transform =
           `translateY(${floatY}px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        const kids = boxRef.current.children;
+        for (let i = 0; i < kids.length; i += 1) {
+          const kid = kids[i] as HTMLElement;
+          const x = Number(kid.dataset.x);
+          const y = Number(kid.dataset.y);
+          const z = Number(kid.dataset.z);
+          const hap = MADHESIA + gap;
+          const offset = -hap;
+          kid.style.transform =
+            `translate3d(${x * hap + offset}px, ${y * hap + offset}px, ${z * hap + offset}px)`;
+        }
       }
       animId = requestAnimationFrame(tick);
     };
@@ -57,40 +127,35 @@ export default function Kubi() {
   return (
     <div
       ref={sceneRef}
-      className="relative mx-auto flex h-[220px] w-full max-w-[260px] items-center justify-center"
-      style={{ perspective: "900px" }}
+      className="relative mx-auto flex h-[210px] w-full max-w-[240px] items-center justify-center"
+      style={{ perspective: "1000px" }}
       aria-hidden="true"
     >
-      <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.08),transparent_65%)] blur-2xl" />
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.09),transparent_65%)] blur-2xl" />
       <div
         ref={boxRef}
-        className="relative h-[140px] w-[140px] will-change-transform"
+        className="relative h-[120px] w-[120px] will-change-transform"
         style={{ transformStyle: "preserve-3d" }}
       >
-        {fytyrat.map((fytyra, index) => (
+        {pjeset.map((p) => (
           <div
-            key={index}
-            className="absolute inset-0 overflow-hidden rounded-[10px] border border-white/10"
+            key={`${p.x}-${p.y}-${p.z}`}
+            data-x={p.x}
+            data-y={p.y}
+            data-z={p.z}
+            className="absolute"
             style={{
-              transform: fytyra.transform,
-              backfaceVisibility: "hidden",
-              background: `
-                radial-gradient(circle at 20% 15%, rgba(255,255,255,0.14), transparent 40%),
-                linear-gradient(145deg, #1a1a1f 0%, #0a0a0c 55%, #050506 100%)
-              `,
-              boxShadow: "inset 0 0 24px rgba(0,0,0,0.55)",
+              width: MADHESIA,
+              height: MADHESIA,
+              left: "50%",
+              top: "50%",
+              marginLeft: -MADHESIA / 2,
+              marginTop: -MADHESIA / 2,
+              transform: `translate3d(${p.x * (MADHESIA + BAZA) - (MADHESIA + BAZA)}px, ${p.y * (MADHESIA + BAZA) - (MADHESIA + BAZA)}px, ${p.z * (MADHESIA + BAZA) - (MADHESIA + BAZA)}px)`,
+              transformStyle: "preserve-3d",
             }}
           >
-            <div
-              className="absolute inset-[10px] opacity-70"
-              style={{
-                backgroundImage: `
-                  radial-gradient(circle, rgba(255,255,255,0.16) 0.7px, transparent 0.8px)
-                `,
-                backgroundSize: "10px 10px",
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/40" />
+            <KubikInner />
           </div>
         ))}
       </div>

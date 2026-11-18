@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Kubi mbi Përparësia, me ndarje
+
+`Kubi.tsx` dhe `Perparesia.tsx`. Kubi është mbi «PËRPARËSIA JONË». Lëviz dhe ndahet në pjesë si te Resend. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+
 ## 2026-11-18 — Ballina një ngjyrë me poshtë
 
 `Hero.tsx`, `Navbar.tsx` dhe `globals.css`. Ballina dhe logoja kanë të njëjtën ngjyrë si «Përparësia jonë» (`#12121A`), jo më të errët. Duket si një faqe. Bashkë me kubin dhe Pagesën: 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `3e3c2ad`. Te faqja e gjallë: ngjyra e ballinës, kubi, emaili dhe Pagesa e qetë dalin.
