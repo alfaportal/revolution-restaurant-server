@@ -21,7 +21,7 @@ export default function Navbar() {
   const [produktetHapur, setProduktetHapur] = useState(false);
 
   return (
-    <header className="relative z-50 bg-[#0A0A0F]">
+    <header className="sticky top-0 z-50 bg-[#0A0A0F]">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex h-24 items-center justify-between">
         <Link href="/" className="flex shrink-0 items-center gap-3">
@@ -59,7 +59,7 @@ export default function Navbar() {
         </div>
         </div>
 
-        <nav className="hidden items-center justify-center gap-6 pb-4 lg:flex">
+        <nav className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-2 pb-4 lg:flex">
           <a
             href="/#ballina"
             className="text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"

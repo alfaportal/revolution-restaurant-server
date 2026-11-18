@@ -40,7 +40,7 @@ export default function Pricing() {
       <h2 className="mt-3 text-center text-3xl font-bold text-white md:text-4xl">{t.cmimet.titulli}</h2>
       <p className="mt-4 text-center text-[#94A3B8]">{t.cmimet.nentitulli}</p>
 
-      <div className="mx-auto mt-10 max-w-md">
+      <div className="mx-auto mt-10 grid w-full max-w-6xl items-start gap-8 lg:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm text-[#94A3B8]">
           {t.cmimet.programi}
           <select
@@ -55,6 +55,49 @@ export default function Pricing() {
             ))}
           </select>
         </label>
+        {!produkti?.spiashpejti ? (
+          <div>
+            <h3 className="text-sm text-[#94A3B8]">{t.cmimet.llogaria}</h3>
+            <div className="mt-2 overflow-hidden rounded-2xl border border-white/10">
+              <table className="w-full text-left text-sm text-white">
+                <thead className="bg-[#12121A] text-[#94A3B8]">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">{t.cmimet.programi}</th>
+                    <th className="px-4 py-3 font-medium">{t.cmimet.nje}</th>
+                    <th className="px-4 py-3 font-medium">{t.cmimet.dy}</th>
+                    <th className="px-4 py-3 font-medium">
+                      <label className="flex items-center gap-2">
+                        {t.cmimet.sa}
+                        <input
+                          type="number"
+                          min={1}
+                          value={sa}
+                          onChange={(event) => setSa(Math.max(1, Number(event.target.value) || 1))}
+                          className="h-9 w-16 rounded-lg border border-white/10 bg-[#0A0A0F] px-2 text-white outline-none focus:border-[#0EA5E9]"
+                        />
+                      </label>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paketat.map((paketa) => {
+                    const n = euro(paketa.cmimi);
+                    return (
+                      <tr key={`${slug}-${paketa.emri}`} className="border-t border-white/10">
+                        <td className="px-4 py-3">{paketa.emri}</td>
+                        <td className="px-4 py-3">€{n}</td>
+                        <td className="px-4 py-3">€{n * 2}</td>
+                        <td className="px-4 py-3 font-semibold">€{n * sa}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div />
+        )}
       </div>
 
       {produkti?.spiashpejti ? (
@@ -114,45 +157,6 @@ export default function Pricing() {
               </a>
             </article>
           ))}
-        </div>
-        <div className="mx-auto mt-12 max-w-3xl">
-          <h3 className="text-center text-xl font-bold text-white">{t.cmimet.llogaria}</h3>
-          <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
-            <table className="w-full text-left text-sm text-white">
-              <thead className="bg-[#12121A] text-[#94A3B8]">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t.cmimet.programi}</th>
-                  <th className="px-4 py-3 font-medium">{t.cmimet.nje}</th>
-                  <th className="px-4 py-3 font-medium">{t.cmimet.dy}</th>
-                  <th className="px-4 py-3 font-medium">
-                    <label className="flex items-center gap-2">
-                      {t.cmimet.sa}
-                      <input
-                        type="number"
-                        min={1}
-                        value={sa}
-                        onChange={(event) => setSa(Math.max(1, Number(event.target.value) || 1))}
-                        className="h-9 w-16 rounded-lg border border-white/10 bg-[#0A0A0F] px-2 text-white outline-none focus:border-[#0EA5E9]"
-                      />
-                    </label>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paketat.map((paketa) => {
-                  const n = euro(paketa.cmimi);
-                  return (
-                    <tr key={`${slug}-${paketa.emri}`} className="border-t border-white/10">
-                      <td className="px-4 py-3">{paketa.emri}</td>
-                      <td className="px-4 py-3">€{n}</td>
-                      <td className="px-4 py-3">€{n * 2}</td>
-                      <td className="px-4 py-3 font-semibold">€{n * sa}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
         </div>
         </div>
       )}

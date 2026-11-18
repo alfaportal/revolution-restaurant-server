@@ -1,5 +1,13 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Kosovë, 7 ditë, llogaria pranë programit
+
+`website/src/i18n/tekstet.ts`: vendi është Kosovë, jo Ferizaj. Prova falas është 7 ditë, edhe te pyetja. `website/src/components/Pricing.tsx`: poshtë fjalëve «Çmimet për vit», programi është majtas dhe llogaria djathtas, në një vijë. E pashë te faqja lokale: Kosovë del, 14 ditë nuk del, 7 ditë del, tabela është djathtas. Nuk u publikua.
+
+## 2026-11-18 — Faqja një ngjyrë, bankat me shenjë, ballina më lart
+
+`website/src/components/Pagesa.tsx`: seksioni Pagesa nuk është më i bardhë, është si pjesa tjetër e faqes. Bankat TEB, Raiffeisen, NLB, BKT, ProCredit dhe BPB kanë shenjën me ngjyrë, jo vetëm shkronja. `Hero.tsx`: ballina nuk zë një ekran bosh. Titulli dhe ekrani dalin menjëherë, edhe në telefon butoni është i plotë. `Navbar.tsx`: menuja qëndron lart kur zbret. E pashë te faqja lokale, desktop dhe telefon. Nuk u ndërtua. Nuk u publikua.
+
 ## 2026-11-18 — Faqja e re u publikua
 
 U dërgua ndryshimi `b1456d8`. Faqja e gjallë u kontrollua: ballina ka «Pagesa», `/hotel` është faqja e re, `/privacy` `/terms` `/blog` japin faqen e vjetër, stili dhe logoja e vjetër hapen, fotoja e re hapet, `/pse-ne` nuk gjendet, hyrja e pronarit mbetet. Nuk u dërguan çelësat, skedari i databazës, as dy foto prove.

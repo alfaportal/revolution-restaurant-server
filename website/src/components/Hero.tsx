@@ -31,7 +31,7 @@ export default function Hero() {
     <section
       id="ballina"
       ref={containerRef}
-      className="relative min-h-screen overflow-hidden bg-[#09090b]"
+      className="relative overflow-hidden bg-[#09090b]"
     >
       {/* Canvas effects */}
       <HeroEffects />
@@ -52,8 +52,8 @@ export default function Hero() {
       {/* Top glow accent */}
       <div className="pointer-events-none absolute -top-[300px] left-1/2 z-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(14,165,233,0.18),transparent_70%)] blur-3xl" />
       {/* ── Main content: BetterStack layout ── */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 lg:px-12">
-        <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-12 lg:py-12">
+        <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="max-w-xl">
             <motion.div
               initial={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ export default function Hero() {
                 e.preventDefault();
                 document.getElementById("kontakti")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="mt-10 flex max-w-md items-center gap-3"
+              className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row sm:items-center"
             >
               <input
                 type="email"
@@ -104,7 +104,7 @@ export default function Hero() {
               />
               <button
                 type="submit"
-                className="h-[52px] shrink-0 rounded-lg bg-[#0EA5E9] px-5 text-[15px] font-semibold text-white shadow-[0_0_24px_rgba(14,165,233,0.35)] transition hover:bg-sky-400"
+                className="h-[52px] w-full shrink-0 rounded-lg bg-[#0EA5E9] px-5 text-[15px] font-semibold text-white shadow-[0_0_24px_rgba(14,165,233,0.35)] transition hover:bg-sky-400 sm:w-auto"
               >
                 {t.hero.fillo}
               </button>
