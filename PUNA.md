@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Shkrimi i ballinës pa blu
+
+`website/src/components/Hero.tsx`, `HeroEffects.tsx`, `website/src/i18n/tekstet.ts`. Titulli «për çdo biznes», shenjat dhe butoni «Fillo Falas» janë të bardhë, jo blu. Përshkrimi është një fjali: «Një sistem për shitjen, kuponin fiskal dhe raportin e ditës.» 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+
 ## 2026-11-18 — Laptopi i zi në ballinë
 
 `website/src/components/Hero.tsx` dhe `HeroScreens.tsx`. Laptopi është i zi, jo i kaltër. Brenda, shkrimi është më i madh dhe ekranet janë të errëta, me tabela dhe grafikë. Paketat e vogla janë në të njëjtin ndërtim. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `83136f9`. Te faqja e gjallë laptopi është i zi.

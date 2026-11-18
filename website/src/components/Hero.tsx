@@ -40,8 +40,8 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 z-0"
         style={{
           background: `
-            radial-gradient(ellipse 60% 50% at ${mousePos.x}% ${mousePos.y}%, rgba(14,165,233,0.16) 0%, transparent 70%),
-            linear-gradient(135deg, transparent 0%, transparent 40%, rgba(14,165,233,0.1) 45%, rgba(56,189,248,0.16) 50%, rgba(14,165,233,0.1) 55%, transparent 60%, transparent 100%)
+            radial-gradient(ellipse 60% 50% at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.05) 0%, transparent 70%),
+            linear-gradient(135deg, transparent 0%, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.03) 55%, transparent 60%, transparent 100%)
           `,
         }}
       />
@@ -50,7 +50,7 @@ export default function Hero() {
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }}
       />
       {/* Top glow accent */}
-      <div className="pointer-events-none absolute -top-[300px] left-1/2 z-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(14,165,233,0.18),transparent_70%)] blur-3xl" />
+      <div className="pointer-events-none absolute -top-[300px] left-1/2 z-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(255,255,255,0.06),transparent_70%)] blur-3xl" />
       {/* ── Main content: BetterStack layout ── */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-12 lg:py-12">
         <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
@@ -74,7 +74,7 @@ export default function Hero() {
             >
               {t.hero.rreshti1}
               <br />
-              <span className="bg-gradient-to-r from-sky-400 via-sky-300 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-white">
                 {t.hero.rreshti2}
               </span>
             </motion.h1>
@@ -82,7 +82,7 @@ export default function Hero() {
               initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.25 }}
-              className="mt-6 max-w-md text-[17px] leading-relaxed text-zinc-400"
+              className="mt-6 max-w-md text-[17px] leading-relaxed text-zinc-300"
             >
               {t.hero.nentitulli}
             </motion.p>
@@ -100,11 +100,11 @@ export default function Hero() {
                 type="email"
                 placeholder={t.hero.email}
                 aria-label={t.hero.email}
-                className="h-[52px] min-w-0 flex-1 rounded-lg border border-white/10 bg-[#12141c] px-4 text-[15px] text-white outline-none placeholder:text-zinc-500 focus:border-[#0EA5E9]"
+                className="h-[52px] min-w-0 flex-1 rounded-lg border border-white/10 bg-[#12141c] px-4 text-[15px] text-white outline-none placeholder:text-zinc-500 focus:border-white/40"
               />
               <button
                 type="submit"
-                className="h-[52px] w-full shrink-0 rounded-lg bg-[#0EA5E9] px-5 text-[15px] font-semibold text-white shadow-[0_0_24px_rgba(14,165,233,0.35)] transition hover:bg-sky-400 sm:w-auto"
+                className="h-[52px] w-full shrink-0 rounded-lg bg-white px-5 text-[15px] font-semibold text-[#09090b] transition hover:bg-zinc-200 sm:w-auto"
               >
                 {t.hero.fillo}
               </button>
@@ -117,7 +117,7 @@ export default function Hero() {
             >
               {t.hero.pikat.map((pika) => (
                 <li key={pika} className="flex items-center gap-2 text-sm text-zinc-300">
-                  <span className="text-[#0EA5E9]">✓</span>
+                  <span className="text-white">✓</span>
                   {pika}
                 </li>
               ))}
