@@ -154,6 +154,14 @@ function proxyUpstreamPath(req, product) {
   return req.originalUrl;
 }
 
+function sitePageOrProxy(proxy) {
+  return function (req, res, next) {
+    const parts = String(req.path || "").split("/").filter(Boolean);
+    if (!parts.length && (req.method === "GET" || req.method === "HEAD")) return next();
+    return proxy(req, res, next);
+  };
+}
+
 function proxyToSecurity(req, res) {
   const upstreamPath = proxyUpstreamPath(req, "security");
   const headers = { ...req.headers, host: SECURITY_UPSTREAM };
@@ -444,7 +452,7 @@ function proxyKeepPrefix(upstreamHost, missingText, failText) {
   };
 }
 
-app.use("/security", proxyToSecurity);
+app.use("/security", sitePageOrProxy(proxyToSecurity));
 /** Link i gabuar pa /hotel/{slug}/ — ridrejto te forma e saktë. */
 app.get("/recepsion/:slug", (req, res) => {
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
@@ -474,14 +482,14 @@ app.use("/hotel", (req, res, next) => {
   }
   next();
 });
-app.use("/hotel", proxyToHotel);
-app.use("/market", proxyToMarket);
-app.use("/fiskalizim", proxyToFiskalizim);
-app.use("/kontabilisti", proxyToKontabilisti);
-app.use("/butika", proxyKeepPrefix(BUTIKA_UPSTREAM, "Mungon BUTIKA_UPSTREAM", "Butik upstream nuk përgjigjet"));
+app.use("/hotel", sitePageOrProxy(proxyToHotel));
+app.use("/market", sitePageOrProxy(proxyToMarket));
+app.use("/fiskalizim", sitePageOrProxy(proxyToFiskalizim));
+app.use("/kontabilisti", sitePageOrProxy(proxyToKontabilisti));
+app.use("/butika", sitePageOrProxy(proxyKeepPrefix(BUTIKA_UPSTREAM, "Mungon BUTIKA_UPSTREAM", "Butik upstream nuk përgjigjet")));
 app.use("/dyqanet", proxyKeepPrefix(DYQANET_UPSTREAM, "Mungon DYQANET_UPSTREAM", "Dyqan upstream nuk përgjigjet"));
-app.use("/barnatore", proxyKeepPrefix(BARNATORE_UPSTREAM, "Mungon BARNATORE_UPSTREAM", "Barnatore upstream nuk përgjigjet"));
-app.use("/argjendari", proxyKeepPrefix(ARGJENDARI_UPSTREAM, "Mungon ARGJENDARI_UPSTREAM", "Argjendari upstream nuk përgjigjet"));
+app.use("/barnatore", sitePageOrProxy(proxyKeepPrefix(BARNATORE_UPSTREAM, "Mungon BARNATORE_UPSTREAM", "Barnatore upstream nuk përgjigjet")));
+app.use("/argjendari", sitePageOrProxy(proxyKeepPrefix(ARGJENDARI_UPSTREAM, "Mungon ARGJENDARI_UPSTREAM", "Argjendari upstream nuk përgjigjet")));
 
 // Stripe webhook — RAW body (para express.json)
 app.post(
@@ -822,10 +830,13 @@ app.use((req, res, next) => {
 
 const PUBLIC_DIR = path.join(__dirname, "../public");
 const SITE_DIR = path.join(PUBLIC_DIR, "site");
+const SITE_OLD_DIR = path.join(PUBLIC_DIR, "site-old");
 
 function sendMarketingPage(res, pathname) {
+  const html = renderMarketingHtml(pathname);
+  if (!html) return res.status(404).type("text/plain").send("Not found");
   res.set("Cache-Control", "public, max-age=120");
-  res.type("html").send(renderMarketingHtml(pathname));
+  res.type("html").send(html);
 }
 
 app.get("/", (_req, res) => sendMarketingPage(res, "/"));
@@ -834,20 +845,38 @@ app.get("/", (_req, res) => sendMarketingPage(res, "/"));
 
 app.get(
   [
-    "/pse-ne",
-    "/pse-ne/",
-    "/si-ta-ngarkoni",
-    "/si-ta-ngarkoni/",
-    "/si-funksionon",
-    "/si-funksionon/",
-    "/pakot",
-    "/pakot/",
-    "/kontakt",
-    "/kontakt/",
-    "/pajisjet",
-    "/pajisjet/",
+    "/udhezuesi",
+    "/udhezuesi/",
     "/kafene",
     "/kafene/",
+    "/hotel",
+    "/hotel/",
+    "/market",
+    "/market/",
+    "/furra",
+    "/furra/",
+    "/dyqane",
+    "/dyqane/",
+    "/butika",
+    "/butika/",
+    "/distributor",
+    "/distributor/",
+    "/argjendari",
+    "/argjendari/",
+    "/barnatore",
+    "/barnatore/",
+    "/fiskalizim",
+    "/fiskalizim/",
+    "/kontabilisti",
+    "/kontabilisti/",
+    "/security",
+    "/security/",
+    "/mjekesia",
+    "/mjekesia/",
+    "/posta-taxi",
+    "/posta-taxi/",
+    "/rentacar",
+    "/rentacar/",
     "/manuali",
     "/manuali/",
   ],
@@ -914,6 +943,7 @@ registerProductPageRoutes(app, {
 });
 
 app.use(express.static(SITE_DIR));
+app.use(express.static(SITE_OLD_DIR, { index: false }));
 
 app.use((req, res, next) => {
   if (req.path === "/js/waiter.js" || req.path === "/js/kitchen.js" || req.path === "/sw.js") {

@@ -5,6 +5,7 @@ import Products from "@/components/Products";
 import Fiskal from "@/components/Fiskal";
 import HowItWorks from "@/components/HowItWorks";
 import Pricing from "@/components/Pricing";
+import Pagesa from "@/components/Pagesa";
 import Faq from "@/components/Faq";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -19,6 +20,7 @@ export default function Home() {
       <Fiskal />
       <HowItWorks />
       <Pricing />
+      <Pagesa />
       <Faq />
       <Contact />
       <Footer />

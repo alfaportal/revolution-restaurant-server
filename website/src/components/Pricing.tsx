@@ -98,7 +98,16 @@ export default function Pricing() {
                 ))}
               </ul>
               <a
-                href="#kontakti"
+                href="#pagesa"
+                onClick={() => {
+                  const n = euro(paketa.cmimi);
+                  const plan = n === 150 ? "p1" : n === 180 ? "p2" : n === 220 ? "p3" : n === 250 ? "p4" : "";
+                  sessionStorage.setItem(
+                    "revolution-pako",
+                    JSON.stringify({ plan, emri: paketa.emri, cmimi: paketa.cmimi, programi: produkti?.emri || "" }),
+                  );
+                  window.dispatchEvent(new Event("revolution-pako"));
+                }}
                 className="mt-8 rounded-full border border-white/40 px-4 py-3 text-center text-sm font-semibold text-white hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
               >
                 {t.paketat.demo}

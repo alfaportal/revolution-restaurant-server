@@ -1,5 +1,47 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Faqja e re u ndërtua dhe u kopjua
+
+`website`: `npm run build` kaloi. 20 faqe u krijuan. `website/out/` ka 207 skedarë dhe 19 faqe HTML. `public/site/` u zbraz (207 skedarët e mëparshëm) dhe u mbush nga `out/`. Përsëri 207 skedarë. `public/site-old/` mbeti 38 skedarë. `public/admin/` dhe `public/owner/` nuk u prekën. Ballina e re përmban «Pagesa». Nuk u publikua.
+
+## 2026-11-18 — Stili i faqes së vjetër
+
+`public/site-old/index.html` kërkon `/assets/index-BKrNrgpF.js`, `/assets/index-C__Z65xc.css` dhe `/logo-icon.svg`. Fotot janë te `/images/`. `src/server.js`: nëse skedari nuk është te `public/site/`, kërkohet te `public/site-old/`. E prova: stili, logoja dhe `images/hero.jpg` u hapën; faqja e re `udhezuesi.html` dhe një foto e re mbetën. Skedari që s’ekziston doli 404. Nuk u ndërtua. Nuk u publikua.
+
+## 2026-11-18 — Pagesa si te faqja e vjetër
+
+Te faqja e re, pas Çmimeve, u shtua «Pagesa»: kartë (Stripe, Visa, Mastercard, PayPal), butoni «Vazhdo me pagesë», dhe bankat TEB, Raiffeisen, NLB, BKT, ProCredit, BPB. Skedarët: `website/src/components/Pagesa.tsx`, `Pricing.tsx`, `page.tsx`, `Navbar.tsx`, `Footer.tsx`, `tekstet.ts`. Zgjedhja e pakos te Çmimet shkon te Pagesa. Kartë dhe bankë përdorin pagesën që ekziston. E pashë te faqja lokale që seksioni del. Nuk u ndërtua për publikim. Nuk u publikua.
+
+## 2026-11-18 — Privatësia, kushtet dhe blogu nga faqja e vjetër
+
+`src/services/seoMarketingHtml.js`. Te `public/site-old/` nuk ka `privacy.html`, `terms.html` apo `blog.html`. Ka vetëm `index.html`. `/privacy`, `/terms`, `/blog` dhe `/blog/artikull` e japin atë skedar. Faqet e reja mbeten te `public/site/`. E prova: skedari i kthyer është i njëjtë me `site-old/index.html`. Stili dhe fotot e vjetra janë te `site-old/assets` dhe `site-old/images`, jo te dosja e re. Nuk u ndërtua. Nuk u publikua.
+
+## 2026-11-18 — Adresat e faqes së re
+
+`src/services/seoMarketingHtml.js` tani lexon faqen e duhur nga `public/site/` (ballina dhe 16 faqet). Nuk e lexon më një faqe të vetme me `#`. `src/server.js`: u hoqën `/pse-ne`, `/si-ta-ngarkoni`, `/si-funksionon`, `/pakot`, `/kontakt`, `/pajisjet`. Adresa e pastër `/hotel`, `/market`, `/security` dhe të tjerat jep faqen e re. `/hotel/emri/...` mbetet te programi. Fotot te `pamje/` nuk i merr rruga e biznesit. E prova: 17 faqet përputhen me skedarët. Nuk u publikua.
+
+## 2026-11-18 — Faqja e re u kopjua te dosja e faqes
+
+`public/site/` u quajt `public/site-old/` (38 skedarë të vjetër). Pastaj `website/out/` (207 skedarë, 19 faqe HTML) u kopjua te `public/site/`. Numri përputhet. `public/admin/` dhe `public/owner/` nuk u prekën. Nuk u publikua. Serveri ende i lexon adresat e vjetra nga `public/site/index.html` përmes `src/services/seoMarketingHtml.js`.
+
+## 2026-11-18 — Ndërtimi i faqes kaloi
+
+`website/next.config.ts`: `cacheComponents: false`, `partialPrefetching: false`, `experimental.ppr: false`. `npm run build` kaloi. 19 faqe HTML te `website/out/`: ballina, 15 programe, udhëzuesi, dhe dy faqe «nuk u gjet». Skedarët nuk u zhvendosën. E prova: dalja e `next build` mbaroi pa gabim dhe listova HTML-të. Ende nuk është te faqja e vjetër.
+
+## 2026-11-18 — Ndërtimi i faqes dështoi përsëri
+
+U hoq `dynamicParams` te `website/src/app/[slug]/page.tsx`. `npm run build` kaloi 21 faqe, pastaj ndaloi: `PPR cannot be enabled in export mode`. Shkaku është `cacheComponents` te `website/next.config.ts`. Dosja `website/out/` mbeti, por ndërtimi doli me gabim. Skedarët nuk u zhvendosën. NOT VERIFIED.
+
+## 2026-11-18 — Ndërtimi i faqes dështoi
+
+`npm run build` te `website/` dështoi. Next.js 16.4.6. Gabimi: `website/src/app/[slug]/page.tsx` rreshti 10, `dynamicParams` nuk lejohet kur `cacheComponents` është ndezur. Nuk u krijua `website/out/`. Skedarët nuk u zhvendosën. NOT VERIFIED.
+
+## 2026-11-18 — Faqja e re gati për skedarë statikë
+
+`website/next.config.ts` rreshti 4: `output: "export"`. Kur të ndërtohet, skedarët shkojnë te `website/out/`. Nuk u ndërtua.
+
+U hoq faqja `/admin/manuals` dhe dy rrugët që shkarkonin udhëzuesin (`website/src/app/admin/`, `website/src/app/api/`). Ato lexonin kërkesën dhe nuk bëhen faqe statike. Te `website/src/app/[slug]/page.tsx` rreshti 10: vetëm adresat e shkruara ndërtohen. Nuk ka `getServerSideProps` dhe nuk ka `next/image`. Mbetën skedarët e vjetër të udhëzuesit te `website/src/lib/`, pa lidhje nga faqja. NOT VERIFIED. Pa build. Pa git.
+
 ## 2026-11-18 — POSTA / TAXI dhe RENTACAR te paneli
 
 Paneli i super adminit. U shtuan POSTA / TAXI (5 lloje, Së shpejti) dhe RENTACAR (3 lloje, Së shpejti). Lista e programeve tani ka 15. Skedarët: `public/admin/dashboard.html`, `public/admin/dashboard.js`, `src/utils/businessTipi.js`, `src/utils/productLine.js`, `src/services/superAdminDashboardService.js`, `src/routes/super.js`, `src/services/licenseService.js`, `supabase/migrations/083_distributor_mjekesia_tipi.sql`. Faqja e internetit nuk u prek. SQL-ja nuk u ekzekutua. Pa build. Pa git.

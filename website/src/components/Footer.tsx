@@ -13,6 +13,7 @@ export default function Footer() {
     { href: "/#fiskalizimi", label: t.nav.fiskalizimi },
     { href: "/#si-funksionon", label: t.footer.si },
     { href: "/#cmimet", label: t.nav.cmimet },
+    { href: "/#pagesa", label: t.nav.pagesa },
     { href: "/#pyetjet", label: t.nav.pyetjet },
     { href: "/#kontakti", label: t.nav.kontakti },
   ];
