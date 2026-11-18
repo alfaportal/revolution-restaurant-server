@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Email i saktë te Kontakti
 
-`Contact.tsx`: email është `revolutioninvest05@gmail.com`. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+`Contact.tsx`: email është `revolutioninvest05@gmail.com`. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `b2b993b`. Te faqja e gjallë emaili i saktë del.
 
 ## 2026-11-18 — Kubi me lëvizje dhe ngjyra si Resend
 
