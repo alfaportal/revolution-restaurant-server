@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Kubi me lëvizje dhe ngjyra si Resend
+
+`Kubi.tsx`. Kubi lëviz anash, lart-poshtë, ndahet në drejtime të ndryshme dhe ka dritë vjollcë/kaltër si te Resend. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+
 ## 2026-11-18 — Kubi mbi Përparësia, me ndarje
 
 `Kubi.tsx` dhe `Perparesia.tsx`. Kubi është mbi «PËRPARËSIA JONË». Lëviz dhe ndahet në pjesë si te Resend. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `e82dbae`. Te faqja e gjallë kubi me ndarje del.
