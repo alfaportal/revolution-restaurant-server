@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Laptopi i zi në ballinë
 
-`website/src/components/Hero.tsx` dhe `HeroScreens.tsx`. Laptopi është i zi, jo i kaltër. Brenda, shkrimi është më i madh dhe ekranet janë të errëta, me tabela dhe grafikë. Paketat e vogla janë në të njëjtin ndërtim. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+`website/src/components/Hero.tsx` dhe `HeroScreens.tsx`. Laptopi është i zi, jo i kaltër. Brenda, shkrimi është më i madh dhe ekranet janë të errëta, me tabela dhe grafikë. Paketat e vogla janë në të njëjtin ndërtim. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `83136f9`. Te faqja e gjallë laptopi është i zi.
 
 ## 2026-11-18 — Paketat më të vogla
 
