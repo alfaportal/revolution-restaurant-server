@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Shkrimi i ballinës pa blu
 
-`website/src/components/Hero.tsx`, `HeroEffects.tsx`, `website/src/i18n/tekstet.ts`. Titulli «për çdo biznes», shenjat dhe butoni «Fillo Falas» janë të bardhë, jo blu. Përshkrimi është një fjali: «Një sistem për shitjen, kuponin fiskal dhe raportin e ditës.» 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+`website/src/components/Hero.tsx`, `HeroEffects.tsx`, `website/src/i18n/tekstet.ts`. Titulli «për çdo biznes», shenjat dhe butoni «Fillo Falas» janë të bardhë, jo blu. Përshkrimi është një fjali: «Një sistem për shitjen, kuponin fiskal dhe raportin e ditës.» 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `304d668`. Te faqja e gjallë shkrimi është i bardhë dhe përshkrimi i ri del.
 
 ## 2026-11-18 — Laptopi i zi në ballinë
 
