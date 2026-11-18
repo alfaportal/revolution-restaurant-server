@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Faqja e re u publikua
+
+U dërgua ndryshimi `b1456d8`. Faqja e gjallë u kontrollua: ballina ka «Pagesa», `/hotel` është faqja e re, `/privacy` `/terms` `/blog` japin faqen e vjetër, stili dhe logoja e vjetër hapen, fotoja e re hapet, `/pse-ne` nuk gjendet, hyrja e pronarit mbetet. Nuk u dërguan çelësat, skedari i databazës, as dy foto prove.
+
 ## 2026-11-18 — Faqja e re u ndërtua dhe u kopjua
 
 `website`: `npm run build` kaloi. 20 faqe u krijuan. `website/out/` ka 207 skedarë dhe 19 faqe HTML. `public/site/` u zbraz (207 skedarët e mëparshëm) dhe u mbush nga `out/`. Përsëri 207 skedarë. `public/site-old/` mbeti 38 skedarë. `public/admin/` dhe `public/owner/` nuk u prekën. Ballina e re përmban «Pagesa». Nuk u publikua.
