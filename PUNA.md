@@ -1,5 +1,17 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-18 — Ballina një ngjyrë me poshtë
+
+`Hero.tsx`, `Navbar.tsx` dhe `globals.css`. Ballina dhe logoja kanë të njëjtën ngjyrë si «Përparësia jonë» (`#12121A`), jo më të errët. Duket si një faqe. Bashkë me kubin dhe Pagesën: 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. Po dërgohet.
+
+## 2026-11-18 — Kubi te Përparësia jonë
+
+`website/src/components/Kubi.tsx` dhe `Perparesia.tsx`. Kubi i zi lëviz në mes te «Përparësia jonë», si te Resend. Laptopi u kthye siç ishte. U përfshi në publikim.
+
+## 2026-11-18 — Pagesa më e qetë dhe email i ri
+
+`website/src/components/Pagesa.tsx`: butoni është i bardhë, bankat dhe shenjat e kartës janë më të errëta. `Contact.tsx`: email është `revolution05@gmail.com`. U përfshi në publikim.
+
 ## 2026-11-18 — Shkrimi i ballinës pa blu
 
 `website/src/components/Hero.tsx`, `HeroEffects.tsx`, `website/src/i18n/tekstet.ts`. Titulli «për çdo biznes», shenjat dhe butoni «Fillo Falas» janë të bardhë, jo blu. Përshkrimi është një fjali: «Një sistem për shitjen, kuponin fiskal dhe raportin e ditës.» 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `304d668`. Te faqja e gjallë shkrimi është i bardhë dhe përshkrimi i ri del.

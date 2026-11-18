@@ -21,7 +21,7 @@ export default function Navbar() {
   const [produktetHapur, setProduktetHapur] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0A0A0F]">
+    <header className="sticky top-0 z-50 bg-[#12121A]">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex h-24 items-center justify-between">
         <Link href="/" className="flex shrink-0 items-center gap-3">
@@ -121,7 +121,7 @@ export default function Navbar() {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 top-24 z-40 overflow-auto bg-[#0A0A0F] px-6 py-8 lg:hidden">
+        <div className="fixed inset-0 top-24 z-40 overflow-auto bg-[#12121A] px-6 py-8 lg:hidden">
           <a
             href="/#ballina"
             className="mb-6 block text-lg text-white"

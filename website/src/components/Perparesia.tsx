@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, Cloud, Download, Shield, WifiOff, type LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGjuha } from "@/i18n/gjuha";
+import Kubi from "./Kubi";
 
 const ikonat: LucideIcon[] = [Download, Shield, Cloud, WifiOff];
 
@@ -71,7 +72,10 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
       <h2 className="mx-auto mt-3 max-w-3xl text-center text-3xl font-bold text-white md:text-4xl">
         {t.perparesia.titulli}
       </h2>
-      <div className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mx-auto mt-10">
+        <Kubi />
+      </div>
+      <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2">
         {pikat.map((pika, index) => (
           <motion.article
             key={pika.titulli}

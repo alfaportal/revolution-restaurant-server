@@ -10,7 +10,6 @@ export default function Hero() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [slide, setSlide] = useState(0);
   const emriEkranit = t.ekranet[PAMJET[slide].emri as keyof typeof t.ekranet] ?? PAMJET[slide].emri;
-  // Track mouse for light effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
@@ -31,11 +30,9 @@ export default function Hero() {
     <section
       id="ballina"
       ref={containerRef}
-      className="relative overflow-hidden bg-[#09090b]"
+      className="relative overflow-hidden bg-[#12121A]"
     >
-      {/* Canvas effects */}
       <HeroEffects />
-      {/* ── Resend-style diagonal light beam ── */}
       <div
         className="pointer-events-none absolute inset-0 z-0"
         style={{
@@ -45,13 +42,10 @@ export default function Hero() {
           `,
         }}
       />
-      {/* Subtle noise grain overlay */}
       <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.015]"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }}
       />
-      {/* Top glow accent */}
       <div className="pointer-events-none absolute -top-[300px] left-1/2 z-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(255,255,255,0.06),transparent_70%)] blur-3xl" />
-      {/* ── Main content: BetterStack layout ── */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-12 lg:py-12">
         <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="max-w-xl">
@@ -209,9 +203,7 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
-      {/* Bottom gradient fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-32 w-full bg-gradient-to-t from-[#09090b] to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-20 w-full bg-gradient-to-t from-[#12121A] to-transparent" />
     </section>
   );
 }
-

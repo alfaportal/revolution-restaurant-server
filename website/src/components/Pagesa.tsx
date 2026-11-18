@@ -19,55 +19,55 @@ function ShenjaBankes({ id }: { id: string }) {
   if (id === "teb") {
     return (
       <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#006b3f" />
-        <path d="M16 32c10-16 16-20 26-22" fill="none" stroke="#d9ffe8" strokeWidth="2.4" strokeLinecap="round" />
-        <path d="M38 10c2 3 2 5 0 8 3-1 6-1 8 1-4-5-6-8-8-9z" fill="#d9ffe8" />
-        <text x="92" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#fff">TEB</text>
+        <rect width="148" height="44" rx="8" fill="#163528" />
+        <path d="M16 32c10-16 16-20 26-22" fill="none" stroke="#9fb8a8" strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M38 10c2 3 2 5 0 8 3-1 6-1 8 1-4-5-6-8-8-9z" fill="#9fb8a8" />
+        <text x="92" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">TEB</text>
       </svg>
     );
   }
   if (id === "raiffeisen") {
     return (
       <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#ffe600" />
-        <path d="M14 32 L26 14 L38 32 M26 14 L38 32 L50 14 L62 32" fill="none" stroke="#111" strokeWidth="3.2" strokeLinejoin="miter" />
-        <text x="104" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="800" fill="#111">Raiffeisen</text>
+        <rect width="148" height="44" rx="8" fill="#3a3520" />
+        <path d="M14 32 L26 14 L38 32 M26 14 L38 32 L50 14 L62 32" fill="none" stroke="#c4b87a" strokeWidth="3.2" strokeLinejoin="miter" />
+        <text x="104" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="800" fill="#e8ebe9">Raiffeisen</text>
       </svg>
     );
   }
   if (id === "nlb") {
     return (
       <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#003d7a" />
-        <path d="M16 32 V14 H22 L34 26 V14 H40 V32 H34 L22 20 V32 Z" fill="#fff" />
-        <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#fff">NLB</text>
+        <rect width="148" height="44" rx="8" fill="#1a2a3d" />
+        <path d="M16 32 V14 H22 L34 26 V14 H40 V32 H34 L22 20 V32 Z" fill="#b7c4d4" />
+        <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">NLB</text>
       </svg>
     );
   }
   if (id === "bkt") {
     return (
       <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#c8102e" />
-        <path d="M18 30 L28 14 L34 24 L40 12 L52 30 Z" fill="#fff" />
-        <text x="100" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#fff">BKT</text>
+        <rect width="148" height="44" rx="8" fill="#3a1c22" />
+        <path d="M18 30 L28 14 L34 24 L40 12 L52 30 Z" fill="#c9a0a6" />
+        <text x="100" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">BKT</text>
       </svg>
     );
   }
   if (id === "procredit") {
     return (
       <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#005ca9" />
-        <path d="M16 22 H34" stroke="#ffe600" strokeWidth="3" strokeLinecap="round" />
-        <path d="M28 15 L38 22 L28 29" fill="none" stroke="#8fd14f" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-        <text x="94" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="800" fill="#fff">ProCredit</text>
+        <rect width="148" height="44" rx="8" fill="#1a2f40" />
+        <path d="M16 22 H34" stroke="#b7a86a" strokeWidth="3" strokeLinecap="round" />
+        <path d="M28 15 L38 22 L28 29" fill="none" stroke="#8fa88a" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        <text x="94" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="800" fill="#e8ebe9">ProCredit</text>
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-      <rect width="148" height="44" rx="8" fill="#e30613" />
-      <path d="M24 12 L27 20 H36 L29 25 L32 34 L24 28 L16 34 L19 25 L12 20 H21 Z" fill="#fff" />
-      <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#fff">BPB</text>
+      <rect width="148" height="44" rx="8" fill="#3a1c22" />
+      <path d="M24 12 L27 20 H36 L29 25 L32 34 L24 28 L16 34 L19 25 L12 20 H21 Z" fill="#c9a0a6" />
+      <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">BPB</text>
     </svg>
   );
 }
@@ -211,18 +211,18 @@ export default function Pagesa() {
           <h3 className="text-lg font-bold">Kartë bankare</h3>
           <p className="mt-1 text-sm text-[#94a3b8]">Visa, Mastercard dhe pagesë online</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-lg font-bold text-[#635bff]">Stripe</span>
-            <span className="rounded bg-[#1a1f71] px-3 py-1 text-sm font-black tracking-wide text-white">VISA</span>
+            <span className="text-lg font-bold text-zinc-300">Stripe</span>
+            <span className="rounded border border-white/15 bg-white/5 px-3 py-1 text-sm font-black tracking-wide text-zinc-200">VISA</span>
             <span className="relative h-7 w-12" aria-hidden="true">
-              <span className="absolute left-0 top-0 h-7 w-7 rounded-full bg-[#eb001b]" />
-              <span className="absolute left-4 top-0 h-7 w-7 rounded-full bg-[#f79e1b]" />
+              <span className="absolute left-0 top-0 h-7 w-7 rounded-full bg-zinc-500/70" />
+              <span className="absolute left-4 top-0 h-7 w-7 rounded-full bg-zinc-400/70" />
             </span>
-            <span className="text-lg font-extrabold italic text-[#003087]">PayPal</span>
+            <span className="text-lg font-extrabold italic text-zinc-300">PayPal</span>
           </div>
           <button
             type="button"
             onClick={hapKarten}
-            className="mt-6 w-full rounded-full bg-[#e63946] py-3 text-sm font-semibold text-white"
+            className="mt-6 w-full rounded-full bg-white py-3 text-sm font-semibold text-[#09090b] transition hover:bg-zinc-200"
           >
             Vazhdo me pagesë
           </button>
@@ -238,7 +238,7 @@ export default function Pagesa() {
                 type="button"
                 aria-label={b.emri}
                 onClick={() => hapBanken(b.id)}
-                className="rounded-xl border border-white/10 bg-[#12121A] p-2 transition hover:border-[#0EA5E9]"
+                className="rounded-xl border border-white/10 bg-[#12121A] p-2 transition hover:border-white/30"
               >
                 <ShenjaBankes id={b.id} />
               </button>
@@ -295,7 +295,7 @@ export default function Pagesa() {
             </label>
             {mesazhi ? <p className="mt-3 text-sm font-semibold">{mesazhi}</p> : null}
             <div className="mt-5 flex gap-3">
-              <button type="submit" disabled={duke} className="rounded-full bg-[#e63946] px-5 py-3 text-sm font-semibold text-white">
+              <button type="submit" disabled={duke} className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#09090b] transition hover:bg-zinc-200">
                 {duke ? "Duke hapur…" : forma === "kartë" ? "Vazhdo me pagesë" : "Dërgo kërkesën"}
               </button>
               <button type="button" onClick={mbyll} className="rounded-full border border-white/20 px-5 py-3 text-sm">
