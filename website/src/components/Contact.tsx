@@ -64,7 +64,7 @@ export default function Contact() {
           </div>
           <div className="rounded-2xl border border-[#0EA5E9]/15 bg-[#0A0A0F] p-5">
             <p className="text-sm text-[#94A3B8]">{t.kontakt.email}</p>
-            <p className="mt-1 font-semibold text-white">revolution05@gmail.com</p>
+            <p className="mt-1 font-semibold text-white">revolutioninvest05@gmail.com</p>
           </div>
           <div className="rounded-2xl border border-[#0EA5E9]/20 bg-[#0EA5E9]/10 p-5">
             <p className="font-semibold text-white">{t.kontakt.sheh}</p>

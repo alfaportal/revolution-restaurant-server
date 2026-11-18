@@ -2,4 +2,4 @@
 :HL["/_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":{"n":"slug","t":"d","k":"butika","s":["udhezuesi"]},"h":96,"c":"$Q2"}]]
-0:{"b":"HMhfZy0KTUwW1lLT4TXNa","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"PtovYfpYYfnyRIJvjmTSB","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
