@@ -22,14 +22,73 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#12121A]">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="flex h-24 items-center justify-between">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
-          <img src={logo.src} alt="" className="h-16 w-auto" />
-          <span className="text-xl font-semibold tracking-wide text-white">Revolution POS</span>
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-1.5">
+          <img src={logo.src} alt="" className="h-9 w-auto" />
+          <span className="whitespace-nowrap text-base font-semibold leading-none tracking-wide text-white">Revolution POS</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <nav className="hidden min-w-0 flex-1 items-center gap-x-4 lg:flex xl:gap-x-5">
+          <a
+            href="/#ballina"
+            className="whitespace-nowrap text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"
+          >
+            {t.nav.ballina}
+          </a>
+          <div
+            className="group relative"
+            onMouseEnter={() => setProduktetHapur(true)}
+            onMouseLeave={() => setProduktetHapur(false)}
+          >
+            <button
+              type="button"
+              className="whitespace-nowrap text-sm text-white hover:text-[#0EA5E9]"
+              aria-expanded={produktetHapur}
+              onClick={() => setProduktetHapur(true)}
+            >
+              {t.nav.produktet}
+            </button>
+            <div className={`absolute left-1/2 top-full z-50 w-[680px] -translate-x-1/2 pt-4 ${produktetHapur ? "block" : "hidden"} group-hover:block`}>
+              <div className="grid grid-cols-4 gap-4 rounded-2xl border border-white/10 bg-[#0A0A0F] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                {grupet.map((grupi) => (
+                  <div key={grupi.titulli}>
+                    <p className="text-[11px] font-medium tracking-[0.16em] text-[#0EA5E9]">
+                      {t.grupet[grupi.titulli as keyof typeof t.grupet]}
+                    </p>
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {grupi.sluget.map((slug) => {
+                        const produkti = produktiNgaSlug(slug);
+                        if (!produkti) return null;
+                        return (
+                          <li key={slug}>
+                            <Link
+                              href={`/${slug}`}
+                              className="text-sm text-zinc-300 hover:text-white"
+                              onClick={() => setProduktetHapur(false)}
+                            >
+                              {produkti.emri}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="whitespace-nowrap text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Gjuhet />
           <div className="hidden items-center gap-3 md:flex">
             <a
@@ -57,71 +116,10 @@ export default function Navbar() {
             <span className="block h-0.5 w-6 bg-white" />
           </button>
         </div>
-        </div>
-
-        <nav className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-2 pb-4 lg:flex">
-          <a
-            href="/#ballina"
-            className="text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"
-          >
-            {t.nav.ballina}
-          </a>
-          <div
-            className="group relative"
-            onMouseEnter={() => setProduktetHapur(true)}
-            onMouseLeave={() => setProduktetHapur(false)}
-          >
-            <button
-              type="button"
-              className="text-sm text-white hover:text-[#0EA5E9]"
-              aria-expanded={produktetHapur}
-              onClick={() => setProduktetHapur(true)}
-            >
-              {t.nav.produktet}
-            </button>
-            <div className={`absolute left-1/2 top-full z-50 w-[680px] -translate-x-1/2 pt-4 ${produktetHapur ? "block" : "hidden"} group-hover:block`}>
-                <div className="grid grid-cols-4 gap-4 rounded-2xl border border-white/10 bg-[#0A0A0F] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-                  {grupet.map((grupi) => (
-                    <div key={grupi.titulli}>
-                      <p className="text-[11px] font-medium tracking-[0.16em] text-[#0EA5E9]">
-                        {t.grupet[grupi.titulli as keyof typeof t.grupet]}
-                      </p>
-                      <ul className="mt-3 flex flex-col gap-2">
-                        {grupi.sluget.map((slug) => {
-                          const produkti = produktiNgaSlug(slug);
-                          if (!produkti) return null;
-                          return (
-                            <li key={slug}>
-                              <Link
-                                href={`/${slug}`}
-                                className="text-sm text-zinc-300 hover:text-white"
-                                onClick={() => setProduktetHapur(false)}
-                              >
-                                {produkti.emri}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-            </div>
-          </div>
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-white transition-colors duration-200 hover:text-[#0EA5E9]"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
       </div>
 
       {open ? (
-        <div className="fixed inset-0 top-24 z-40 overflow-auto bg-[#12121A] px-6 py-8 lg:hidden">
+        <div className="fixed inset-0 top-16 z-40 overflow-auto bg-[#12121A] px-6 py-8 lg:hidden">
           <a
             href="/#ballina"
             className="mb-6 block text-lg text-white"

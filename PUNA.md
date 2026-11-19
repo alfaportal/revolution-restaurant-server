@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Ballina një rresht
+
+`Navbar.tsx`: «Revolution POS» rri menjëherë pas R. Ballina është në të njëjtin rresht. Në telefon nuk del jashtë.
+
 ## 2026-11-19 — U hoqën dy rreshta te privatësia
 
 `ligjore.ts` dhe faqja e privatësisë. U hoq «Puna në arkë» dhe «Klientët». Nuk thuhet më që ruhen porositë, kuponët apo emri i klientit.
