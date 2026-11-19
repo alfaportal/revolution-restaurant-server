@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Revolution POS poshtë logos
+
+`website/src/components/Navbar.tsx`. Logoja mbeti e madhe (h-16). «Revolution POS» zbriti te rreshti i Ballinës dhe i programeve, nën logon. Gjuhët mbeten lart, pranë logos. Në telefon shkrimi nuk qëndron më pranë R dhe nuk del jashtë.
+
 ## 2026-11-19 — Ballina një rresht
 
 `Navbar.tsx`: «Revolution POS» rri menjëherë pas R. Ballina është në të njëjtin rresht. Në telefon nuk del jashtë.
