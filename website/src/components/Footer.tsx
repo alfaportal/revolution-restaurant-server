@@ -61,7 +61,43 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto mt-12 max-w-6xl border-t border-[#0EA5E9]/10 pt-6">
-        <p className="text-center text-sm text-[#94A3B8]">© 2026 Revolution POS</p>
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">{t.footer.kompania}</h2>
+            <p className="mt-3 text-sm text-white">Revolution Invest SH.P.K.</p>
+            <p className="mt-1 text-sm text-[#94A3B8]">{t.footer.vendi}</p>
+            <a href="mailto:revolutioninvest05@gmail.com" className="mt-1 block text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+              revolutioninvest05@gmail.com
+            </a>
+            <a href="tel:+38348707880" className="mt-1 block text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+              +383 48 707 880
+            </a>
+            <a href="https://wa.me/38348707880" className="mt-1 block text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+              WhatsApp
+            </a>
+            <a href="/#kontakti" className="mt-1 block text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+              {t.nav.kontakti}
+            </a>
+          </div>
+          <ul className="flex flex-col gap-2">
+            <li>
+              <Link href="/privatesia" className="text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+                {t.footer.privatesia}
+              </Link>
+            </li>
+            <li>
+              <Link href="/kushtet" className="text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+                {t.footer.kushtet}
+              </Link>
+            </li>
+            <li>
+              <Link href="/cookies" className="text-sm text-[#94A3B8] transition-colors hover:text-[#0EA5E9]">
+                {t.footer.cookies}
+              </Link>
+            </li>
+          </ul>
+        </div>
+        <p className="mt-8 text-center text-sm text-[#94A3B8]">© 2026 Revolution POS</p>
       </div>
     </footer>
   );

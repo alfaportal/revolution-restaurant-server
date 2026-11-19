@@ -30,8 +30,11 @@ const bizneset = [
 export default function Pricing() {
   const { t } = useGjuha();
   const [slug, setSlug] = useState(bizneset[0].slug);
+  const [produktiEmri, setProduktiEmri] = useState("");
   const [sa, setSa] = useState(3);
   const produkti = produktiNgaSlug(slug);
+  const lista = produkti?.bizneset ?? [];
+  const zgjedhur = lista.includes(produktiEmri) ? produktiEmri : (lista[0] ?? "");
   const paketat = produkti?.paketat ?? [];
 
   return (
@@ -40,12 +43,15 @@ export default function Pricing() {
       <h2 className="mt-3 text-center text-3xl font-bold text-white md:text-4xl">{t.cmimet.titulli}</h2>
       <p className="mt-4 text-center text-[#94A3B8]">{t.cmimet.nentitulli}</p>
 
-      <div className="mx-auto mt-10 grid w-full max-w-6xl items-start gap-8 lg:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm text-[#94A3B8]">
-          {t.cmimet.programi}
+      <div className="mx-auto mt-10 flex w-full max-w-6xl flex-col items-start gap-4 lg:flex-row">
+        <label className="flex w-full shrink-0 flex-col gap-2 text-sm text-[#94A3B8] lg:w-52">
+          {t.cmimet.programet}
           <select
             value={slug}
-            onChange={(event) => setSlug(event.target.value)}
+            onChange={(event) => {
+              setSlug(event.target.value);
+              setProduktiEmri("");
+            }}
             className="h-12 rounded-xl border border-white/10 bg-[#12121A] px-3 text-white outline-none focus:border-[#0EA5E9]"
           >
             {bizneset.map((biznesi) => (
@@ -55,8 +61,22 @@ export default function Pricing() {
             ))}
           </select>
         </label>
+        <label className="flex w-full shrink-0 flex-col gap-2 text-sm text-[#94A3B8] lg:w-64">
+          {t.cmimet.produktet}
+          <select
+            value={zgjedhur}
+            onChange={(event) => setProduktiEmri(event.target.value)}
+            className="h-12 rounded-xl border border-white/10 bg-[#12121A] px-3 text-white outline-none focus:border-[#0EA5E9]"
+          >
+            {lista.map((emri) => (
+              <option key={emri} value={emri}>
+                {emri}
+              </option>
+            ))}
+          </select>
+        </label>
         {!produkti?.spiashpejti ? (
-          <div>
+          <div className="min-w-0 w-full flex-1">
             <h3 className="text-sm text-[#94A3B8]">{t.cmimet.llogaria}</h3>
             <div className="mt-2 overflow-hidden rounded-2xl border border-white/10">
               <table className="w-full text-left text-sm text-white">
@@ -112,7 +132,7 @@ export default function Pricing() {
         </div>
       ) : (
         <div key={slug}>
-        <h3 className="mt-10 text-center text-2xl font-bold text-white">{produkti?.emri}</h3>
+        <h3 className="mt-10 text-center text-2xl font-bold text-white">{zgjedhur}</h3>
         <div
           className={`mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-3 ${paketat.length >= 5 ? "md:grid-cols-2 xl:grid-cols-3" : paketat.length === 4 ? "lg:grid-cols-4" : paketat.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
         >
@@ -147,7 +167,7 @@ export default function Pricing() {
                   const plan = n === 150 ? "p1" : n === 180 ? "p2" : n === 220 ? "p3" : n === 250 ? "p4" : "";
                   sessionStorage.setItem(
                     "revolution-pako",
-                    JSON.stringify({ plan, emri: paketa.emri, cmimi: paketa.cmimi, programi: produkti?.emri || "" }),
+                    JSON.stringify({ plan, emri: paketa.emri, cmimi: paketa.cmimi, programi: zgjedhur || produkti?.emri || "" }),
                   );
                   window.dispatchEvent(new Event("revolution-pako"));
                 }}

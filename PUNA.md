@@ -1,5 +1,21 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Telefoni dhe WhatsApp te kontakti dhe te fundi
+
+`Contact.tsx` dhe `Footer.tsx`: +383 48 707 880 dhe WhatsApp. I njëjti numër. Nuk u publikua.
+
+## 2026-11-19 — Fundi i faqes: privatësia, kushtet, cookies, kompania
+
+`Footer.tsx`: Revolution Invest SH.P.K., Ferizaj, Kosovë, revolutioninvest05@gmail.com, Kontakti. Linqe te `/privatesia`, `/kushtet`, `/cookies`. Numër telefoni nuk u vu, se nuk është i shkruar. Nuk u publikua.
+
+## 2026-11-19 — Çmimet: Programet, Produktet, Llogaria në një rresht
+
+`website/src/components/Pricing.tsx`: Programet është më i ngushtë, Produktet në mes, Llogaria djathtas, një rresht. Kur zgjedh KAFENE, në mes dalin Kafene, Restorant, Bar e të tjerat. Titulli poshtë merr emrin e zgjedhur. `tekstet.ts` fjalët e reja te çmimet. Nuk u publikua.
+
+## 2026-11-19 — Ballina: Produktet → Programet
+
+`website/src/i18n/tekstet.ts` menuja: shqip «Programet», anglisht «Programs», gjermanisht «Programme», serbisht «Programi». Vetëm emri në menu. Seksioni poshtë dhe lista e programeve mbeten. Nuk u publikua. Faqja e gjallë ende thotë «Produktet».
+
 ## 2026-11-18 — Email i saktë te Kontakti
 
 `Contact.tsx`: email është `revolutioninvest05@gmail.com`. 207 skedarë u kopjuan te `public/site/`. `site-old` mbeti 38. U publikua `b2b993b`. Te faqja e gjallë emaili i saktë del.

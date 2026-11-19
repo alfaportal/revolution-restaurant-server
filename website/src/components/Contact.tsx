@@ -66,6 +66,11 @@ export default function Contact() {
             <p className="text-sm text-[#94A3B8]">{t.kontakt.email}</p>
             <p className="mt-1 font-semibold text-white">revolutioninvest05@gmail.com</p>
           </div>
+          <div className="rounded-2xl border border-[#0EA5E9]/15 bg-[#0A0A0F] p-5">
+            <p className="text-sm text-[#94A3B8]">{t.kontakt.telefoni}</p>
+            <a href="tel:+38348707880" className="mt-1 block font-semibold text-white">+383 48 707 880</a>
+            <a href="https://wa.me/38348707880" className="mt-2 block font-semibold text-white">WhatsApp</a>
+          </div>
           <div className="rounded-2xl border border-[#0EA5E9]/20 bg-[#0EA5E9]/10 p-5">
             <p className="font-semibold text-white">{t.kontakt.sheh}</p>
             <ul className="mt-3 flex flex-col gap-2 text-sm text-zinc-300">
