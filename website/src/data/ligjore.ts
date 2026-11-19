@@ -15,8 +15,6 @@ export const ligjore: Record<LlojLigjor, Record<"sq" | "en", { titulli: string; 
         <ul>
           <li><strong>Të dhëna biznesi:</strong> emri, adresa, telefoni, email, NUI kur kërkohet, logo.</li>
           <li><strong>Llogari:</strong> emri, email, telefoni, roli dhe hyrjet në sistem.</li>
-          <li><strong>Puna në arkë:</strong> porosi, artikuj, çmime, pagesa, kuponë dhe raporte.</li>
-          <li><strong>Klientët:</strong> emër ose telefon vetëm kur e japin vetë, për shembull te rezervimi.</li>
           <li><strong>Teknike:</strong> pajisja, shfletuesi dhe adresa IP, për siguri.</li>
           <li><strong>Kontakt:</strong> mesazhet që na dërgoni nga forma e kontaktit.</li>
         </ul>
@@ -47,8 +45,6 @@ export const ligjore: Record<LlojLigjor, Record<"sq" | "en", { titulli: string; 
         <ul>
           <li><strong>Business data:</strong> name, address, phone, email, tax number when required, logo.</li>
           <li><strong>Accounts:</strong> name, email, phone, role and sign-ins.</li>
-          <li><strong>Till work:</strong> orders, items, prices, payments, receipts and reports.</li>
-          <li><strong>Customers:</strong> a name or phone only when they give it, for example for a booking.</li>
           <li><strong>Technical:</strong> device, browser and IP address, for security.</li>
           <li><strong>Contact:</strong> messages sent from the contact form.</li>
         </ul>

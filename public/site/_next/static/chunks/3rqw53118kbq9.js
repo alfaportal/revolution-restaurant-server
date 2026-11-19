@@ -6,8 +6,6 @@
         <ul>
           <li><strong>T\xeb dh\xebna biznesi:</strong> emri, adresa, telefoni, email, NUI kur k\xebrkohet, logo.</li>
           <li><strong>Llogari:</strong> emri, email, telefoni, roli dhe hyrjet n\xeb sistem.</li>
-          <li><strong>Puna n\xeb ark\xeb:</strong> porosi, artikuj, \xe7mime, pagesa, kupon\xeb dhe raporte.</li>
-          <li><strong>Klient\xebt:</strong> em\xebr ose telefon vet\xebm kur e japin vet\xeb, p\xebr shembull te rezervimi.</li>
           <li><strong>Teknike:</strong> pajisja, shfletuesi dhe adresa IP, p\xebr siguri.</li>
           <li><strong>Kontakt:</strong> mesazhet q\xeb na d\xebrgoni nga forma e kontaktit.</li>
         </ul>
@@ -33,8 +31,6 @@
         <ul>
           <li><strong>Business data:</strong> name, address, phone, email, tax number when required, logo.</li>
           <li><strong>Accounts:</strong> name, email, phone, role and sign-ins.</li>
-          <li><strong>Till work:</strong> orders, items, prices, payments, receipts and reports.</li>
-          <li><strong>Customers:</strong> a name or phone only when they give it, for example for a booking.</li>
           <li><strong>Technical:</strong> device, browser and IP address, for security.</li>
           <li><strong>Contact:</strong> messages sent from the contact form.</li>
         </ul>

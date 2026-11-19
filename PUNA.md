@@ -1,5 +1,13 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — U hoqën dy rreshta te privatësia
+
+`ligjore.ts` dhe faqja e privatësisë. U hoq «Puna në arkë» dhe «Klientët». Nuk thuhet më që ruhen porositë, kuponët apo emri i klientit.
+
+## 2026-11-19 — U dërgua vetëm faqja
+
+U dërgua `c20b169`. Në https://revolution-pos.com/ dalin Programet, çmimet, fundi, telefoni dhe WhatsApp. Skedarët e tjerë të serverit nuk u dërguan.
+
 ## 2026-11-19 — Telefoni dhe WhatsApp te kontakti dhe te fundi
 
 `Contact.tsx` dhe `Footer.tsx`: +383 48 707 880 dhe WhatsApp. I njëjti numër. Nuk u publikua.
