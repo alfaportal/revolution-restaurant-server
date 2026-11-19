@@ -82,7 +82,7 @@ export default function Navbar() {
               >
                 {t.nav.produktet}
               </button>
-              <div className={`absolute left-1/2 top-full z-50 w-[680px] -translate-x-1/2 pt-4 ${produktetHapur ? "block" : "hidden"} group-hover:block`}>
+              <div className={`fixed left-1/2 top-36 z-50 w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 pt-3 ${produktetHapur ? "block" : "hidden"} group-hover:block`}>
                 <div className="grid grid-cols-4 gap-4 rounded-2xl border border-white/10 bg-[#0A0A0F] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
                   {grupet.map((grupi) => (
                     <div key={grupi.titulli}>
@@ -126,38 +126,21 @@ export default function Navbar() {
 
       {open ? (
         <div className="fixed inset-0 top-36 z-40 overflow-auto bg-[#12121A] px-6 py-8 lg:hidden">
-          <a
-            href="/#ballina"
-            className="mb-6 block text-lg text-white"
-            onClick={() => setOpen(false)}
-          >
-            {t.nav.ballina}
-          </a>
-          {grupet.map((grupi) => (
-            <div key={grupi.titulli} className="mb-6">
-              <p className="text-xs tracking-[0.16em] text-[#0EA5E9]">
-                {t.grupet[grupi.titulli as keyof typeof t.grupet]}
-              </p>
-              <ul className="mt-2 flex flex-col gap-2">
-                {grupi.sluget.map((slug) => {
-                  const produkti = produktiNgaSlug(slug);
-                  if (!produkti) return null;
-                  return (
-                    <li key={slug}>
-                      <Link
-                        href={`/${slug}`}
-                        className="text-lg text-white"
-                        onClick={() => setOpen(false)}
-                      >
-                        {produkti.emri}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-          <div className="mt-4 flex flex-col gap-4">
+          <nav className="mx-auto flex max-w-sm flex-col gap-5">
+            <a
+              href="/#ballina"
+              className="text-lg text-white"
+              onClick={() => setOpen(false)}
+            >
+              {t.nav.ballina}
+            </a>
+            <a
+              href="/#produktet"
+              className="text-lg text-white"
+              onClick={() => setOpen(false)}
+            >
+              {t.nav.produktet}
+            </a>
             {links.map((link) => (
               <a
                 key={link.href}
@@ -168,7 +151,7 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-          </div>
+          </nav>
         </div>
       ) : null}
     </header>

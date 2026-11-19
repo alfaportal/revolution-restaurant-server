@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Menyja
+
+`website/src/components/Navbar.tsx`. Lista e programeve qëndron brenda ekranit. Në telefon menyja është vetëm: Ballina, Programet, Fiskalizimi, Si Funksionon, Çmimet, Pagesa, Pyetjet, Kontakti, Udhëzuesi. Nuk ka më ndarje ushqim, mjekësi e të tjera.
+
 ## 2026-11-19 — Shenjat e pagesës
 
 `website/src/components/Pagesa.tsx`. Visa, Mastercard, PayPal, Stripe dhe bankat TEB, Raiffeisen, NLB, BKT, ProCredit, BPB morën ngjyrat e shenjave të vërteta. U hoqën vizatimet e errëta.
