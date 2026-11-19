@@ -15,59 +15,57 @@ const bankat = [
   { id: "bpb", emri: "BPB" },
 ];
 
-function ShenjaBankes({ id }: { id: string }) {
-  if (id === "teb") {
+function ShenjaKartes({ id }: { id: string }) {
+  if (id === "stripe") {
     return (
-      <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#163528" />
-        <path d="M16 32c10-16 16-20 26-22" fill="none" stroke="#9fb8a8" strokeWidth="2.4" strokeLinecap="round" />
-        <path d="M38 10c2 3 2 5 0 8 3-1 6-1 8 1-4-5-6-8-8-9z" fill="#9fb8a8" />
-        <text x="92" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">TEB</text>
+      <svg viewBox="0 0 92 36" className="h-9 w-[5.75rem]" aria-hidden="true">
+        <rect width="92" height="36" rx="6" fill="#ffffff" />
+        <text x="46" y="24" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" fill="#635bff">Stripe</text>
       </svg>
     );
   }
-  if (id === "raiffeisen") {
+  if (id === "visa") {
     return (
-      <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#3a3520" />
-        <path d="M14 32 L26 14 L38 32 M26 14 L38 32 L50 14 L62 32" fill="none" stroke="#c4b87a" strokeWidth="3.2" strokeLinejoin="miter" />
-        <text x="104" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="800" fill="#e8ebe9">Raiffeisen</text>
+      <svg viewBox="0 0 72 36" className="h-9 w-[4.5rem]" aria-hidden="true">
+        <rect width="72" height="36" rx="6" fill="#1a1f71" />
+        <text x="36" y="24" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="900" letterSpacing="1" fill="#ffffff">VISA</text>
       </svg>
     );
   }
-  if (id === "nlb") {
+  if (id === "mc") {
     return (
-      <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#1a2a3d" />
-        <path d="M16 32 V14 H22 L34 26 V14 H40 V32 H34 L22 20 V32 Z" fill="#b7c4d4" />
-        <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">NLB</text>
-      </svg>
-    );
-  }
-  if (id === "bkt") {
-    return (
-      <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#3a1c22" />
-        <path d="M18 30 L28 14 L34 24 L40 12 L52 30 Z" fill="#c9a0a6" />
-        <text x="100" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">BKT</text>
-      </svg>
-    );
-  }
-  if (id === "procredit") {
-    return (
-      <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-        <rect width="148" height="44" rx="8" fill="#1a2f40" />
-        <path d="M16 22 H34" stroke="#b7a86a" strokeWidth="3" strokeLinecap="round" />
-        <path d="M28 15 L38 22 L28 29" fill="none" stroke="#8fa88a" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-        <text x="94" y="27" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="800" fill="#e8ebe9">ProCredit</text>
+      <svg viewBox="0 0 72 36" className="h-9 w-[4.5rem]" aria-hidden="true">
+        <rect width="72" height="36" rx="6" fill="#ffffff" />
+        <circle cx="30" cy="18" r="10" fill="#eb001b" />
+        <circle cx="42" cy="18" r="10" fill="#f79e1b" />
+        <path d="M36 9.4a10 10 0 0 1 0 17.2 10 10 0 0 1 0-17.2z" fill="#ff5f00" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 148 44" className="h-10 w-full" aria-hidden="true">
-      <rect width="148" height="44" rx="8" fill="#3a1c22" />
-      <path d="M24 12 L27 20 H36 L29 25 L32 34 L24 28 L16 34 L19 25 L12 20 H21 Z" fill="#c9a0a6" />
-      <text x="96" y="28" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="800" fill="#e8ebe9">BPB</text>
+    <svg viewBox="0 0 92 36" className="h-9 w-[5.75rem]" aria-hidden="true">
+      <rect width="92" height="36" rx="6" fill="#ffffff" />
+      <text x="46" y="24" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="800" fontStyle="italic" fill="#003087">PayPal</text>
+    </svg>
+  );
+}
+
+function ShenjaBankes({ id }: { id: string }) {
+  const markat: Record<string, { bg: string; fg: string; label: string; size: number }> = {
+    teb: { bg: "#006b3f", fg: "#ffffff", label: "TEB", size: 18 },
+    raiffeisen: { bg: "#ffe600", fg: "#111111", label: "Raiffeisen", size: 13 },
+    nlb: { bg: "#003d7a", fg: "#ffffff", label: "NLB", size: 18 },
+    bkt: { bg: "#c8102e", fg: "#ffffff", label: "BKT", size: 18 },
+    procredit: { bg: "#005ca9", fg: "#ffffff", label: "ProCredit", size: 14 },
+    bpb: { bg: "#e30613", fg: "#ffffff", label: "BPB", size: 18 },
+  };
+  const m = markat[id] || markat.bpb;
+  return (
+    <svg viewBox="0 0 160 40" className="h-10 w-full" aria-hidden="true">
+      <rect width="160" height="40" rx="6" fill={m.bg} />
+      <text x="80" y="26" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={m.size} fontWeight="800" fill={m.fg}>
+        {m.label}
+      </text>
     </svg>
   );
 }
@@ -211,13 +209,10 @@ export default function Pagesa() {
           <h3 className="text-lg font-bold">Kartë bankare</h3>
           <p className="mt-1 text-sm text-[#94a3b8]">Visa, Mastercard dhe pagesë online</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-lg font-bold text-zinc-300">Stripe</span>
-            <span className="rounded border border-white/15 bg-white/5 px-3 py-1 text-sm font-black tracking-wide text-zinc-200">VISA</span>
-            <span className="relative h-7 w-12" aria-hidden="true">
-              <span className="absolute left-0 top-0 h-7 w-7 rounded-full bg-zinc-500/70" />
-              <span className="absolute left-4 top-0 h-7 w-7 rounded-full bg-zinc-400/70" />
-            </span>
-            <span className="text-lg font-extrabold italic text-zinc-300">PayPal</span>
+            <ShenjaKartes id="stripe" />
+            <ShenjaKartes id="visa" />
+            <ShenjaKartes id="mc" />
+            <ShenjaKartes id="paypal" />
           </div>
           <button
             type="button"
@@ -238,7 +233,7 @@ export default function Pagesa() {
                 type="button"
                 aria-label={b.emri}
                 onClick={() => hapBanken(b.id)}
-                className="rounded-xl border border-white/10 bg-[#12121A] p-2 transition hover:border-white/30"
+                className="rounded-xl border border-[#e2e8f0] bg-white p-2 transition hover:border-[#e63946]"
               >
                 <ShenjaBankes id={b.id} />
               </button>

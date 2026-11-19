@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Shenjat e pagesës
+
+`website/src/components/Pagesa.tsx`. Visa, Mastercard, PayPal, Stripe dhe bankat TEB, Raiffeisen, NLB, BKT, ProCredit, BPB morën ngjyrat e shenjave të vërteta. U hoqën vizatimet e errëta.
+
 ## 2026-11-19 — Emaili, Kosovë, hapësira, fajkat
 
 `Hero.tsx`: emaili në telefon zë gjerësinë e ekranit. Fajkat te «Kupon fiskal për ATK» dhe «15 programe» janë blu, si të tjerat. `Navbar.tsx`: Ballina dhe Programet janë më larg nga «Revolution POS». `tekstet.ts`: te kontakti dhe te fundi mbetet Kosovë, Ferizaj u hoq.
