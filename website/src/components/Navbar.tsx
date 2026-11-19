@@ -58,7 +58,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-x-5 pb-4">
+        <div className="flex items-center gap-x-16 pb-4">
           <span className="shrink-0 whitespace-nowrap text-xl font-semibold tracking-wide text-white">
             Revolution POS
           </span>

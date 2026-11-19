@@ -88,17 +88,17 @@ export default function Hero() {
                 e.preventDefault();
                 document.getElementById("kontakti")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row sm:items-center"
+              className="mt-8 flex w-full flex-col gap-3 lg:max-w-md lg:flex-row lg:items-center"
             >
               <input
                 type="email"
                 placeholder={t.hero.email}
                 aria-label={t.hero.email}
-                className="h-[52px] min-w-0 flex-1 rounded-lg border border-white/10 bg-[#12141c] px-4 text-[15px] text-white outline-none placeholder:text-zinc-500 focus:border-white/40"
+                className="h-[52px] w-full rounded-lg border border-white/10 bg-[#12141c] px-4 text-base text-white outline-none placeholder:text-zinc-500 focus:border-white/40"
               />
               <button
                 type="submit"
-                className="h-[52px] w-full shrink-0 rounded-lg bg-white px-5 text-[15px] font-semibold text-[#09090b] transition hover:bg-zinc-200 sm:w-auto"
+                className="h-[52px] w-full shrink-0 rounded-lg bg-white px-5 text-base font-semibold text-[#09090b] transition hover:bg-zinc-200 lg:w-auto"
               >
                 {t.hero.fillo}
               </button>
@@ -111,7 +111,7 @@ export default function Hero() {
             >
               {t.hero.pikat.map((pika) => (
                 <li key={pika} className="flex items-center gap-2 text-sm text-zinc-300">
-                  <span className="text-white">✓</span>
+                  <span className="text-[#0EA5E9]">✓</span>
                   {pika}
                 </li>
               ))}

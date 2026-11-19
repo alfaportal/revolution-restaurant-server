@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Emaili, Kosovë, hapësira, fajkat
+
+`Hero.tsx`: emaili në telefon zë gjerësinë e ekranit. Fajkat te «Kupon fiskal për ATK» dhe «15 programe» janë blu, si të tjerat. `Navbar.tsx`: Ballina dhe Programet janë më larg nga «Revolution POS». `tekstet.ts`: te kontakti dhe te fundi mbetet Kosovë, Ferizaj u hoq.
+
 ## 2026-11-19 — Revolution POS poshtë logos
 
 `website/src/components/Navbar.tsx`. Logoja mbeti e madhe (h-16). «Revolution POS» zbriti te rreshti i Ballinës dhe i programeve, nën logon. Gjuhët mbeten lart, pranë logos. Në telefon shkrimi nuk qëndron më pranë R dhe nuk del jashtë.
