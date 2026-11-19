@@ -847,6 +847,12 @@ app.get(
   [
     "/udhezuesi",
     "/udhezuesi/",
+    "/privatesia",
+    "/privatesia/",
+    "/kushtet",
+    "/kushtet/",
+    "/cookies",
+    "/cookies/",
     "/kafene",
     "/kafene/",
     "/hotel",
