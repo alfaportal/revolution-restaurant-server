@@ -69,20 +69,16 @@ export default function Navbar() {
             >
               {t.nav.ballina}
             </a>
-            <div
-              className="group relative"
-              onMouseEnter={() => setProduktetHapur(true)}
-              onMouseLeave={() => setProduktetHapur(false)}
-            >
+            <div className="relative">
               <button
                 type="button"
                 className="text-sm text-white hover:text-[#0EA5E9]"
                 aria-expanded={produktetHapur}
-                onClick={() => setProduktetHapur(true)}
+                onClick={() => setProduktetHapur((value) => !value)}
               >
                 {t.nav.produktet}
               </button>
-              <div className={`fixed left-1/2 top-36 z-50 w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 pt-3 ${produktetHapur ? "block" : "hidden"} group-hover:block`}>
+              <div className={`fixed left-1/2 top-36 z-50 w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 pt-3 ${produktetHapur ? "block" : "hidden"}`}>
                 <div className="grid grid-cols-4 gap-4 rounded-2xl border border-white/10 bg-[#0A0A0F] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
                   {grupet.map((grupi) => (
                     <div key={grupi.titulli}>

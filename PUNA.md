@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-19 — Programet hapet me shtypje
+
+`website/src/components/Navbar.tsx`. Lista e programeve hapet vetëm kur shtypet «Programet». Nuk hapet më kur kalon mausi mbi shkrim.
+
 ## 2026-11-19 — Menyja
 
 `website/src/components/Navbar.tsx`. Lista e programeve qëndron brenda ekranit. Në telefon menyja është vetëm: Ballina, Programet, Fiskalizimi, Si Funksionon, Çmimet, Pagesa, Pyetjet, Kontakti, Udhëzuesi. Nuk ka më ndarje ushqim, mjekësi e të tjera.
