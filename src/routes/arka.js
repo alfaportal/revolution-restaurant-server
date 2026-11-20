@@ -1,6 +1,6 @@
 const express = require("express");
 const { resolveKitchenClient } = require("../middleware/kitchenAuth");
-const { authOwner, signToken, verifyToken } = require("../middleware/auth");
+const { signToken, verifyToken } = require("../middleware/auth");
 const { OWNER_COOKIE_OPTS } = require("../lib/ownerSession");
 const {
   loginArkaWithPin,
@@ -39,17 +39,10 @@ function readStaff(req) {
   }
 }
 
-function sameClient(req) {
-  return String(req.user?.client_id || "") === String(req.kitchenClient?.id || "");
-}
-
 async function requireArkaStaff(req, res) {
-  if (!sameClient(req)) {
-    res.status(403).json({ ok: false, gabim: "Kjo arkë është e biznesit tjetër.", code: "WRONG_BUSINESS" });
-    return null;
-  }
   const staffTok = readStaff(req);
   if (!staffTok || String(staffTok.client_id) !== String(req.kitchenClient.id)) {
+    if (staffTok) res.clearCookie(STAFF_COOKIE, { path: "/" });
     res.status(401).json({ ok: false, gabim: "Hyni me PIN të arkës.", code: "PIN_REQUIRED" });
     return null;
   }
@@ -64,10 +57,7 @@ async function requireArkaStaff(req, res) {
 
 router.use("/:slug", resolveKitchenClient);
 
-router.get("/:slug/session", authOwner, async (req, res) => {
-  if (!sameClient(req)) {
-    return res.status(403).json({ ok: false, gabim: "Kjo arkë është e biznesit tjetër.", code: "WRONG_BUSINESS" });
-  }
+router.get("/:slug/session", async (req, res) => {
   const staffTok = readStaff(req);
   let staff = null;
   if (staffTok && String(staffTok.client_id) === String(req.kitchenClient.id)) {
@@ -83,11 +73,8 @@ router.get("/:slug/session", authOwner, async (req, res) => {
   });
 });
 
-router.post("/:slug/pin", authOwner, async (req, res) => {
+router.post("/:slug/pin", async (req, res) => {
   try {
-    if (!sameClient(req)) {
-      return res.status(403).json({ ok: false, gabim: "Kjo arkë është e biznesit tjetër.", code: "WRONG_BUSINESS" });
-    }
     const staff = await loginArkaWithPin(req.kitchenClient.id, req.body?.pin);
     const token = signToken({
       kind: "arka_staff",
@@ -102,12 +89,12 @@ router.post("/:slug/pin", authOwner, async (req, res) => {
   }
 });
 
-router.post("/:slug/logout-pin", authOwner, (req, res) => {
+router.post("/:slug/logout-pin", (req, res) => {
   res.clearCookie(STAFF_COOKIE, { path: "/" });
   res.json({ ok: true });
 });
 
-router.get("/:slug/tables", authOwner, async (req, res) => {
+router.get("/:slug/tables", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -119,7 +106,7 @@ router.get("/:slug/tables", authOwner, async (req, res) => {
   }
 });
 
-router.get("/:slug/categories", authOwner, async (req, res) => {
+router.get("/:slug/categories", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -131,7 +118,7 @@ router.get("/:slug/categories", authOwner, async (req, res) => {
   }
 });
 
-router.get("/:slug/products/search/:query", authOwner, async (req, res) => {
+router.get("/:slug/products/search/:query", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -143,7 +130,7 @@ router.get("/:slug/products/search/:query", authOwner, async (req, res) => {
   }
 });
 
-router.get("/:slug/products/:categoryId", authOwner, async (req, res) => {
+router.get("/:slug/products/:categoryId", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -155,7 +142,7 @@ router.get("/:slug/products/:categoryId", authOwner, async (req, res) => {
   }
 });
 
-router.post("/:slug/fiscal", authOwner, async (req, res) => {
+router.post("/:slug/fiscal", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -168,7 +155,7 @@ router.post("/:slug/fiscal", authOwner, async (req, res) => {
   }
 });
 
-router.post("/:slug/print", authOwner, async (req, res) => {
+router.post("/:slug/print", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -203,7 +190,7 @@ router.post("/:slug/print/status", async (req, res) => {
   }
 });
 
-router.get("/:slug/print/job/:jobId", authOwner, async (req, res) => {
+router.get("/:slug/print/job/:jobId", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
@@ -215,7 +202,7 @@ router.get("/:slug/print/job/:jobId", authOwner, async (req, res) => {
   }
 });
 
-router.post("/:slug/sale", authOwner, async (req, res) => {
+router.post("/:slug/sale", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;

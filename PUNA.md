@@ -1,5 +1,11 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-20 — Arka pranon të njëjtin kod si kamarieri
+
+Te `src/routes/arka.js` u hoq kërkesa e hyrjes së pronarit. Lokali njihet me `kitchen_key`, njësoj si kamarieri. Pastaj punonjësi shkruan PIN-in. `public/arka.html` dërgon të njëjtin kod te `?key=` dhe te kryeja `x-kitchen-key`. Kamarieri nuk u prek. U dërgua te faqja e gjallë me lejen e Naserit.
+
+
+
 ## 2026-11-20 — Arka në shfletues: pa internet
 
 U shtua `public/arka-sw.js`, `public/arka-offline.js` dhe manifesti te `src/routes/arkaPages.js`. `public/arka.html` ruan tavolinat, kategoritë dhe produktet në pajisje. Shitja, kuponi dhe printimi pa internet qëndrojnë në radhë dhe dërgohen kur kthehet lidhja. Shfaqet «Pa internet — shitjet ruhen lokalisht» dhe «Duke sinkronizuar...». Nuk u prek programi në kompjuter, admini, kamarieri. Nuk u bë ndërtim dhe nuk u publikua.

@@ -113,7 +113,8 @@
   <script src="/arka-offline.js"></script>
   <script>
     const parts = location.pathname.split("/").filter(Boolean);
-    const slug = parts[1] || "";
+    let slug = parts[1] || "";
+    try { slug = decodeURIComponent(slug); } catch (e) { slug = parts[1] || ""; }
     const key = new URLSearchParams(location.search).get("key") || "";
     let syncing = false;
     function apiUrl(path) {
@@ -131,7 +132,9 @@
       }
     }
     function api(path, opts) {
-      const sent = Object.assign({ credentials: "include", headers: { "Content-Type": "application/json" } }, opts || {});
+      const headers = { "Content-Type": "application/json" };
+      if (key) headers["x-kitchen-key"] = key;
+      const sent = Object.assign({ credentials: "include", headers: headers }, opts || {});
       return fetch(apiUrl(path), sent).then(function (res) {
         if (res.ok) remember(path, res.clone());
         return res;
@@ -482,7 +485,7 @@
       const res = await fetch(apiUrl(path), {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json", "X-Arka-Sync": "1" },
+        headers: { "Content-Type": "application/json", "X-Arka-Sync": "1", ...(key ? { "x-kitchen-key": key } : {}) },
         body: JSON.stringify(body)
       });
       return res;
