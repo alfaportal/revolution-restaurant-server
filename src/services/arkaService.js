@@ -8,24 +8,47 @@ const { attachClientPhoto } = require("./menuCatalogService");
 
 const ARKA_ROLE = "arka";
 const ARKA_DEVICE_PREFIX = "WEB-ARKA-";
-const ORDER_DEVICE_ID = "WEB-WAITER";
 const PIN_RE = /^\d{4}$/;
 
-function isArkaDevice(deviceId) {
-  const d = String(deviceId || "").trim().toUpperCase();
-  return d === ORDER_DEVICE_ID || d.startsWith(ARKA_DEVICE_PREFIX);
+function browserRegisterId(clientId) {
+  return crypto
+    .createHash("sha256")
+    .update(`revolution-browser-arka|${String(clientId || "").trim()}`)
+    .digest("hex")
+    .slice(0, 12)
+    .toUpperCase();
 }
 
-function isLocalPosDevice(deviceId) {
+function isLegacyBrowserDevice(deviceId) {
   const d = String(deviceId || "").trim().toUpperCase();
-  return !!d && !d.startsWith("WEB-");
+  return d === "WEB-ARKA" || d.startsWith(ARKA_DEVICE_PREFIX);
 }
 
-function classifyTableOrder(deviceId) {
-  const d = String(deviceId || "").trim();
+function isBrowserOrderRow(row, clientId) {
+  const d = String(row?.device_id || "").trim().toUpperCase();
+  if (d === browserRegisterId(clientId)) return true;
+  if (isLegacyBrowserDevice(d)) return true;
+  const local = String(row?.local_order_id || "").toLowerCase();
+  return d === "WEB-WAITER" && local.startsWith("arka-");
+}
+
+function isLocalPosDevice(deviceId, clientId) {
+  const d = String(deviceId || "").trim().toUpperCase();
+  if (!d || d.startsWith("WEB-")) return false;
+  if (clientId && d === browserRegisterId(clientId)) return false;
+  return true;
+}
+
+function classifyTableOrder(deviceId, clientId, localOrderId) {
+  const d = String(deviceId || "").trim().toUpperCase();
   if (!d) return { occupied: false, editable: true, view_only: false, owner: "free" };
-  if (isArkaDevice(d)) return { occupied: true, editable: true, view_only: false, owner: "arka" };
-  if (isLocalPosDevice(d)) return { occupied: true, editable: false, view_only: true, owner: "pos" };
+  if (d === browserRegisterId(clientId) || isLegacyBrowserDevice(d)) {
+    return { occupied: true, editable: true, view_only: false, owner: "arka" };
+  }
+  if (d === "WEB-WAITER" && String(localOrderId || "").toLowerCase().startsWith("arka-")) {
+    return { occupied: true, editable: true, view_only: false, owner: "arka" };
+  }
+  if (isLocalPosDevice(d, clientId)) return { occupied: true, editable: false, view_only: true, owner: "pos" };
   return { occupied: true, editable: false, view_only: true, owner: "other" };
 }
 
@@ -97,11 +120,11 @@ async function loadOpenOrders(clientId) {
   return data || [];
 }
 
-function pickTableFace(rows) {
+function pickTableFace(rows, clientId) {
   const list = rows || [];
-  const local = list.find(r => isLocalPosDevice(r.device_id));
+  const local = list.find(r => isLocalPosDevice(r.device_id, clientId));
   if (local) return local;
-  const arka = list.find(r => isArkaDevice(r.device_id));
+  const arka = list.find(r => isBrowserOrderRow(r, clientId));
   if (arka) return arka;
   return list[0] || null;
 }
@@ -147,12 +170,13 @@ async function getArkaTables(clientId) {
   }
   const active = new Map();
   for (const [n, rows] of byTable) {
-    const face = pickTableFace(rows);
+    const face = pickTableFace(rows, clientId);
     if (!face) continue;
     active.set(n, {
       waiter_name: face.waiter_name,
       total: face.total,
       device_id: face.device_id,
+      local_order_id: face.local_order_id,
       items_json: face.items_json,
       order_count: rows.length,
     });
@@ -165,7 +189,7 @@ async function getArkaTables(clientId) {
       const extra = active.get(t.number);
       const items = normalizeItems(extra?.items_json);
       const qty = items.reduce((s, it) => s + (Number(it.quantity) || 0), 0);
-      const access = classifyTableOrder(extra?.device_id);
+      const access = classifyTableOrder(extra?.device_id, clientId, extra?.local_order_id);
       return {
         number: t.number,
         area_name: t.area_name,
@@ -337,7 +361,7 @@ async function completeArkaSale(clientId, staff, body) {
   }
   const keepOpen = body?.keep_open === true;
   const method = keepOpen ? null : paymentMethodFor(body?.payment_type || body?.payment_method);
-  const deviceId = ORDER_DEVICE_ID;
+  const deviceId = browserRegisterId(clientId);
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
@@ -398,7 +422,7 @@ async function completeArkaSale(clientId, staff, body) {
   const items = [...merged.values()];
   const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
   const now = new Date().toISOString();
-  const own = onTable.find(r => isArkaDevice(r.device_id)) || null;
+  const own = onTable.find(r => isBrowserOrderRow(r, clientId)) || null;
   let licenseId = null;
   const { data: lic } = await db
     .from("licenses")
@@ -487,6 +511,7 @@ async function completeArkaSale(clientId, staff, body) {
 module.exports = {
   ARKA_ROLE,
   ARKA_DEVICE_PREFIX,
+  browserRegisterId,
   classifyTableOrder,
   loginArkaWithPin,
   getArkaStaffById,

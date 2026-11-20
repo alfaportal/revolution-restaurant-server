@@ -1,3 +1,7 @@
+## 2026-11-20 — Arka në shfletues është arkë e dytë
+
+Te `src/services/arkaService.js` porosia, tavolina dhe pagesa ruhen me një numër të fiksuar prej 12 shenjash (0-9 dhe A-F), i njëjtë për atë biznes. Nuk fillon me WEB-. Programi e sheh si arkë tjetër, me dry. Telefoni, printeri dhe programi në kompjuter nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Porosia e arkës në shfletues merr shenjën e telefonit
 
 Te `src/services/arkaService.js` rreshti 11, 340 dhe 413: porosia dhe shitja e re ruhen me `WEB-WAITER`, jo me `WEB-ARKA`. Programi e merr si porosi të kamarierit, pa pranim. Printeri mbetet me shenjën e vjetër. Telefoni, sinkronizimi dhe programi në kompjuter nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.
