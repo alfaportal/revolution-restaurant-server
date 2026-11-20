@@ -37,6 +37,8 @@
     .products { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:.5rem; }
     .prod { background:#fff; color:#111827; border:1px solid rgba(0,0,0,.04); border-radius:12px; min-height:5.1rem; padding:0; margin:0; width:100%; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.12); display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; }
     .prod .strip { display:block; height:44px; background:linear-gradient(145deg,rgba(255,107,53,.16),rgba(26,26,46,.04)),#f3f4f6; }
+    .prod img { width:100%; aspect-ratio:1.1/1; object-fit:cover; display:block; background:#fff; }
+    .prod.has-photo .strip { display:none; }
     .prod b { display:block; font-size:.74rem; font-weight:700; line-height:1.2; padding:.4rem .35rem 0; }
     .prod .price { display:block; color:#ff6b35; font-weight:800; font-size:.76rem; padding:0 .35rem .45rem; }
     .warn { color:#b91c1c; font-size:.7rem; padding-bottom:.3rem; }
@@ -52,7 +54,7 @@
     .pays { padding:.4rem .45rem .6rem; }
     .pay-row { display:grid; grid-template-columns:1fr; gap:.4rem; }
     .pay-row .btn { margin:0; width:100%; min-height:3rem; height:3rem; border:0; border-radius:10px; background:#111827; color:#fff; font-weight:700; font-size:.78rem; }
-    .pay-row .btn:hover { background:#1f2937; }
+    .pay-row .btn.on { background:#16a34a; }
     #pay-msg { color:#b91c1c; }
     #fiscal-retry { background:#111827; color:#fff; }
     @media (min-width: 768px) {
@@ -67,12 +69,14 @@
     .msg { min-height:1.2rem; margin-top:10px; color:#f0b4b4; }
     .zone { margin:0 0 18px; }
     .zone h2 { margin:0 0 .55rem; padding-bottom:.4rem; border-bottom:1px solid #ef4444; color:#f8fafc; font-size:.95rem; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
-    .table-card { width:100%; min-height:118px; border-radius:16px; padding:.55rem .4rem; display:flex; flex-direction:column; align-items:center; justify-content:space-between; color:#ecfdf5; margin:0; }
+    .grid { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:10px 8px; }
+    @media (max-width: 900px) { .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .table-card { width:100%; min-height:118px; border-radius:16px; padding:.45rem .3rem .4rem; display:flex; flex-direction:column; align-items:center; justify-content:space-between; color:#ecfdf5; margin:0; }
+    .table-card .ico { width:22px; height:22px; opacity:.9; }
     .table-card.free { background:linear-gradient(180deg,#123526 0%,#0a1f18 100%); border:1px solid rgba(52,211,153,.75); box-shadow:0 0 0 1px rgba(16,185,129,.25),0 0 18px rgba(16,185,129,.42); }
     .table-card.occupied { background:linear-gradient(180deg,#3d1f08 0%,#1a0e05 100%); color:#fff7ed; border:1px solid rgba(251,146,60,.85); box-shadow:0 0 0 1px rgba(234,88,12,.3),0 0 20px rgba(234,88,12,.5); }
-    .table-card b { font-size:1.05rem; font-weight:800; }
-    .table-card span { font-size:.75rem; text-align:center; }
+    .table-card b { font-size:.95rem; font-weight:800; text-align:center; }
+    .table-card span { font-size:.72rem; text-align:center; font-weight:700; }
     .sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; }
     .sheet .panel { background:#101c38; width:min(520px,100%); border-radius:16px 16px 0 0; padding:16px; max-height:80vh; overflow:auto; }
     #net-banner { background:#c9891a; color:#1a1204; text-align:center; padding:8px 12px; font-weight:650; }
@@ -115,19 +119,23 @@
           <div class="products" id="products"></div>
         </div>
         <aside class="cart">
-          <div class="cart-title">Porosia</div>
+          <div class="cart-title">Porosi e re</div>
           <div id="cart-lines"></div>
           <div id="cart-total"></div>
         </aside>
         <aside class="pays">
           <div class="pay-row" id="pay-grid">
-            <button type="button" class="btn" data-pay="cash">Paguaj</button>
-            <button type="button" class="btn" data-pay="debit_card">Kartë Debiti</button>
-            <button type="button" class="btn" data-pay="credit_card">Kartë Krediti</button>
-            <button type="button" class="btn" data-pay="sms">SMS</button>
-            <button type="button" class="btn" data-pay="check">Çek</button>
-            <button type="button" class="btn" data-pay="bank_account">Llogari Bankare</button>
-            <button type="button" class="btn" data-pay="voucher">Kupon</button>
+            <button type="button" class="btn" data-act="send">Dërgo porosinë</button>
+            <button type="button" class="btn" data-act="cancel">Anullo porosinë</button>
+            <button type="button" class="btn" data-act="coupon" data-coupon="fiscal">Kuponi Fiskal</button>
+            <button type="button" class="btn" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
+            <button type="button" class="btn" data-pay="cash">Cash</button>
+            <button type="button" class="btn" data-pay="card">Kartë</button>
+            <button type="button" class="btn" data-pay="cash">Paguaj Fiskal</button>
+            <button type="button" class="btn" data-pay="cash">Paguaj (Termik)</button>
+            <button type="button" class="btn" data-pay="cash">Paguaj pa letër</button>
+            <button type="button" class="btn" data-act="preview">Shiko kuponin</button>
+            <button type="button" class="btn" data-act="split">Nda faturën</button>
           </div>
           <div class="msg" id="pay-msg"></div>
           <button type="button" class="btn hidden" id="fiscal-retry">Provo fiskalizimin përsëri</button>
@@ -259,7 +267,7 @@
         row.appendChild(qty);
         box.appendChild(row);
       });
-      document.getElementById("cart-total").textContent = cart.length ? ("Totali " + euro(cartTotal())) : "Shtoni artikuj nga menuja";
+      document.getElementById("cart-total").textContent = cart.length ? ("Totali i porosisë së re " + euro(cartTotal())) : "Shtoni artikuj nga menuja";
     }
     function addProduct(p) {
       const found = cart.find(function (it) { return it.id === p.id; });
@@ -281,7 +289,15 @@
         const price = document.createElement("span");
         price.className = "price";
         price.textContent = euro(p.price);
-        b.appendChild(strip);
+        if (p.photo_url) {
+          const img = document.createElement("img");
+          img.alt = "";
+          img.src = p.photo_url;
+          b.classList.add("has-photo");
+          b.appendChild(img);
+        } else {
+          b.appendChild(strip);
+        }
         b.appendChild(name);
         b.appendChild(price);
         if (p.low_stock) {
@@ -352,11 +368,18 @@
           b.type = "button";
           b.className = "table-card " + (t.status !== "occupied" ? "free" : "occupied");
           const title = document.createElement("b");
-          title.textContent = "T" + t.number;
+          title.textContent = "Tavolina " + t.number;
+          const ico = document.createElement("span");
+          ico.className = "ico";
+          ico.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.4-3.2 3.8-4.8 7-4.8S17.6 15.8 19 19"/></svg>';
           const line = document.createElement("span");
-          if (t.status !== "occupied") line.textContent = "E lirë";
-          else line.textContent = (t.order_count || 1) + " porosi · " + euro(t.total) + (t.view_only ? " · vetëm shiko" : "");
+          if (t.status !== "occupied") line.textContent = "Lirë";
+          else line.textContent = (t.item_count || t.order_count || 1) + " artikuj · " + euro(t.total);
+          const who = document.createElement("span");
+          if (t.status === "occupied" && t.waiter_name) who.textContent = t.waiter_name;
           b.appendChild(title);
+          b.appendChild(ico);
+          if (who.textContent) b.appendChild(who);
           b.appendChild(line);
           b.addEventListener("click", function () { openTable(t); });
           grid.appendChild(b);
@@ -501,9 +524,20 @@
     }
     document.getElementById("fiscal-retry").addEventListener("click", function () { fiscalize(false); });
     document.getElementById("pay-grid").addEventListener("click", function (ev) {
-      const btn = ev.target.closest("[data-pay]");
-      if (!btn) return;
-      pay(btn.getAttribute("data-pay"));
+      const btn = ev.target.closest("button");
+      if (!btn || !document.getElementById("pay-grid").contains(btn)) return;
+      if (btn.getAttribute("data-act") === "cancel") {
+        cart = [];
+        paintCart();
+        return;
+      }
+      if (btn.getAttribute("data-act") === "coupon") {
+        document.querySelectorAll("#pay-grid [data-act='coupon']").forEach(function (el) { el.classList.remove("on"); });
+        btn.classList.add("on");
+        return;
+      }
+      const type = btn.getAttribute("data-pay");
+      if (type) pay(type);
     });
     async function loadTables() {
       const res = await api("/tables");

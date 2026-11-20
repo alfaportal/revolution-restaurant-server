@@ -1,4 +1,8 @@
-# PUNA.md — revolution-restaurant-server (gateway)
+## 2026-11-20 — Pamja e arkës si programi
+
+Te `public/arka.html` tavolinat shkruhen «Tavolina 1» dhe «Lirë», 8 në rresht. Butonat e pagesës janë si te programi: Dërgo, Anullo, Kuponi Fiskal, Kuponi Termik, Cash, Kartë, Paguaj Fiskal, Paguaj (Termik), Paguaj pa letër, Shiko kuponin, Nda faturën. Te `src/services/arkaService.js` produktet marrin foton e katalogut. U dërgua te faqja e gjallë me lejen e Naserit.
+
+
 
 ## 2026-11-20 — Arka në shfletues si programi
 

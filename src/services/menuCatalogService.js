@@ -341,4 +341,5 @@ module.exports = {
   getClientMenuCatalog,
   getClientShopCatalog,
   getCatalogForPos,
+  attachClientPhoto,
 };

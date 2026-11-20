@@ -4,6 +4,7 @@ const { getSupabase } = require("../db");
 const { verifyWaiterPin } = require("./waiterPinService");
 const { normalizeItems } = require("./salesService");
 const { loadAreasForClient } = require("./venueService");
+const { attachClientPhoto } = require("./menuCatalogService");
 
 const ARKA_ROLE = "arka";
 const ARKA_DEVICE_PREFIX = "WEB-ARKA-";
@@ -198,7 +199,7 @@ function arkaDeviceId(staffId) {
 
 function mapProduct(row, categoryId) {
   const stock = row.stock_quantity == null ? null : Number(row.stock_quantity);
-  return {
+  const base = {
     id: row.id,
     name: row.name,
     price: Number(row.price) || 0,
@@ -208,6 +209,7 @@ function mapProduct(row, categoryId) {
     category_id: categoryId || null,
     low_stock: Number.isFinite(stock) && stock <= 0,
   };
+  return attachClientPhoto(base, row);
 }
 
 async function listArkaCategories(clientId) {
@@ -238,7 +240,7 @@ async function listArkaProducts(clientId, categoryId) {
   }
   const { data, error } = await db
     .from("pos_menu_items")
-    .select("id, name, price, barcode, stock_quantity, category, active")
+    .select("id, name, price, barcode, stock_quantity, category, active, photo")
     .eq("client_id", clientId)
     .eq("active", true)
     .eq("category", cat.name)
@@ -263,7 +265,7 @@ async function searchArkaProducts(clientId, query) {
   }
   const { data, error } = await db
     .from("pos_menu_items")
-    .select("id, name, price, barcode, stock_quantity, category, active")
+    .select("id, name, price, barcode, stock_quantity, category, active, photo")
     .eq("client_id", clientId)
     .eq("active", true)
     .or(`name.ilike.%${safe}%,barcode.eq.${safe}`)
