@@ -1,3 +1,7 @@
+## 2026-11-20 — Porosia e arkës në shfletues merr shenjën e telefonit
+
+Te `src/services/arkaService.js` rreshti 11, 340 dhe 413: porosia dhe shitja e re ruhen me `WEB-WAITER`, jo me `WEB-ARKA`. Programi e merr si porosi të kamarierit, pa pranim. Printeri mbetet me shenjën e vjetër. Telefoni, sinkronizimi dhe programi në kompjuter nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Arka e shfletuesit kalon në të njëjtat filtra si telefoni
 
 Te `src/lib/orderSource.js` WEB-ARKA u shtua kudo ku kalon WEB-WAITER: rreshti 45 (etiketa), 56–58 (porosi e stafit), 68 (porosi e hapur për Setup), 82 (tavolinë aktive). Shitjet e mbyllura e kishin tashmë te rreshti 1346 i `salesService.js`. Paratë në arkë dhe numri i zonave nuk filtrohen në server. Nuk u prek sinkronizimi, programi në kompjuter, as telefoni. U dërgua te faqja e gjallë me lejen e Naserit.

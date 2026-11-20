@@ -8,10 +8,12 @@ const { attachClientPhoto } = require("./menuCatalogService");
 
 const ARKA_ROLE = "arka";
 const ARKA_DEVICE_PREFIX = "WEB-ARKA-";
+const ORDER_DEVICE_ID = "WEB-WAITER";
 const PIN_RE = /^\d{4}$/;
 
 function isArkaDevice(deviceId) {
-  return String(deviceId || "").trim().toUpperCase().startsWith(ARKA_DEVICE_PREFIX);
+  const d = String(deviceId || "").trim().toUpperCase();
+  return d === ORDER_DEVICE_ID || d.startsWith(ARKA_DEVICE_PREFIX);
 }
 
 function isLocalPosDevice(deviceId) {
@@ -335,7 +337,7 @@ async function completeArkaSale(clientId, staff, body) {
   }
   const keepOpen = body?.keep_open === true;
   const method = keepOpen ? null : paymentMethodFor(body?.payment_type || body?.payment_method);
-  const deviceId = arkaDeviceId(staff.id);
+  const deviceId = ORDER_DEVICE_ID;
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
@@ -396,7 +398,7 @@ async function completeArkaSale(clientId, staff, body) {
   const items = [...merged.values()];
   const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
   const now = new Date().toISOString();
-  const own = onTable.find(r => String(r.device_id || "") === deviceId) || onTable[0] || null;
+  const own = onTable.find(r => isArkaDevice(r.device_id)) || null;
   let licenseId = null;
   const { data: lic } = await db
     .from("licenses")
@@ -408,7 +410,7 @@ async function completeArkaSale(clientId, staff, body) {
   const row = {
     client_id: clientId,
     local_order_id: own?.local_order_id || `arka-${crypto.randomUUID()}`,
-    device_id: keepOpen && own?.device_id ? own.device_id : deviceId,
+    device_id: deviceId,
     table_number: tableNumber,
     waiter_name: staff.name,
     waiter_id: staff.id,
