@@ -131,9 +131,9 @@
             <button type="button" class="btn" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
             <button type="button" class="btn" data-pay="cash">Cash</button>
             <button type="button" class="btn" data-pay="card">Kartë</button>
-            <button type="button" class="btn" data-pay="cash">Paguaj Fiskal</button>
-            <button type="button" class="btn" data-pay="cash">Paguaj (Termik)</button>
-            <button type="button" class="btn" data-pay="cash">Paguaj pa letër</button>
+            <button type="button" class="btn" data-pay="cash" data-mode="fiscal">Paguaj Fiskal</button>
+            <button type="button" class="btn" data-pay="cash" data-mode="thermal">Paguaj (Termik)</button>
+            <button type="button" class="btn" data-pay="cash" data-mode="paper">Paguaj pa letër</button>
             <button type="button" class="btn" data-act="preview">Shiko kuponin</button>
             <button type="button" class="btn" data-act="split">Nda faturën</button>
           </div>
@@ -205,6 +205,7 @@
     let paying = false;
     let lastSaleId = "";
     let lastPayType = "cash";
+    let couponKind = "fiscal";
     let staffName = "";
     function euro(n) { return (Number(n) || 0).toFixed(2) + " €"; }
     function showGate(text, kycu) {
@@ -390,20 +391,7 @@
       if (!floor.children.length) floor.innerHTML = "<p class='sub'>Nuk ka tavolina.</p>";
     }
     function openTable(t) {
-      if (!navigator.onLine || !t.view_only) return openSell(t);
-      document.getElementById("sheet-title").textContent = "Tavolina " + t.number;
-      let note = "E lirë";
-      if (t.view_only) note = "E hapur në arkën e kompjuterit ose në një pajisje tjetër. Mund ta shihni, jo ta ndryshoni.";
-      else if (t.editable) note = "E hapur nga kjo arkë. Mund të punohet këtu.";
-      document.getElementById("sheet-note").textContent = note;
-      const ul = document.getElementById("sheet-items");
-      ul.innerHTML = "";
-      (t.items || []).forEach(function (it) {
-        const li = document.createElement("li");
-        li.textContent = it.quantity + " × " + it.name + " — " + euro(it.price);
-        ul.appendChild(li);
-      });
-      document.getElementById("sheet").classList.remove("hidden");
+      openSell(t);
     }
     document.getElementById("sheet-close").addEventListener("click", function () {
       document.getElementById("sheet").classList.add("hidden");
@@ -425,12 +413,13 @@
         if (res.ok) paintProducts(data.products || []);
       }, 250);
     });
-    async function pay(type) {
+    async function pay(type, mode) {
       if (paying || !sellTable) return;
       if (!cart.length) {
         document.getElementById("pay-msg").textContent = "Shporta është bosh.";
         return;
       }
+      const how = mode || couponKind || "fiscal";
       paying = true;
       document.getElementById("pay-msg").textContent = "";
       const res = await api("/sale", {
@@ -451,6 +440,17 @@
       lastPayType = type;
       cart = [];
       paintCart();
+      if (how === "thermal") {
+        document.getElementById("pay-msg").textContent = "Shitja u ruajt. Duke printuar kuponin termik...";
+        document.getElementById("fiscal-retry").classList.add("hidden");
+        sendPrint(null);
+        return;
+      }
+      if (how === "paper") {
+        document.getElementById("pay-msg").textContent = "Shitja u ruajt.";
+        document.getElementById("fiscal-retry").classList.add("hidden");
+        return;
+      }
       document.getElementById("pay-msg").textContent = "Shitja u ruajt. Duke fiskalizuar...";
       document.getElementById("fiscal-retry").classList.add("hidden");
       fiscalize(true);
@@ -532,12 +532,18 @@
         return;
       }
       if (btn.getAttribute("data-act") === "coupon") {
+        couponKind = btn.getAttribute("data-coupon") === "thermal" ? "thermal" : "fiscal";
         document.querySelectorAll("#pay-grid [data-act='coupon']").forEach(function (el) { el.classList.remove("on"); });
         btn.classList.add("on");
+        document.getElementById("pay-msg").textContent = couponKind === "thermal"
+          ? "Kuponi termik. Shtyp Cash, Kartë ose Paguaj (Termik)."
+          : "Kuponi fiskal. Shtyp Cash, Kartë ose Paguaj Fiskal.";
         return;
       }
       const type = btn.getAttribute("data-pay");
-      if (type) pay(type);
+      if (!type) return;
+      const mode = btn.getAttribute("data-mode") || couponKind;
+      pay(type, mode);
     });
     async function loadTables() {
       const res = await api("/tables");

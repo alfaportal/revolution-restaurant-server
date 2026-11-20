@@ -307,19 +307,33 @@ async function completeArkaSale(clientId, staff, body) {
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
-  if (onTable.some(r => String(r.device_id || "") !== deviceId)) {
-    const err = new Error("Tavolina është e hapur diku tjetër. Mund ta shihni, jo ta mbyllni.");
-    err.status = 409;
-    throw err;
-  }
   const ids = [...new Set(lines.map(it => String(it.product_id || it.id || "").trim()).filter(Boolean))];
-  const { data: products, error: prodErr } = await db
-    .from("pos_menu_items")
-    .select("id, name, price, stock_quantity, active")
-    .eq("client_id", clientId)
-    .in("id", ids);
-  if (prodErr) throw prodErr;
-  const byId = new Map((products || []).map(p => [p.id, p]));
+  const uuids = ids.filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+  const locals = ids.filter(id => /^\d+$/.test(id)).map(Number);
+  const rows = [];
+  if (uuids.length) {
+    const { data, error: prodErr } = await db
+      .from("pos_menu_items")
+      .select("id, local_id, name, price, stock_quantity, active")
+      .eq("client_id", clientId)
+      .in("id", uuids);
+    if (prodErr) throw prodErr;
+    rows.push(...(data || []));
+  }
+  if (locals.length) {
+    const { data, error: prodErr } = await db
+      .from("pos_menu_items")
+      .select("id, local_id, name, price, stock_quantity, active")
+      .eq("client_id", clientId)
+      .in("local_id", locals);
+    if (prodErr) throw prodErr;
+    rows.push(...(data || []));
+  }
+  const byId = new Map();
+  for (const product of rows) {
+    byId.set(String(product.id), product);
+    if (product.local_id != null) byId.set(String(product.local_id), product);
+  }
   const merged = new Map();
   for (const line of lines) {
     const id = String(line.product_id || line.id || "").trim();
@@ -350,7 +364,7 @@ async function completeArkaSale(clientId, staff, body) {
   const items = [...merged.values()];
   const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
   const now = new Date().toISOString();
-  const own = onTable.find(r => String(r.device_id || "") === deviceId);
+  const own = onTable.find(r => String(r.device_id || "") === deviceId) || onTable[0] || null;
   let licenseId = null;
   const { data: lic } = await db
     .from("licenses")
@@ -402,6 +416,15 @@ async function completeArkaSale(clientId, staff, body) {
     }
   }
   if (error) throw new Error(error.message || "Shitja nuk u ruajt.");
+  if (saved?.id) {
+    await db
+      .from("sales_orders")
+      .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
+      .eq("client_id", clientId)
+      .eq("table_number", tableNumber)
+      .in("status", ["ordered", "ready"])
+      .neq("id", saved.id);
+  }
   for (const it of items) {
     const product = byId.get(it.id);
     if (product?.stock_quantity == null) continue;

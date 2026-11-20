@@ -1,3 +1,7 @@
+## 2026-11-20 — Kuponi termik dhe pagesa te arka
+
+Te `public/arka.html` Kuponi Termik zgjedh kuponin termik. Cash, Kartë dhe Paguaj (Termik) e ruajnë shitjen dhe e dërgojnë në printim, pa fiskalizim. Paguaj Fiskal fiskalizon. Tavolina e hapur në program hapet për pagesë. Te `src/services/arkaService.js` pagesa nuk ndalet më kur tavolina është e programit, dhe njeh produktin edhe me numrin e programit. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Pamja e arkës si programi
 
 Te `public/arka.html` tavolinat shkruhen «Tavolina 1» dhe «Lirë», 8 në rresht. Butonat e pagesës janë si te programi: Dërgo, Anullo, Kuponi Fiskal, Kuponi Termik, Cash, Kartë, Paguaj Fiskal, Paguaj (Termik), Paguaj pa letër, Shiko kuponin, Nda faturën. Te `src/services/arkaService.js` produktet marrin foton e katalogut. U dërgua te faqja e gjallë me lejen e Naserit.
