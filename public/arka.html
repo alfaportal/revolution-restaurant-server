@@ -10,46 +10,69 @@
   <link rel="icon" href="/logo-icon.svg">
   <title>Revolution Arka</title>
   <style>
-    :root { color-scheme: dark; --bg:#0f1b3d; --card:#162448; --line:#2a3d6b; --text:#f4f7fb; --muted:#9aabc8; --green:#1f7a4d; --amber:#c9891a; --red:#a33b3b; }
+    :root { color-scheme: dark; --bg:#1a1a2e; --text:#f8fafc; --muted:#9ca3af; --accent:#ff6b35; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); }
-    header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); }
-    h1 { font-size:1.15rem; margin:0; }
-    .sub { color:var(--muted); font-size:.85rem; margin-top:2px; }
-    main { padding:16px; max-width:1100px; margin:0 auto; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    body { margin:0; font-family:Inter,system-ui,-apple-system,sans-serif; background:#0b1220; color:var(--text); }
+    header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; }
+    h1 { font-size:1.35rem; margin:0; font-weight:900; }
+    .sub { color:#f1f5f9; font-size:.9rem; font-weight:700; margin-top:2px; }
+    main { padding:0 12px 16px; }
+    .card { background:#16213a; border:1px solid #1e293b; border-radius:14px; padding:16px; max-width:480px; margin:16px auto; }
     label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:6px; }
-    #pin { width:100%; font-size:1.4rem; letter-spacing:.35em; text-align:center; padding:12px; border-radius:10px; border:1px solid var(--line); background:#0c1733; color:var(--text); }
-    #find { width:100%; font-size:1rem; letter-spacing:0; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0c1733; color:var(--text); }
-    .sell { display:grid; grid-template-columns:160px 1fr 280px; gap:10px; min-height:70vh; }
-    .sell-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
-    .cats, .cart, .products-wrap { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; }
-    .cats { display:flex; flex-direction:column; gap:8px; }
-    .cat { background:#0c1733; color:var(--text); text-align:left; }
-    .cat.on { background:#3d7eff; }
-    .products { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-top:10px; }
-    .prod { background:#0c1733; color:var(--text); text-align:left; min-height:84px; }
-    .prod b, .prod span { display:block; }
-    .warn { color:#f0c674; font-size:.75rem; }
-    .line { display:grid; grid-template-columns:1fr auto; gap:6px; padding:8px 0; border-bottom:1px solid var(--line); }
-    .qty { display:flex; gap:4px; align-items:center; }
-    .qty button { width:32px; padding:6px; background:#0c1733; color:var(--text); }
-    .pay-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .pay-row .btn { margin-top:0; }
-    @media (max-width: 800px) { .sell { grid-template-columns:1fr; } }
-    button { border:0; border-radius:10px; padding:12px 16px; font-weight:650; cursor:pointer; }
-    .btn { background:#3d7eff; color:#fff; width:100%; margin-top:12px; }
-    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--line); width:auto; }
+    #pin, #find { width:100%; font-family:inherit; border-radius:8px; }
+    #pin { font-size:1.4rem; letter-spacing:.35em; text-align:center; padding:12px; border:1px solid #2e2e45; background:#12121f; color:#fff; }
+    #find { font-size:1rem; letter-spacing:0; text-align:left; padding:.55rem .7rem; border:1px solid #e5e7eb; background:#fff; color:#111827; }
+    #sell { display:flex; flex-direction:column; min-height:100vh; background:#1a1a2e; margin:0 -12px; }
+    .sell-top { background:#1e1e2e; border-bottom:1px solid rgba(255,255,255,.06); }
+    .back-bar { display:flex; align-items:center; justify-content:space-between; padding:.7rem 1rem; }
+    #back { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:999px; color:#f8fafc; font-weight:600; font-size:.84rem; min-height:40px; padding:.45rem 1rem; width:auto; margin:0; }
+    .table-banner { background:#ff6b35; color:#fff; padding:.9rem 1.15rem; }
+    .table-banner h2 { margin:0; font-size:1.45rem; font-weight:800; }
+    .sell { display:flex; flex-direction:column; min-height:0; }
+    .products-wrap, .cart, .pays { min-width:0; }
+    .products-wrap { display:flex; flex-direction:column; padding:.55rem .65rem .75rem; }
+    .cats { display:flex; flex-direction:row; flex-wrap:nowrap; gap:.45rem; overflow-x:auto; padding:.45rem .1rem .65rem; }
+    .cat { flex:0 0 auto; background:#2d2d44; color:#fff; border:0; border-radius:999px; min-height:38px; padding:.45rem 1rem; font-weight:700; font-size:.8rem; width:auto; margin:0; white-space:nowrap; }
+    .cat.on, .cat.on:hover { background:#ff6b35; color:#fff; }
+    .products { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:.5rem; }
+    .prod { background:#fff; color:#111827; border:1px solid rgba(0,0,0,.04); border-radius:12px; min-height:5.1rem; padding:0; margin:0; width:100%; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.12); display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; }
+    .prod .strip { display:block; height:44px; background:linear-gradient(145deg,rgba(255,107,53,.16),rgba(26,26,46,.04)),#f3f4f6; }
+    .prod b { display:block; font-size:.74rem; font-weight:700; line-height:1.2; padding:.4rem .35rem 0; }
+    .prod .price { display:block; color:#ff6b35; font-weight:800; font-size:.76rem; padding:0 .35rem .45rem; }
+    .warn { color:#b91c1c; font-size:.7rem; padding-bottom:.3rem; }
+    .cart, .pays { background:#f8f9fb; color:#111827; }
+    .cart { padding:.45rem .5rem; }
+    .cart-title { font-weight:800; margin-bottom:.35rem; }
+    .line { padding:.45rem 0; border-bottom:1px solid #e5e7eb; }
+    .line .nm { font-weight:700; font-size:.82rem; }
+    .line .sum { color:#ff6b35; font-weight:800; font-size:.8rem; }
+    .qty { display:flex; gap:4px; align-items:center; margin-top:4px; }
+    .qty button { width:28px; height:28px; padding:0; margin:0; border-radius:8px; background:#111827; color:#fff; }
+    #cart-total { margin:.6rem 0; font-size:1rem; font-weight:800; }
+    .pays { padding:.4rem .45rem .6rem; }
+    .pay-row { display:grid; grid-template-columns:1fr; gap:.4rem; }
+    .pay-row .btn { margin:0; width:100%; min-height:3rem; height:3rem; border:0; border-radius:10px; background:#111827; color:#fff; font-weight:700; font-size:.78rem; }
+    .pay-row .btn:hover { background:#1f2937; }
+    #pay-msg { color:#b91c1c; }
+    #fiscal-retry { background:#111827; color:#fff; }
+    @media (min-width: 768px) {
+      .sell { flex-direction:row; align-items:stretch; min-height:calc(100vh - 120px); }
+      .products-wrap { flex:0 0 70%; width:70%; }
+      .cart { flex:0 0 15%; width:15%; overflow:auto; }
+      .pays { flex:0 0 15%; width:15%; background:#f3f4f6; overflow:auto; }
+    }
+    button { font-family:inherit; cursor:pointer; }
+    .btn { background:#ff6b35; color:#fff; width:100%; margin-top:12px; border:0; border-radius:10px; padding:12px 16px; font-weight:700; }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid #334155; width:auto; border-radius:10px; padding:10px 14px; }
     .msg { min-height:1.2rem; margin-top:10px; color:#f0b4b4; }
-    .zone { margin-bottom:18px; }
-    .zone h2 { font-size:.95rem; margin:0 0 10px; color:var(--muted); }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:10px; }
-    .table { border:0; border-radius:12px; padding:12px; text-align:left; color:#fff; min-height:108px; }
-    .table.free { background:var(--green); }
-    .table.arka { background:var(--amber); color:#1a1204; }
-    .table.locked { background:var(--red); }
-    .table b { display:block; font-size:1.15rem; }
-    .table span { display:block; font-size:.8rem; margin-top:4px; opacity:.95; }
+    .zone { margin:0 0 18px; }
+    .zone h2 { margin:0 0 .55rem; padding-bottom:.4rem; border-bottom:1px solid #ef4444; color:#f8fafc; font-size:.95rem; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+    .table-card { width:100%; min-height:118px; border-radius:16px; padding:.55rem .4rem; display:flex; flex-direction:column; align-items:center; justify-content:space-between; color:#ecfdf5; margin:0; }
+    .table-card.free { background:linear-gradient(180deg,#123526 0%,#0a1f18 100%); border:1px solid rgba(52,211,153,.75); box-shadow:0 0 0 1px rgba(16,185,129,.25),0 0 18px rgba(16,185,129,.42); }
+    .table-card.occupied { background:linear-gradient(180deg,#3d1f08 0%,#1a0e05 100%); color:#fff7ed; border:1px solid rgba(251,146,60,.85); box-shadow:0 0 0 1px rgba(234,88,12,.3),0 0 20px rgba(234,88,12,.5); }
+    .table-card b { font-size:1.05rem; font-weight:800; }
+    .table-card span { font-size:.75rem; text-align:center; }
     .sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; }
     .sheet .panel { background:#101c38; width:min(520px,100%); border-radius:16px 16px 0 0; padding:16px; max-height:80vh; overflow:auto; }
     #net-banner { background:#c9891a; color:#1a1204; text-align:center; padding:8px 12px; font-weight:650; }
@@ -80,21 +103,31 @@
     <section id="floor" class="hidden"></section>
     <section id="sell" class="hidden">
       <div class="sell-top">
-        <button type="button" class="btn-ghost" id="back">Kthehu te tavolinat</button>
-        <strong id="sell-table"></strong>
+        <div class="back-bar">
+          <button type="button" id="back">← Kthehu te tavolinat</button>
+        </div>
+        <div class="table-banner"><h2 id="sell-table"></h2></div>
       </div>
       <div class="sell">
-        <aside class="cats" id="cats"></aside>
         <div class="products-wrap">
-          <input id="find" type="search" placeholder="Kërko emër ose barkod" autocomplete="off">
+          <input id="find" type="search" placeholder="Skano barkodin" autocomplete="off">
+          <div class="cats" id="cats"></div>
           <div class="products" id="products"></div>
         </div>
         <aside class="cart">
+          <div class="cart-title">Porosia</div>
           <div id="cart-lines"></div>
-          <div id="cart-total" style="margin:10px 0;font-size:1.15rem"></div>
-          <div class="pay-row">
-            <button type="button" class="btn" id="pay-cash">Paguaj</button>
-            <button type="button" class="btn" id="pay-card">Kartë</button>
+          <div id="cart-total"></div>
+        </aside>
+        <aside class="pays">
+          <div class="pay-row" id="pay-grid">
+            <button type="button" class="btn" data-pay="cash">Paguaj</button>
+            <button type="button" class="btn" data-pay="debit_card">Kartë Debiti</button>
+            <button type="button" class="btn" data-pay="credit_card">Kartë Krediti</button>
+            <button type="button" class="btn" data-pay="sms">SMS</button>
+            <button type="button" class="btn" data-pay="check">Çek</button>
+            <button type="button" class="btn" data-pay="bank_account">Llogari Bankare</button>
+            <button type="button" class="btn" data-pay="voucher">Kupon</button>
           </div>
           <div class="msg" id="pay-msg"></div>
           <button type="button" class="btn hidden" id="fiscal-retry">Provo fiskalizimin përsëri</button>
@@ -192,7 +225,8 @@
         const row = document.createElement("div");
         row.className = "line";
         const name = document.createElement("div");
-        name.textContent = it.name + " · " + euro(it.price);
+        name.className = "nm";
+        name.textContent = it.name;
         const qty = document.createElement("div");
         qty.className = "qty";
         const minus = document.createElement("button");
@@ -218,13 +252,14 @@
         qty.appendChild(plus);
         qty.appendChild(del);
         const sum = document.createElement("div");
+        sum.className = "sum";
         sum.textContent = euro(it.price * it.quantity);
         row.appendChild(name);
         row.appendChild(sum);
         row.appendChild(qty);
         box.appendChild(row);
       });
-      document.getElementById("cart-total").textContent = "Totali " + euro(cartTotal());
+      document.getElementById("cart-total").textContent = cart.length ? ("Totali " + euro(cartTotal())) : "Shtoni artikuj nga menuja";
     }
     function addProduct(p) {
       const found = cart.find(function (it) { return it.id === p.id; });
@@ -239,10 +274,14 @@
         const b = document.createElement("button");
         b.type = "button";
         b.className = "prod";
+        const strip = document.createElement("span");
+        strip.className = "strip";
         const name = document.createElement("b");
         name.textContent = p.name;
         const price = document.createElement("span");
+        price.className = "price";
         price.textContent = euro(p.price);
+        b.appendChild(strip);
         b.appendChild(name);
         b.appendChild(price);
         if (p.low_stock) {
@@ -311,7 +350,7 @@
           current.push(t);
           const b = document.createElement("button");
           b.type = "button";
-          b.className = "table " + (t.status !== "occupied" ? "free" : (t.editable ? "arka" : "locked"));
+          b.className = "table-card " + (t.status !== "occupied" ? "free" : "occupied");
           const title = document.createElement("b");
           title.textContent = "T" + t.number;
           const line = document.createElement("span");
@@ -461,8 +500,11 @@
       if (andPrint) sendPrint(data);
     }
     document.getElementById("fiscal-retry").addEventListener("click", function () { fiscalize(false); });
-    document.getElementById("pay-cash").addEventListener("click", function () { pay("cash"); });
-    document.getElementById("pay-card").addEventListener("click", function () { pay("card"); });
+    document.getElementById("pay-grid").addEventListener("click", function (ev) {
+      const btn = ev.target.closest("[data-pay]");
+      if (!btn) return;
+      pay(btn.getAttribute("data-pay"));
+    });
     async function loadTables() {
       const res = await api("/tables");
       const data = await res.json().catch(function () { return {}; });

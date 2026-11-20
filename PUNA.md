@@ -1,5 +1,11 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-20 — Arka në shfletues si programi
+
+Te `public/arka.html` pamja u afrua me ekranin e shitjes: sfond i errët, kategori portokalli, karta të bardha, shporta dhe shtatë butona pagese. Tavolinat janë jeshile kur janë të lira dhe portokalli kur janë të zëna, me emrin e zonës. Te `src/services/arkaService.js` çdo zonë tregon tavolinat e veta, pa u ndalur te 30 gjithsej. Pagesat jo-cash hyjnë te grupi Kartë. U dërgua te faqja e gjallë me lejen e Naserit. Programi në kompjuter nuk u prek.
+
+
+
 ## 2026-11-20 — Arka hapet me PIN-in e kamarierit
 
 Te `src/services/arkaService.js` hyrja me PIN përdor të njëjtin kontroll si kamarieri (`verifyWaiterPin`). Nëse PIN-i është i kamarierit, arka e lejon. Personi mbetet i njohur edhe pas hyrjes. U dërgua te faqja e gjallë me lejen e Naserit. Programi në kompjuter nuk ndryshoi.

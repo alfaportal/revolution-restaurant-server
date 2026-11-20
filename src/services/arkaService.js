@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const { getSupabase } = require("../db");
 const { verifyWaiterPin } = require("./waiterPinService");
 const { normalizeItems } = require("./salesService");
-const { buildTablesFromAreas } = require("../lib/tableLayout");
 const { loadAreasForClient } = require("./venueService");
 
 const ARKA_ROLE = "arka";
@@ -104,6 +103,29 @@ function pickTableFace(rows) {
   return list[0] || null;
 }
 
+function arkaAreaGroups(areas, fallbackTableCount) {
+  const activeAreas = (areas || [])
+    .filter(a => a.active !== false)
+    .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+  const groups = [];
+  let number = 1;
+  if (activeAreas.length) {
+    for (const area of activeAreas) {
+      const count = Math.min(30, Math.max(0, Number(area.table_count) || 0));
+      const tables = [];
+      for (let i = 0; i < count; i += 1, number += 1) {
+        tables.push({ number, area_name: area.name });
+      }
+      if (tables.length) groups.push({ id: area.id, name: area.name, tables });
+    }
+    return groups;
+  }
+  const count = Math.min(30, Math.max(1, Number(fallbackTableCount) || 10));
+  const tables = [];
+  for (let n = 1; n <= count; n += 1) tables.push({ number: n, area_name: null });
+  return [{ id: null, name: "Tavolinat", tables }];
+}
+
 async function getArkaTables(clientId) {
   const db = getSupabase();
   const { data: settings } = await db
@@ -132,8 +154,8 @@ async function getArkaTables(clientId) {
       order_count: rows.length,
     });
   }
-  const layout = buildTablesFromAreas(areas, settings?.table_count, active);
-  const areasOut = (layout.areas || []).map(area => ({
+  const layoutAreas = arkaAreaGroups(areas, settings?.table_count);
+  const areasOut = layoutAreas.map(area => ({
     id: area.id,
     name: area.name,
     tables: (area.tables || []).map(t => {
@@ -145,7 +167,7 @@ async function getArkaTables(clientId) {
         number: t.number,
         area_name: t.area_name,
         status: access.occupied ? "occupied" : "free",
-        waiter_name: t.waiter_name || null,
+        waiter_name: extra?.waiter_name || null,
         total: access.occupied ? Number(extra?.total) || Number(t.order_total) || 0 : 0,
         item_count: access.occupied ? qty : 0,
         order_count: access.occupied ? Number(extra?.order_count) || 1 : 0,
@@ -164,7 +186,10 @@ async function getArkaTables(clientId) {
       };
     }),
   }));
-  return { areas: areasOut, table_count: layout.table_count };
+  return {
+    areas: areasOut,
+    table_count: areasOut.reduce((sum, area) => sum + (area.tables || []).length, 0),
+  };
 }
 
 function arkaDeviceId(staffId) {
@@ -253,8 +278,11 @@ async function searchArkaProducts(clientId, query) {
 function paymentMethodFor(raw) {
   const v = String(raw || "").trim().toLowerCase();
   if (v === "cash") return "cash";
-  if (v === "card" || v === "debit_card" || v === "credit_card" || v === "karte" || v === "kartë") return "karte";
-  const err = new Error("Pagesa duhet të jetë cash ose kartë.");
+  if ([
+    "card", "karte", "kartë", "kart",
+    "debit_card", "credit_card", "sms", "check", "bank_account", "voucher",
+  ].includes(v)) return "karte";
+  const err = new Error("Pagesa nuk njihet.");
   err.status = 400;
   throw err;
 }
