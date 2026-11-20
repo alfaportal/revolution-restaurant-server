@@ -17,4 +17,14 @@ router.get("/pasqyra", async (req, res) => {
   }
 });
 
+router.get("/floor", async (req, res) => {
+  try {
+    const { getArkaTables } = require("../services/arkaService");
+    const data = await getArkaTables(req.user.client_id);
+    res.json({ ok: true, ...data });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message || "Gabim" });
+  }
+});
+
 module.exports = router;

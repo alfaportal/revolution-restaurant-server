@@ -5,6 +5,7 @@ const { verifyWaiterPin } = require("./waiterPinService");
 const { normalizeItems } = require("./salesService");
 const { loadAreasForClient } = require("./venueService");
 const { attachClientPhoto } = require("./menuCatalogService");
+const { loadFloorTables } = require("./floorLayoutService");
 
 const ARKA_ROLE = "arka";
 const ARKA_DEVICE_PREFIX = "WEB-ARKA-";
@@ -152,6 +153,23 @@ function arkaAreaGroups(areas, fallbackTableCount) {
   return [{ id: null, name: "Tavolinat", tables }];
 }
 
+function floorAreas(rows) {
+  const byZone = new Map();
+  for (const row of rows || []) {
+    const name = String(row.zone_name || "").trim() || "Kryesore";
+    if (!byZone.has(name)) {
+      byZone.set(name, { id: name, name, sort: Number(row.zone_sort) || 0, tables: [] });
+    }
+    byZone.get(name).tables.push({
+      number: Number(row.table_number),
+      area_name: name,
+      layout_x: Number(row.layout_x),
+      layout_y: Number(row.layout_y),
+    });
+  }
+  return [...byZone.values()].sort((a, b) => a.sort - b.sort);
+}
+
 async function getArkaTables(clientId) {
   const db = getSupabase();
   const { data: settings } = await db
@@ -161,6 +179,7 @@ async function getArkaTables(clientId) {
     .maybeSingle();
   const areas = await loadAreasForClient(clientId);
   const orders = await loadOpenOrders(clientId);
+  const floorRows = await loadFloorTables(clientId);
   const byTable = new Map();
   for (const row of orders) {
     const n = Number(row.table_number);
@@ -181,7 +200,9 @@ async function getArkaTables(clientId) {
       order_count: rows.length,
     });
   }
-  const layoutAreas = arkaAreaGroups(areas, settings?.table_count);
+  const layoutAreas = floorRows.length
+    ? floorAreas(floorRows)
+    : arkaAreaGroups(areas, settings?.table_count);
   const areasOut = layoutAreas.map(area => ({
     id: area.id,
     name: area.name,
@@ -193,6 +214,8 @@ async function getArkaTables(clientId) {
       return {
         number: t.number,
         area_name: t.area_name,
+        layout_x: t.layout_x == null ? -1 : Number(t.layout_x),
+        layout_y: t.layout_y == null ? -1 : Number(t.layout_y),
         status: access.occupied ? "occupied" : "free",
         waiter_name: extra?.waiter_name || null,
         total: access.occupied ? Number(extra?.total) || Number(t.order_total) || 0 : 0,

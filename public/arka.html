@@ -9,6 +9,46 @@
   <link rel="manifest" id="pwa-manifest" href="/logo-icon.svg">
   <link rel="icon" href="/logo-icon.svg">
   <title>Revolution Arka</title>
+  <script>
+  (function () {
+    if (window.__riOwnerGuard) return;
+    window.__riOwnerGuard = true;
+    function ndal() {
+      if (window.__riOwnerNdalur) return;
+      window.__riOwnerNdalur = true;
+      window.fetch = function () {
+        return Promise.reject(new Error("ndalur"));
+      };
+      document.documentElement.innerHTML =
+        '<body style="margin:0;background:#1a1a2e;color:#fff;font-family:system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:2rem"><div><h1>Ndaluar</h1><p>Mjetet e shfletuesit janë të hapura. Mbylli dhe hape panelin përsëri.</p></div></body>';
+    }
+    document.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+    document.addEventListener("keydown", function (event) {
+      const key = event.key || "";
+      const ctrl = event.ctrlKey || event.metaKey;
+      if (key === "F12") {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.repeat) return;
+        const btn = document.querySelector("#pay-grid button[data-pay='cash'][data-mode='thermal']");
+        if (btn) btn.click();
+        return;
+      }
+      const block = (ctrl && event.shiftKey && /^[IJC]$/i.test(key)) || (ctrl && /^u$/i.test(key));
+      if (!block) return;
+      event.preventDefault();
+      event.stopPropagation();
+      ndal();
+    }, true);
+    setInterval(function () {
+      const dw = Math.abs((window.outerWidth || 0) - (window.innerWidth || 0));
+      const dh = Math.abs((window.outerHeight || 0) - (window.innerHeight || 0));
+      if (dw > 160 || dh > 320) ndal();
+    }, 1500);
+  })();
+  </script>
   <link rel="stylesheet" href="/css/pos-program-style.css">
   <link rel="stylesheet" href="/css/pos-program-waiter.css">
   <link rel="stylesheet" href="/css/pos-program-truffle.css">
@@ -606,8 +646,15 @@
           const col = i % 8;
           const row = Math.floor(i / 8);
           b.style.position = "absolute";
-          b.style.left = (1.5 + col * 12.2) + "%";
-          b.style.top = (8 + row * 130) + "px";
+          const px = Number(t.layout_x);
+          const py = Number(t.layout_y);
+          if (Number.isFinite(px) && Number.isFinite(py) && px >= 0 && py >= 0) {
+            b.style.left = Math.min(78, px) + "%";
+            b.style.top = Math.min(78, py) + "%";
+          } else {
+            b.style.left = (1.5 + col * 12.2) + "%";
+            b.style.top = (8 + row * 130) + "px";
+          }
           const name = document.createElement("div");
           name.className = "table-card-name";
           name.textContent = "Tavolina " + t.number;

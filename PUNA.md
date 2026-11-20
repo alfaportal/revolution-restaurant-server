@@ -1,3 +1,11 @@
+## 2026-11-20 — Arka dhe paneli bllokojnë mjetet e shfletuesit
+
+`public/admin-cloud.html` ngarkon `public/js/owner-guard.js`, njësoj si hyrja e pronarit: F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U dhe klikimi i djathtë bllokohen. `public/arka.html` ka të njëjtin bllokim, por F12 shtyp butonin «Paguaj (Termik)». Nuk u dërgua te faqja e gjallë. Nuk u bë build.
+
+## 2026-11-20 — Faqja pret zonat dhe vendet e tavolinave
+
+Programi dërgon te `POST /api/v1/pos/catalog/sync` vetëm numrin e tavolinave, jo zonat dhe jo vendet. Te `src/services/floorLayoutService.js` dhe `src/services/posSyncService.js` faqja tani i ruan zonat dhe vendet kur vijnë, te tabela `pos_floor_tables`. `public/arka.html` dhe `public/admin-cloud.html` i vizatojnë me ato vende. Programi në kompjuter nuk u prek, prandaj ende nuk i dërgon. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-20 — Arka në shfletues është arkë e dytë
 
 Te `src/services/arkaService.js` porosia, tavolina dhe pagesa ruhen me një numër të fiksuar prej 12 shenjash (0-9 dhe A-F), i njëjtë për atë biznes. Nuk fillon me WEB-. Programi e sheh si arkë tjetër, me dry. Telefoni, printeri dhe programi në kompjuter nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.

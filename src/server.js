@@ -1196,6 +1196,14 @@ async function start() {
     console.warn("  ⚠️  Preferencat e njoftimeve:", formatError(e));
   }
 
+  try {
+    const { ensureFloorSchema } = require("./lib/ensureFloorSchema");
+    const floorOk = await ensureFloorSchema();
+    if (floorOk) console.log("  ✅ Tavolinat: zonat dhe vendet");
+  } catch (e) {
+    console.warn("  ⚠️  Tavolinat:", formatError(e));
+  }
+
   startLicenseExpiryCron();
   startRefusedOrdersExpiryJob();
   startTrialNotificationCron();

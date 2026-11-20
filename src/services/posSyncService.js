@@ -3,6 +3,7 @@ const { assertLicenseUsable } = require("../lib/licenseEnforcement");
 const { getSupabase } = require("../db");
 const { withPgTransaction } = require("../lib/pgPool");
 const { getCatalogForPos } = require("./menuCatalogService");
+const { saveFloorFromPos } = require("./floorLayoutService");
 const { hashPin, generateWebToken } = require("./waiterPinService");
 const { normalizeVatCategory } = require("../lib/vatCategories");
 
@@ -656,15 +657,22 @@ async function syncStaffOnlyFromPos(body) {
 
 async function syncCatalogFromPos(body) {
   const license = await resolveLicense(body);
+  let result;
   if (process.env.DATABASE_URL) {
     try {
-      const txResult = await syncCatalogFromPosTransactional(license, body);
-      if (txResult) return txResult;
+      result = await syncCatalogFromPosTransactional(license, body);
     } catch (err) {
       console.warn("[pos-sync] transactional catalog sync failed, fallback:", err.message);
     }
   }
-  return syncCatalogFromPosSupabase(license, body);
+  if (!result) result = await syncCatalogFromPosSupabase(license, body);
+  try {
+    const floor = await saveFloorFromPos(license.client_id, body);
+    if (floor.saved) result.floor = floor;
+  } catch (err) {
+    console.warn("[pos-sync] floor:", err.message);
+  }
+  return result;
 }
 
 async function pullCatalogForLicense(body) {

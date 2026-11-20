@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Paneli</title>
+  <script src="/js/owner-guard.js"></script>
   <style>
     html.admin-app-root, body.admin-app { height: 100%; margin: 0; overflow: hidden; }
     body.admin-app {
@@ -99,6 +100,15 @@
     @media (max-width: 800px) {
       .dashboard-kpi-row, .dashboard-grid-2 { grid-template-columns: 1fr; }
     }
+    .floor-map { position: relative; min-height: 420px; margin-top: 0.5rem; }
+    .floor-card {
+      position: absolute; width: 108px; min-height: 92px; border-radius: 14px;
+      border: 1px solid rgba(16, 185, 129, 0.45); background: #10241c; color: #e8fff4;
+      text-align: center; padding: 0.45rem;
+    }
+    .floor-card.occupied { background: #3a2412; border-color: #d97706; }
+    .floor-zone { margin-bottom: 1.25rem; }
+    .floor-zone h3 { margin: 0 0 0.35rem; font-size: 0.85rem; letter-spacing: 0.08em; color: #a0a0b8; }
   </style>
 </head>
 <body class="admin-app">
@@ -251,7 +261,12 @@
         sec.id = "panel-" + id;
         var card = document.createElement("div");
         card.className = "card";
-        card.textContent = "Kjo skedë do të lidhet së shpejti";
+        if (id === "tavolinat" || id === "rregullimi-tavolinave") {
+          card.id = "floor-" + id;
+          card.textContent = "Duke ngarkuar tavolinat…";
+        } else {
+          card.textContent = "Kjo skedë do të lidhet së shpejti";
+        }
         sec.appendChild(card);
         box.appendChild(sec);
       }
@@ -260,6 +275,7 @@
         box.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
         btn.classList.add("active");
         sec.classList.add("active");
+        if (id === "tavolinat" || id === "rregullimi-tavolinave") ngarkoTavolinat();
       });
     });
     function tick() {
@@ -427,6 +443,48 @@
       if (btn) btn.click();
     });
     ngarkoPasqyra();
+    function paintFloor(areas) {
+      ["tavolinat", "rregullimi-tavolinave"].forEach(function (id) {
+        var host = document.getElementById("floor-" + id);
+        if (!host) return;
+        host.innerHTML = "";
+        (areas || []).forEach(function (area) {
+          var zone = document.createElement("div");
+          zone.className = "floor-zone";
+          var title = document.createElement("h3");
+          title.textContent = area.name || "Kryesore";
+          var map = document.createElement("div");
+          map.className = "floor-map";
+          (area.tables || []).forEach(function (t, i) {
+            var b = document.createElement("div");
+            b.className = "floor-card" + (t.status === "occupied" ? " occupied" : "");
+            var x = Number(t.layout_x);
+            var y = Number(t.layout_y);
+            if (Number.isFinite(x) && Number.isFinite(y) && x >= 0 && y >= 0) {
+              b.style.left = Math.min(78, x) + "%";
+              b.style.top = Math.min(78, y) + "%";
+            } else {
+              b.style.left = (2 + (i % 8) * 12) + "%";
+              b.style.top = (8 + Math.floor(i / 8) * 28) + "%";
+            }
+            b.textContent = "Tavolina " + t.number + (t.status === "occupied" ? " · " + (t.waiter_name || "e zënë") : " · Lirë");
+            map.appendChild(b);
+          });
+          zone.appendChild(title);
+          zone.appendChild(map);
+          host.appendChild(zone);
+        });
+        if (!host.children.length) host.textContent = "Nuk ka ende vendet e tavolinave nga programi.";
+      });
+    }
+    function ngarkoTavolinat() {
+      var token = localStorage.getItem("owner_token") || "";
+      if (!token) return;
+      fetch("/api/admin-cloud/floor", { headers: { Authorization: "Bearer " + token } })
+        .then(function (r) { return r.json(); })
+        .then(function (body) { if (body && body.ok) paintFloor(body.areas || []); })
+        .catch(function () {});
+    }
   </script>
 </body>
 </html>
