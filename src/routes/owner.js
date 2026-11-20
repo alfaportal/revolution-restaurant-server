@@ -1551,4 +1551,38 @@ router.put("/notification-preferences", async (req, res) => {
   }
 });
 
+router.get("/login-code", async (req, res) => {
+  try {
+    const { pinRemembered } = require("../services/kycuLogin");
+    const remembered = await pinRemembered(req.user.sub, req.cookies?.pin_saved_token);
+    res.json({ ok: true, remembered });
+  } catch {
+    res.json({ ok: true, remembered: false });
+  }
+});
+
+router.post("/login-code", async (req, res) => {
+  try {
+    const { setPinRemember, PIN_COOKIE } = require("../services/kycuLogin");
+    const out = await setPinRemember(req.user.sub, req.body?.remember === true);
+    if (out.clear) res.clearCookie("pin_saved_token", { path: "/" });
+    if (out.token) res.cookie("pin_saved_token", out.token, PIN_COOKIE);
+    res.json({ ok: true, remembered: Boolean(out.token) });
+  } catch {
+    res.status(500).json({ ok: false, gabim: "Nuk u ruajt." });
+  }
+});
+
+router.post("/pin/new", async (req, res) => {
+  try {
+    const { replaceOwnerPin } = require("../services/kycuLogin");
+    await replaceOwnerPin(req.user.sub);
+    res.clearCookie("pin_saved_token", { path: "/" });
+    res.json({ ok: true });
+  } catch (e) {
+    const status = e.message === "EMAIL_NOT_CONFIGURED" ? 503 : 400;
+    res.status(status).json({ ok: false, gabim: e.message === "EMAIL_NOT_CONFIGURED" ? "Email-i nuk është gati." : e.message });
+  }
+});
+
 module.exports = router;

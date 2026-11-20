@@ -7,6 +7,7 @@ const SITE_OLD_DIR = path.join(__dirname, "../../public/site-old");
 const PAGE_FILES = {
   "/": "index.html",
   "/hap": "hap.html",
+  "/kycu": "kycu.html",
   "/udhezuesi": "udhezuesi.html",
   "/privatesia": "privatesia.html",
   "/kushtet": "kushtet.html",

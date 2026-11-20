@@ -24,6 +24,9 @@ const superRoutes = require("./routes/super");
 const ownerRoutes = require("./routes/owner");
 const kdsRoutes = require("./routes/kds");
 const waiterRoutes = require("./routes/waiter");
+const arkaRoutes = require("./routes/arka");
+const { startFiscalRetryMonitor } = require("./services/fiscalServerService");
+const { registerArkaPageRoutes } = require("./routes/arkaPages");
 const kioskRoutes = require("./routes/kiosk");
 const tableMenuRoutes = require("./routes/tableMenu");
 const posRoutes = require("./routes/pos");
@@ -833,6 +836,7 @@ app.use("/api/super", superRoutes);
 app.use("/api/owner", ownerRoutes);
 app.use("/api/kds", kdsRoutes);
 app.use("/api/waiter", waiterRoutes);
+app.use("/api/arka", arkaRoutes);
 app.use("/api/kiosk", kioskRoutes);
 app.use("/api/menu", tableMenuRoutes);
 app.use("/api/ai", aiRoutes);
@@ -869,6 +873,8 @@ app.get(
   [
     "/hap",
     "/hap/",
+    "/kycu",
+    "/kycu/",
     "/udhezuesi",
     "/udhezuesi/",
     "/privatesia",
@@ -971,6 +977,7 @@ registerProductPageRoutes(app, {
   shopManifestHandler,
   shopServiceWorkerHandler,
 });
+registerArkaPageRoutes(app, { publicDir: PUBLIC_DIR });
 
 app.use(express.static(SITE_DIR));
 app.use(express.static(SITE_OLD_DIR, { index: false }));
@@ -1205,6 +1212,7 @@ async function start() {
   const publicOrigin = getPublicAppOrigin();
   console.log(`  🌐 Public URL:  ${publicOrigin}`);
 
+  startFiscalRetryMonitor();
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n  🚀 Revolution POS Server — http://localhost:${PORT}`);
     console.log(`  📋 Master Admin: /admin/dashboard  (legacy ${ADMIN_PATH} → redirect)`);

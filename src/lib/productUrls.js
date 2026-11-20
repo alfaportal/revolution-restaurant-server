@@ -128,6 +128,7 @@ const RESERVED_URL_TIPI = new Set([
   "terms",
   "website",
   "hap",
+  "kycu",
   "ri-super",
   "restaurant",
   "panel.html",

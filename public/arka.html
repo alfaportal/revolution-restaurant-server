@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1b3d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Revolution Arka">
+  <link rel="manifest" id="pwa-manifest" href="/logo-icon.svg">
+  <link rel="icon" href="/logo-icon.svg">
+  <title>Revolution Arka</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0f1b3d; --card:#162448; --line:#2a3d6b; --text:#f4f7fb; --muted:#9aabc8; --green:#1f7a4d; --amber:#c9891a; --red:#a33b3b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); }
+    header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); }
+    h1 { font-size:1.15rem; margin:0; }
+    .sub { color:var(--muted); font-size:.85rem; margin-top:2px; }
+    main { padding:16px; max-width:1100px; margin:0 auto; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:6px; }
+    #pin { width:100%; font-size:1.4rem; letter-spacing:.35em; text-align:center; padding:12px; border-radius:10px; border:1px solid var(--line); background:#0c1733; color:var(--text); }
+    #find { width:100%; font-size:1rem; letter-spacing:0; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0c1733; color:var(--text); }
+    .sell { display:grid; grid-template-columns:160px 1fr 280px; gap:10px; min-height:70vh; }
+    .sell-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .cats, .cart, .products-wrap { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; }
+    .cats { display:flex; flex-direction:column; gap:8px; }
+    .cat { background:#0c1733; color:var(--text); text-align:left; }
+    .cat.on { background:#3d7eff; }
+    .products { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-top:10px; }
+    .prod { background:#0c1733; color:var(--text); text-align:left; min-height:84px; }
+    .prod b, .prod span { display:block; }
+    .warn { color:#f0c674; font-size:.75rem; }
+    .line { display:grid; grid-template-columns:1fr auto; gap:6px; padding:8px 0; border-bottom:1px solid var(--line); }
+    .qty { display:flex; gap:4px; align-items:center; }
+    .qty button { width:32px; padding:6px; background:#0c1733; color:var(--text); }
+    .pay-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .pay-row .btn { margin-top:0; }
+    @media (max-width: 800px) { .sell { grid-template-columns:1fr; } }
+    button { border:0; border-radius:10px; padding:12px 16px; font-weight:650; cursor:pointer; }
+    .btn { background:#3d7eff; color:#fff; width:100%; margin-top:12px; }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--line); width:auto; }
+    .msg { min-height:1.2rem; margin-top:10px; color:#f0b4b4; }
+    .zone { margin-bottom:18px; }
+    .zone h2 { font-size:.95rem; margin:0 0 10px; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:10px; }
+    .table { border:0; border-radius:12px; padding:12px; text-align:left; color:#fff; min-height:108px; }
+    .table.free { background:var(--green); }
+    .table.arka { background:var(--amber); color:#1a1204; }
+    .table.locked { background:var(--red); }
+    .table b { display:block; font-size:1.15rem; }
+    .table span { display:block; font-size:.8rem; margin-top:4px; opacity:.95; }
+    .sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; }
+    .sheet .panel { background:#101c38; width:min(520px,100%); border-radius:16px 16px 0 0; padding:16px; max-height:80vh; overflow:auto; }
+    #net-banner { background:#c9891a; color:#1a1204; text-align:center; padding:8px 12px; font-weight:650; }
+    .hidden { display:none !important; }
+    ul { margin:8px 0 0; padding-left:18px; }
+  </style>
+</head>
+<body>
+  <div id="net-banner" class="hidden"></div>
+  <header>
+    <div>
+      <h1>Arka</h1>
+      <div class="sub" id="biz"></div>
+    </div>
+    <button type="button" class="btn-ghost hidden" id="out">Dil</button>
+  </header>
+  <main>
+    <section class="card" id="gate">
+      <p id="gate-text">Po kontrollohet hyrja…</p>
+      <a class="btn hidden" id="go-kycu" href="/kycu" style="display:inline-block;text-align:center;text-decoration:none">Hyr te Kyçu</a>
+    </section>
+    <section class="card hidden" id="pin-box">
+      <label for="pin">PIN i punonjësit të arkës</label>
+      <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+      <button type="button" class="btn" id="pin-go">Hyr</button>
+      <div class="msg" id="pin-msg"></div>
+    </section>
+    <section id="floor" class="hidden"></section>
+    <section id="sell" class="hidden">
+      <div class="sell-top">
+        <button type="button" class="btn-ghost" id="back">Kthehu te tavolinat</button>
+        <strong id="sell-table"></strong>
+      </div>
+      <div class="sell">
+        <aside class="cats" id="cats"></aside>
+        <div class="products-wrap">
+          <input id="find" type="search" placeholder="Kërko emër ose barkod" autocomplete="off">
+          <div class="products" id="products"></div>
+        </div>
+        <aside class="cart">
+          <div id="cart-lines"></div>
+          <div id="cart-total" style="margin:10px 0;font-size:1.15rem"></div>
+          <div class="pay-row">
+            <button type="button" class="btn" id="pay-cash">Paguaj</button>
+            <button type="button" class="btn" id="pay-card">Kartë</button>
+          </div>
+          <div class="msg" id="pay-msg"></div>
+          <button type="button" class="btn hidden" id="fiscal-retry">Provo fiskalizimin përsëri</button>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <div class="sheet hidden" id="sheet">
+    <div class="panel">
+      <h2 id="sheet-title" style="margin:0 0 8px"></h2>
+      <p id="sheet-note" class="sub"></p>
+      <ul id="sheet-items"></ul>
+      <button type="button" class="btn" id="sheet-close">Mbyll</button>
+    </div>
+  </div>
+  <script src="/arka-offline.js"></script>
+  <script>
+    const parts = location.pathname.split("/").filter(Boolean);
+    const slug = parts[1] || "";
+    const key = new URLSearchParams(location.search).get("key") || "";
+    let syncing = false;
+    function apiUrl(path) {
+      const q = key ? (path.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(key) : "";
+      return "/api/arka/" + encodeURIComponent(slug) + path + q;
+    }
+    async function remember(path, res) {
+      if (!window.ArkaOffline || res.headers.get("X-Arka-Offline") === "1") return;
+      const data = await res.json().catch(function () { return null; });
+      if (!data) return;
+      if (path === "/tables" && data.ok) ArkaOffline.saveTables(slug, data);
+      if (path === "/categories" && data.categories) ArkaOffline.saveCategories(slug, data.categories);
+      if (path.indexOf("/products/") === 0 && path.indexOf("/products/search/") !== 0 && data.products) {
+        ArkaOffline.saveProducts(slug, data.products);
+      }
+    }
+    function api(path, opts) {
+      const sent = Object.assign({ credentials: "include", headers: { "Content-Type": "application/json" } }, opts || {});
+      return fetch(apiUrl(path), sent).then(function (res) {
+        if (res.ok) remember(path, res.clone());
+        return res;
+      }).catch(function () {
+        return ArkaOffline.handle(slug, path, opts || {});
+      });
+    }
+    function paintNet(text) {
+      const el = document.getElementById("net-banner");
+      if (!text) {
+        el.classList.add("hidden");
+        el.textContent = "";
+        return;
+      }
+      el.textContent = text;
+      el.classList.remove("hidden");
+    }
+    const gate = document.getElementById("gate");
+    const pinBox = document.getElementById("pin-box");
+    const floor = document.getElementById("floor");
+    const sell = document.getElementById("sell");
+    const biz = document.getElementById("biz");
+    const outBtn = document.getElementById("out");
+    let current = [];
+    let cart = [];
+    let sellTable = null;
+    let paying = false;
+    let lastSaleId = "";
+    let lastPayType = "cash";
+    let staffName = "";
+    function euro(n) { return (Number(n) || 0).toFixed(2) + " €"; }
+    function showGate(text, kycu) {
+      floor.classList.add("hidden");
+      sell.classList.add("hidden");
+      pinBox.classList.add("hidden");
+      outBtn.classList.add("hidden");
+      gate.classList.remove("hidden");
+      document.getElementById("gate-text").textContent = text;
+      document.getElementById("go-kycu").classList.toggle("hidden", !kycu);
+    }
+    function showPin() {
+      gate.classList.add("hidden");
+      floor.classList.add("hidden");
+      sell.classList.add("hidden");
+      outBtn.classList.add("hidden");
+      pinBox.classList.remove("hidden");
+    }
+    function cartTotal() {
+      return cart.reduce(function (s, it) { return s + it.price * it.quantity; }, 0);
+    }
+    function paintCart() {
+      const box = document.getElementById("cart-lines");
+      box.innerHTML = "";
+      cart.forEach(function (it, idx) {
+        const row = document.createElement("div");
+        row.className = "line";
+        const name = document.createElement("div");
+        name.textContent = it.name + " · " + euro(it.price);
+        const qty = document.createElement("div");
+        qty.className = "qty";
+        const minus = document.createElement("button");
+        minus.type = "button";
+        minus.textContent = "−";
+        minus.addEventListener("click", function () {
+          if (it.quantity <= 1) cart.splice(idx, 1);
+          else it.quantity -= 1;
+          paintCart();
+        });
+        const n = document.createElement("span");
+        n.textContent = String(it.quantity);
+        const plus = document.createElement("button");
+        plus.type = "button";
+        plus.textContent = "+";
+        plus.addEventListener("click", function () { it.quantity += 1; paintCart(); });
+        const del = document.createElement("button");
+        del.type = "button";
+        del.textContent = "×";
+        del.addEventListener("click", function () { cart.splice(idx, 1); paintCart(); });
+        qty.appendChild(minus);
+        qty.appendChild(n);
+        qty.appendChild(plus);
+        qty.appendChild(del);
+        const sum = document.createElement("div");
+        sum.textContent = euro(it.price * it.quantity);
+        row.appendChild(name);
+        row.appendChild(sum);
+        row.appendChild(qty);
+        box.appendChild(row);
+      });
+      document.getElementById("cart-total").textContent = "Totali " + euro(cartTotal());
+    }
+    function addProduct(p) {
+      const found = cart.find(function (it) { return it.id === p.id; });
+      if (found) found.quantity += 1;
+      else cart.push({ id: p.id, name: p.name, price: Number(p.price) || 0, quantity: 1 });
+      paintCart();
+    }
+    function paintProducts(list) {
+      const box = document.getElementById("products");
+      box.innerHTML = "";
+      (list || []).forEach(function (p) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "prod";
+        const name = document.createElement("b");
+        name.textContent = p.name;
+        const price = document.createElement("span");
+        price.textContent = euro(p.price);
+        b.appendChild(name);
+        b.appendChild(price);
+        if (p.low_stock) {
+          const w = document.createElement("span");
+          w.className = "warn";
+          w.textContent = "Pa stok";
+          b.appendChild(w);
+        }
+        b.addEventListener("click", function () { addProduct(p); });
+        box.appendChild(b);
+      });
+    }
+    async function loadCategory(id, btn) {
+      document.querySelectorAll(".cat").forEach(function (el) { el.classList.remove("on"); });
+      if (btn) btn.classList.add("on");
+      const res = await api("/products/" + encodeURIComponent(id));
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) return;
+      paintProducts(data.products || []);
+    }
+    async function openSell(t) {
+      sellTable = t;
+      cart = (t.items || []).filter(function (it) { return it.id; }).map(function (it) {
+        return { id: it.id, name: it.name, price: Number(it.price) || 0, quantity: Math.max(1, Math.round(Number(it.quantity) || 1)) };
+      });
+      floor.classList.add("hidden");
+      sell.classList.remove("hidden");
+      document.getElementById("sell-table").textContent = "Tavolina " + t.number;
+      document.getElementById("pay-msg").textContent = "";
+      paintCart();
+      const res = await api("/categories");
+      const data = await res.json().catch(function () { return {}; });
+      const cats = document.getElementById("cats");
+      cats.innerHTML = "";
+      (data.categories || []).forEach(function (c, i) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "cat" + (i === 0 ? " on" : "");
+        b.textContent = c.name;
+        b.addEventListener("click", function () { loadCategory(c.id, b); });
+        cats.appendChild(b);
+        if (i === 0) loadCategory(c.id, b);
+      });
+      (data.categories || []).forEach(function (c) {
+        api("/products/" + encodeURIComponent(c.id));
+      });
+    }
+    function paint(data) {
+      gate.classList.add("hidden");
+      pinBox.classList.add("hidden");
+      floor.classList.remove("hidden");
+      outBtn.classList.remove("hidden");
+      if (data.staff && data.staff.name) staffName = data.staff.name;
+      biz.textContent = (staffName ? staffName + " · " : "") + "tavolinat";
+      current = [];
+      floor.innerHTML = "";
+      (data.areas || []).forEach(function (area) {
+        const zone = document.createElement("section");
+        zone.className = "zone";
+        const h = document.createElement("h2");
+        h.textContent = area.name || "Tavolinat";
+        zone.appendChild(h);
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        (area.tables || []).forEach(function (t) {
+          current.push(t);
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "table " + (t.status !== "occupied" ? "free" : (t.editable ? "arka" : "locked"));
+          const title = document.createElement("b");
+          title.textContent = "T" + t.number;
+          const line = document.createElement("span");
+          if (t.status !== "occupied") line.textContent = "E lirë";
+          else line.textContent = (t.order_count || 1) + " porosi · " + euro(t.total) + (t.view_only ? " · vetëm shiko" : "");
+          b.appendChild(title);
+          b.appendChild(line);
+          b.addEventListener("click", function () { openTable(t); });
+          grid.appendChild(b);
+        });
+        zone.appendChild(grid);
+        floor.appendChild(zone);
+      });
+      if (!floor.children.length) floor.innerHTML = "<p class='sub'>Nuk ka tavolina.</p>";
+    }
+    function openTable(t) {
+      if (!navigator.onLine || !t.view_only) return openSell(t);
+      document.getElementById("sheet-title").textContent = "Tavolina " + t.number;
+      let note = "E lirë";
+      if (t.view_only) note = "E hapur në arkën e kompjuterit ose në një pajisje tjetër. Mund ta shihni, jo ta ndryshoni.";
+      else if (t.editable) note = "E hapur nga kjo arkë. Mund të punohet këtu.";
+      document.getElementById("sheet-note").textContent = note;
+      const ul = document.getElementById("sheet-items");
+      ul.innerHTML = "";
+      (t.items || []).forEach(function (it) {
+        const li = document.createElement("li");
+        li.textContent = it.quantity + " × " + it.name + " — " + euro(it.price);
+        ul.appendChild(li);
+      });
+      document.getElementById("sheet").classList.remove("hidden");
+    }
+    document.getElementById("sheet-close").addEventListener("click", function () {
+      document.getElementById("sheet").classList.add("hidden");
+    });
+    document.getElementById("back").addEventListener("click", function () {
+      sell.classList.add("hidden");
+      cart = [];
+      sellTable = null;
+      loadTables();
+    });
+    let findTimer = null;
+    document.getElementById("find").addEventListener("input", function () {
+      const q = document.getElementById("find").value.trim();
+      clearTimeout(findTimer);
+      if (!q) return;
+      findTimer = setTimeout(async function () {
+        const res = await api("/products/search/" + encodeURIComponent(q));
+        const data = await res.json().catch(function () { return {}; });
+        if (res.ok) paintProducts(data.products || []);
+      }, 250);
+    });
+    async function pay(type) {
+      if (paying || !sellTable) return;
+      if (!cart.length) {
+        document.getElementById("pay-msg").textContent = "Shporta është bosh.";
+        return;
+      }
+      paying = true;
+      document.getElementById("pay-msg").textContent = "";
+      const res = await api("/sale", {
+        method: "POST",
+        body: JSON.stringify({
+          table_id: sellTable.number,
+          payment_type: type,
+          items: cart.map(function (it) { return { product_id: it.id, quantity: it.quantity, price: it.price }; })
+        })
+      });
+      const data = await res.json().catch(function () { return {}; });
+      paying = false;
+      if (!res.ok) {
+        document.getElementById("pay-msg").textContent = data.gabim || "Shitja nuk u ruajt.";
+        return;
+      }
+      lastSaleId = data.sale_id || "";
+      lastPayType = type;
+      cart = [];
+      paintCart();
+      document.getElementById("pay-msg").textContent = "Shitja u ruajt. Duke fiskalizuar...";
+      document.getElementById("fiscal-retry").classList.add("hidden");
+      fiscalize(true);
+    }
+    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+    async function sendPrint(fiscal) {
+      const note = document.getElementById("pay-msg").textContent;
+      document.getElementById("pay-msg").textContent = note + " Duke printuar...";
+      const res = await api("/print", {
+        method: "POST",
+        body: JSON.stringify({
+          sale_id: lastSaleId,
+          fiscal_number: fiscal && fiscal.fiscal_number ? fiscal.fiscal_number : "",
+          nuikf: fiscal && fiscal.nuikf ? fiscal.nuikf : "",
+          payment_type: lastPayType,
+          staff_name: staffName,
+          table_name: sellTable ? sellTable.number : ""
+        })
+      });
+      const data = await res.json().catch(function () { return {}; });
+      if (data.offline) {
+        document.getElementById("pay-msg").textContent = note + " Printimi do dërgohet kur kthehet interneti.";
+        return;
+      }
+      if (!res.ok || !data.id) {
+        document.getElementById("pay-msg").textContent = note + " " + (data.gabim || "Printeri nuk u gjet");
+        return;
+      }
+      for (let i = 0; i < 4; i += 1) {
+        await wait(2000);
+        const st = await api("/print/job/" + encodeURIComponent(data.id));
+        const job = await st.json().catch(function () { return {}; });
+        if (job.status === "printed") {
+          document.getElementById("pay-msg").textContent = note + " U printua";
+          return;
+        }
+        if (job.status === "failed") {
+          document.getElementById("pay-msg").textContent = note + " Printeri nuk u gjet";
+          return;
+        }
+      }
+      document.getElementById("pay-msg").textContent = note + " Printeri nuk u gjet";
+    }
+    async function fiscalize(andPrint) {
+      if (!lastSaleId) return;
+      const res = await api("/fiscal", { method: "POST", body: JSON.stringify({ sale_id: lastSaleId, payment_type: lastPayType }) });
+      const data = await res.json().catch(function () { return {}; });
+      const msg = document.getElementById("pay-msg");
+      const retry = document.getElementById("fiscal-retry");
+      if (data.code === "NO_KEY") {
+        msg.textContent = "Çelësi fiskal nuk është konfiguruar — kontakto administratorin";
+        retry.classList.add("hidden");
+        if (andPrint) sendPrint(data);
+        return;
+      }
+      if (data.queued) {
+        msg.textContent = "Shitja u ruajt. ATK nuk u arrit. Do provohet vetë.";
+        retry.classList.remove("hidden");
+        if (andPrint) sendPrint(data);
+        return;
+      }
+      if (!res.ok || data.ok === false) {
+        msg.textContent = data.gabim || "Fiskalizimi dështoi. Shitja mbetet e ruajtur.";
+        retry.classList.remove("hidden");
+        if (andPrint) sendPrint(data);
+        return;
+      }
+      msg.textContent = "Kuponi u dërgua. Numri " + (data.fiscal_number || "") + (data.nuikf ? " · " + data.nuikf : "");
+      retry.classList.add("hidden");
+      if (andPrint) sendPrint(data);
+    }
+    document.getElementById("fiscal-retry").addEventListener("click", function () { fiscalize(false); });
+    document.getElementById("pay-cash").addEventListener("click", function () { pay("cash"); });
+    document.getElementById("pay-card").addEventListener("click", function () { pay("card"); });
+    async function loadTables() {
+      const res = await api("/tables");
+      const data = await res.json().catch(function () { return {}; });
+      if (res.status === 401 && data.code === "PIN_REQUIRED") return showPin();
+      if (!res.ok) return showGate(data.gabim || "Tavolinat nuk u ngarkuan.", false);
+      paint(data);
+    }
+    async function boot() {
+      if (!slug || !key) return showGate("Hapni linkun e plotë të arkës, me kodin e lokalit.", false);
+      const res = await api("/session");
+      const data = await res.json().catch(function () { return {}; });
+      if (res.status === 401) return showGate("Hyni fillimisht me email, fjalëkalim dhe kodin 6-shifror.", true);
+      if (!res.ok) return showGate(data.gabim || "Hyrja dështoi.", false);
+      biz.textContent = data.business || "";
+      if (data.staff && window.ArkaOffline) ArkaOffline.saveSession(slug, { staff: data.staff, business: data.business || "" });
+      if (!data.staff) return showPin();
+      loadTables();
+    }
+    async function syncPost(path, body) {
+      const res = await fetch(apiUrl(path), {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", "X-Arka-Sync": "1" },
+        body: JSON.stringify(body)
+      });
+      return res;
+    }
+    function isServerId(id) {
+      const s = String(id || "");
+      return s.length > 10 && s.indexOf("local-") !== 0;
+    }
+    async function syncNow() {
+      if (syncing || !navigator.onLine || !window.ArkaOffline) return;
+      const sales = await ArkaOffline.pending("pending_sales", slug);
+      const fiscals = await ArkaOffline.pending("pending_fiscal", slug);
+      const prints = await ArkaOffline.pending("pending_prints", slug);
+      if (!sales.length && !fiscals.length && !prints.length) {
+        paintNet("");
+        return;
+      }
+      syncing = true;
+      paintNet("Duke sinkronizuar...");
+      let sent = 0;
+      let blocked = false;
+      try {
+        for (const row of sales) {
+          let res;
+          try { res = await syncPost("/sale", row.body || {}); }
+          catch (e) { blocked = true; break; }
+          if (!res.ok) { blocked = true; break; }
+          const data = await res.json().catch(function () { return {}; });
+          if (!data.sale_id) { blocked = true; break; }
+          await ArkaOffline.retarget(slug, row.local_id, data.sale_id);
+          await ArkaOffline.remove("pending_sales", row.local_id);
+          sent += 1;
+        }
+        const fiscalRows = await ArkaOffline.pending("pending_fiscal", slug);
+        for (const row of fiscalRows) {
+          if (blocked) break;
+          if (!isServerId(row.sale_id)) continue;
+          let res;
+          try { res = await syncPost("/fiscal", Object.assign({}, row.body || {}, { sale_id: row.sale_id })); }
+          catch (e) { blocked = true; break; }
+          if (res.status >= 500) { blocked = true; break; }
+          if (!res.ok && res.status !== 200) continue;
+          const data = await res.json().catch(function () { return {}; });
+          if (data.code === "NO_KEY" || (res.status >= 400 && res.status < 500 && !data.queued && data.ok === false)) continue;
+          await ArkaOffline.attachFiscal(slug, row.local_sale_id, data);
+          await ArkaOffline.remove("pending_fiscal", row.local_id);
+        }
+        const printRows = await ArkaOffline.pending("pending_prints", slug);
+        for (const row of printRows) {
+          if (blocked) break;
+          if (!isServerId(row.sale_id)) continue;
+          const stillFiscal = (await ArkaOffline.pending("pending_fiscal", slug)).some(function (f) {
+            return f.local_sale_id === row.local_sale_id;
+          });
+          if (stillFiscal) continue;
+          let res;
+          try { res = await syncPost("/print", Object.assign({}, row.body || {}, { sale_id: row.sale_id })); }
+          catch (e) { blocked = true; break; }
+          if (!res.ok) { blocked = true; break; }
+          await ArkaOffline.remove("pending_prints", row.local_id);
+        }
+        if (!blocked) {
+          const tables = await api("/tables");
+          if (tables.ok) {
+            const data = await tables.json().catch(function () { return null; });
+            if (data && !floor.classList.contains("hidden")) paint(data);
+          }
+          const cats = await api("/categories");
+          const catData = await cats.json().catch(function () { return {}; });
+          (catData.categories || []).forEach(function (c) { api("/products/" + encodeURIComponent(c.id)); });
+        }
+      } finally {
+        syncing = false;
+        if (!navigator.onLine) paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
+        else if (sent > 0) paintNet("U sinkronizua — " + sent + " shitje u dërguan");
+        else paintNet("");
+      }
+    }
+    document.getElementById("pin-go").addEventListener("click", async function () {
+      document.getElementById("pin-msg").textContent = "";
+      const res = await api("/pin", { method: "POST", body: JSON.stringify({ pin: document.getElementById("pin").value }) });
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) {
+        document.getElementById("pin-msg").textContent = data.gabim || "PIN i gabuar.";
+        return;
+      }
+      loadTables();
+    });
+    outBtn.addEventListener("click", async function () {
+      await api("/logout-pin", { method: "POST", body: "{}" });
+      showPin();
+    });
+    document.getElementById("pwa-manifest").href = location.pathname + "/manifest.json" + location.search;
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/arka-sw.js", { scope: location.pathname }).catch(function () {});
+    }
+    window.addEventListener("online", function () { syncNow(); });
+    window.addEventListener("offline", function () {
+      paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
+    });
+    if (!navigator.onLine) paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
+    boot();
+    setInterval(function () { if (!floor.classList.contains("hidden") && navigator.onLine && !syncing) loadTables(); }, 5000);
+    setInterval(function () { if (navigator.onLine) syncNow(); }, 20000);
+  </script>
+</body>
+</html>

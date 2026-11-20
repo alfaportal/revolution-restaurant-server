@@ -1,0 +1,9 @@
+{
+  "serverUrl": "https://revolution-pos.com",
+  "slug": "",
+  "apiKey": "",
+  "deviceId": "",
+  "printerName": "",
+  "printerPort": "",
+  "pollInterval": 2000
+}

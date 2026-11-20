@@ -27,6 +27,16 @@ const {
   requestSuperAdminEmergencyAccess,
   verifySuperAdminEmergencyAccess,
 } = require("../services/superAdminEmergencyAccess");
+const {
+  startKycu,
+  confirmKycu,
+  forgotKycu,
+  resetPasswordWithLink,
+  issueStepToken,
+  readStepToken,
+  STEP_COOKIE,
+  PIN_COOKIE,
+} = require("../services/kycuLogin");
 const { hotelOwnerLogin, hotelOwnerBranding } = require("../lib/hotelOwnerBridge");
 
 const router = express.Router();
@@ -172,6 +182,12 @@ router.post("/owner/login", async (req, res) => {
       return res.status(401).json({ gabim: "Kredencialet janë të gabuara." });
     }
     if (user.aktiv === false) {
+      if (user.security_pin) {
+        return res.status(403).json({
+          gabim: "Llogaria pret kodin 6-shifror. Hyni te faqja Kyçu.",
+          code: "NEEDS_ACTIVATION",
+        });
+      }
       return res.status(403).json({ gabim: "Llogaria është çaktivizuar. Kontaktoni supportin." });
     }
     if (!user.client_id) {
@@ -439,6 +455,89 @@ router.post("/owner/emergency/verify", async (req, res) => {
       : e.code === "NOT_FOUND" ? 404
       : 500;
     res.status(status).json({ ok: false, gabim: e.message, code: e.code || null });
+  }
+});
+
+function finishKycu(res, result) {
+  res.clearCookie("owner_portal", { path: "/" });
+  res.clearCookie("kycu_step", { path: "/" });
+  if (result.clearPinCookie) res.clearCookie("pin_saved_token", { path: "/" });
+  if (result.pinCookie) res.cookie("pin_saved_token", result.pinCookie, PIN_COOKIE);
+  const token = issueOwnerSession(res, result.authPayload);
+  return res.json({ ok: true, step: "done", token, url: result.url });
+}
+
+router.post("/kycu/password", async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
+    const result = await startKycu({
+      email,
+      password,
+      pinToken: req.cookies?.pin_saved_token,
+    });
+    if (result.done) return finishKycu(res, result);
+    if (result.stepUserId) {
+      const step = issueStepToken(result.stepUserId);
+      if (step) res.cookie("kycu_step", step, STEP_COOKIE);
+    }
+    return res.status(result.status).json(result.body);
+  } catch (e) {
+    console.error("[kycu] password:", e.message);
+    return res.status(500).json({ ok: false, gabim: "Hyrja dështoi. Provo përsëri." });
+  }
+});
+
+router.post("/kycu/code", async (req, res) => {
+  try {
+    const stepUserId = readStepToken(req.cookies?.kycu_step);
+    if (!stepUserId) {
+      return res.status(401).json({
+        ok: false,
+        gabim: "Hyrja skadoi. Shkruaj email-in dhe fjalëkalimin përsëri.",
+      });
+    }
+    const result = await confirmKycu({
+      email: String(req.body?.email || "").trim().toLowerCase(),
+      code: req.body?.code,
+      remember: req.body?.remember === true,
+      stepUserId,
+    });
+    if (result.reset) res.clearCookie("kycu_step", { path: "/" });
+    if (!result.done) return res.status(result.status).json(result.body);
+    return finishKycu(res, result);
+  } catch (e) {
+    console.error("[kycu] code:", e.message);
+    return res.status(500).json({ ok: false, gabim: "Hyrja dështoi. Provo përsëri." });
+  }
+});
+
+router.post("/kycu/forgot", async (req, res) => {
+  try {
+    const result = await forgotKycu({
+      email: req.body?.email,
+      newCode: req.body?.new_code === true,
+    });
+    res.json(result);
+  } catch (e) {
+    if (e.message === "EMAIL_NOT_CONFIGURED") {
+      return res.status(503).json({ ok: false, gabim: "Email-i nuk është gati. Provo më vonë." });
+    }
+    console.error("[kycu] forgot:", e.message);
+    res.status(500).json({ ok: false, gabim: "Nuk u dërgua. Provo përsëri." });
+  }
+});
+
+router.post("/kycu/reset", async (req, res) => {
+  try {
+    const result = await resetPasswordWithLink({
+      token: req.body?.token,
+      password: req.body?.password,
+    });
+    res.json(result);
+  } catch (e) {
+    const status = e.code === "CODE_EXPIRED" ? 400 : 400;
+    res.status(status).json({ ok: false, gabim: e.message });
   }
 });
 

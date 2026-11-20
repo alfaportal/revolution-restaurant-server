@@ -934,6 +934,56 @@ async function sendSuperAdminEmergencyAccessEmail({ to, clientName, code }) {
   return deliverEmail({ to, subject, text, html });
 }
 
+function safeName(emri) {
+  return String(emri || "").trim().replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+}
+
+async function sendOwnerPermanentPinEmail({ to, emri, code, renewed }) {
+  const name = String(emri || "").trim();
+  const safe = safeName(emri);
+  const subject = renewed ? "Kodi yt i ri 6-shifror" : "Kodi yt 6-shifror";
+  const lead = renewed
+    ? "Ky është kodi i ri. I vjetri nuk vlen më. Mësoje përmendësh. Është i njëjti në çdo hyrje."
+    : "Ky është kodi yt 6-shifror. Është i njëjti gjithmonë. Mësoje përmendësh. Llogaria hapet kur e shkruan herën e parë te faqja Kyçu.";
+  const text = `Përshëndetje ${name},\n\n${lead}\n\nKodi: ${code}`;
+  const html = `
+    <p>Përshëndetje ${safe},</p>
+    <p>${lead}</p>
+    <p style="font-size:28px;font-weight:bold;letter-spacing:6px;margin:16px 0">${code}</p>
+  `;
+  return deliverEmail({ to, subject, text, html });
+}
+
+async function sendOwnerAccessRecoveryEmail({ to, emri, code, renewed, link }) {
+  const name = String(emri || "").trim();
+  const safe = safeName(emri);
+  const safeLink = String(link || "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  const pinLine = code
+    ? (renewed
+      ? `Ky është kodi i ri 6-shifror. I vjetri nuk vlen më: ${code}`
+      : `Kodi yt 6-shifror është i njëjti: ${code}`)
+    : "Nuk ke ende kod 6-shifror.";
+  const subject = "Fjalëkalimi dhe kodi — Revolution POS";
+  const text = [
+    `Përshëndetje ${name},`,
+    "",
+    "Për fjalëkalim të ri hap këtë lidhje:",
+    link,
+    "",
+    pinLine,
+    "",
+    "Lidhja vlen 1 orë.",
+  ].join("\n");
+  const html = `
+    <p>Përshëndetje ${safe},</p>
+    <p>Për fjalëkalim të ri hap këtë lidhje:</p>
+    <p><a href="${safeLink}">${safeLink}</a></p>
+    <p>${pinLine.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]))}</p>
+    <p style="color:#666;font-size:13px">Lidhja vlen 1 orë.</p>
+  `;
+  return deliverEmail({ to, subject, text, html });
+}
+
 module.exports = {
   isEmailConfigured,
   deliverEmail,
@@ -942,6 +992,8 @@ module.exports = {
   sendOwnerPasswordResetEmail,
   sendOwnerEmergencyCodeEmail,
   sendSuperAdminEmergencyAccessEmail,
+  sendOwnerPermanentPinEmail,
+  sendOwnerAccessRecoveryEmail,
   sendOwnerInviteEmail,
   sendTrialExpiry7DayEmail,
   sendTrialExpiry1DayEmail,

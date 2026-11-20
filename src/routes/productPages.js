@@ -88,6 +88,17 @@ function registerProductPageRoutes(app, ctx) {
 
   const resolve = asyncHandler(resolveTipiSlugClient);
 
+  async function sendOwnerPanel(req, res, next) {
+    if (isReservedUrlTipi(req.params.tipi)) return next("route");
+    const client = await getClientBySlugOrId(req.params.slug);
+    if (client && redirectToCorrectTipi(req, res, client)) return;
+    res.set("Cache-Control", "no-store");
+    res.sendFile(path.join(publicDir, "owner", "panel.html"));
+  }
+
+  app.get("/:tipi/:slug/owner/panel", asyncHandler(sendOwnerPanel));
+  app.get("/:tipi/:slug/pronari/panel", asyncHandler(sendOwnerPanel));
+
   /** POS — owner (hyrje pa kërkuar klient në DB; slug vetëm për URL) */
   app.get("/:tipi/:slug/owner", asyncHandler(async (req, res, next) => {
     if (isReservedUrlTipi(req.params.tipi)) return next("route");

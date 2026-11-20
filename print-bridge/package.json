@@ -1,0 +1,11 @@
+{
+  "name": "revolution-arka-print-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Merr kuponat e arkës nga serveri dhe i dërgon te printeri termik",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js"
+  },
+  "dependencies": {}
+}

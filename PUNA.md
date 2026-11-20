@@ -1,5 +1,27 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-20 — Arka në shfletues: pa internet
+
+U shtua `public/arka-sw.js`, `public/arka-offline.js` dhe manifesti te `src/routes/arkaPages.js`. `public/arka.html` ruan tavolinat, kategoritë dhe produktet në pajisje. Shitja, kuponi dhe printimi pa internet qëndrojnë në radhë dhe dërgohen kur kthehet lidhja. Shfaqet «Pa internet — shitjet ruhen lokalisht» dhe «Duke sinkronizuar...». Nuk u prek programi në kompjuter, admini, kamarieri. Nuk u bë ndërtim dhe nuk u publikua.
+
+## 2026-11-20 — Arka në shfletues: printim dhe riprovë fiskale
+
+U hoq forma e çelësit nga `public/arka.html`. Nëse çelësi mungon, del «Çelësi fiskal nuk është konfiguruar — kontakto administratorin». `src/services/fiscalServerService.js` provon vetë kuponat e ngecur çdo 60 sekonda (`src/server.js` e nis). `src/services/printServerService.js` bën kuponin termik (42 shenja, ESC/POS). `src/routes/arka.js` mori print, poll dhe status. SQL `088_print_queue.sql` nuk u ekzekutua. Printeri i kompjuterit, admini dhe paneli i pronarit nuk u prekën. Nuk u bë ndërtim, git, as printim i gjallë.
+
+## 2026-11-20 — Arka në shfletues: kuponi fiskal nga serveri
+
+U shtua `src/services/fiscalServerService.js`, `supabase/migrations/087_fiscal_state.sql`, dhe rreshtat e njëjtë te `supabase/schema.sql`. `src/routes/arka.js` mori `POST /:slug/fiscal` dhe `POST /:slug/fiscal-key`. `public/arka.html` pas pagesës tregon «Duke fiskalizuar...», numrin, ose butonin e riprovës. Çelësi ruhet i mbyllur. SQL 087 nuk u ekzekutua. Kodi fiskal i programit në kompjuter nuk u prek. Nuk u bë ndërtim, git, as dërgim te ATK i gjallë.
+
+## 2026-11-20 — Arka në shfletues: shporta dhe shitja
+
+Te `public/arka.html`, `src/routes/arka.js` dhe `src/services/arkaService.js`. Klikimi i tavolinës së lirë hap kategoritë, produktet dhe shportën. Pagesa cash ose kartë shkruan shitjen te `sales_orders` dhe zbret `stock_quantity` te `pos_menu_items`. Nuk ka kupon fiskal dhe nuk printon. Tavolina e kompjuterit vetëm shihet. Nuk u prek kamarieri, admini, ndërtimi, git.
+
+## 2026-11-20 — Arka në shfletues (faqe e re)
+
+U shtua faqja `/{tipi}/{kodi}/arka` (`public/arka.html`) dhe dyert e reja `/api/arka/...` (`src/routes/arka.js`, `src/routes/arkaPages.js`, `src/services/arkaService.js`). `server.js` vetëm i hap këto. Kamarieri, admin dhe dyert e vjetra nuk u prekën. Hyrja: së pari Kyçu (email, fjalëkalim, kodi 6-shifror), pastaj PIN 4-shifror vetëm për punonjësin me rol `arka`. Tavolinat lexohen nga `pos_areas` dhe porositë e hapura. Arka e kompjuterit shihet, nuk ndryshohet. `WEB-ARKA-` është e kësaj arke. SQL `086_pos_staff_role_arka.sql` nuk u ekzekutua në databazë.
+
+
+
 ## 2026-11-20 — Ndërtim dhe publikim
 
 Faqja u ndërtua. `/hap` doli në 24 faqe. Skedarët shkuan te `public/site/` pa fshirë të vjetrat. Po publikohet te faqja e gjallë.
@@ -972,3 +994,35 @@ Provë: SELECT pas insert → 2 rreshta; `bcrypt.compare` mbi hash-in në DB = t
 - `public/admin/dashboard.js`: u hoqën Bazik, Standard, Premium. MARKET ka Pako 1–4. HOTEL ka Pako 1–3. DYQANE, BUTIKA, ARGJENDARI, BARNATORE kanë Pako 1–3. SECURITY, KONTABILISTI, FISKALIZIM kanë vetëm Pako 1.
 - `src/lib/packages.js`: emrat e shkurtër janë Pako 1, Pako 2, Pako 3, Pako 4.
 - Paneli i ri del vetëm pas deploy. Nuk u bë deploy.
+
+## 2026-11-20 — Butonat e pajisjeve te Kyçu
+
+- `website/src/components/Perparesia.tsx`: katër butonat Windows, Android, iPhone/iPad, macOS shkojnë te `/kycu`.
+- `website/src/app/kycu/FormaKycu.tsx`: poshtë faqes, «Shkarko Setup.exe për Windows» te `/api/public/setup-download`.
+- Butoni Kyçu në `Navbar.tsx` ishte tashmë te `/kycu`.
+- Nuk u bë ndërtim. Faqja e kopjuar mbetet e vjetra derisa të ndërtohet përsëri.
+
+## 2026-11-20 — Ndërtim i faqes
+
+- `website`: `npm run build` doli në rregull, 25 faqe, përfshirë `/kycu`.
+- U zbra `public/site` dhe u kopjua `website/out`. `public/site-old` nuk u prek.
+- Nuk u bë git dhe nuk u publikua. Faqja e gjallë mbetet e vjetra derisa të publikohet.
+
+## 2026-11-20 — Kodi 6-shifror është i përhershëm
+
+- U hoq kodi që ndërronte në çdo hyrje. Tani është i njëjti kod, si një fjalëkalim i dytë.
+- Ruhet te `users.security_pin` (i mbyllur) dhe `security_pin_enc` që të dërgohet i njëjti kur harrohet. `pin_saved_token` është shenja «Ruaje kodin».
+- Migrimi `supabase/migrations/085_users_security_pin.sql` ende s’është ekzekutuar.
+- Te `/kycu`: email + fjalëkalim, pastaj kodi, kutia «Ruaje kodin», dhe «Harrova fjalëkalimin ose kodin».
+- Nuk u bë build dhe nuk u publikua.
+
+## 2026-11-20 — Faqja Kyçu dhe kodi 6-shifror
+
+- Butoni Kyçu në `website/src/components/Navbar.tsx` shkon te `/kycu`, jo te kontakti.
+- Faqja: `website/src/app/kycu/page.tsx`, `FormaKycu.tsx`, dhe `public/site/kycu.html`.
+- Hyrja: `src/routes/auth.js` `POST /api/auth/kycu/password` dhe `POST /api/auth/kycu/code`. Logjika te `src/services/kycuLogin.js`.
+- Pas kodit, shkon te `/{tipi}/{kodi}/owner/panel`. Rruga e re te `src/routes/productPages.js`.
+- Nëse e ruan kodin, cookie `kycu_device`. E ndryshon te paneli, skeda Llogaria.
+- Pronari i ri me fjalëkalim mbetet i mbyllur derisa ta shkruajë kodin te Kyçu. `src/services/userService.js` `createOwner`.
+- Tabela `supabase/migrations/084_owner_login_codes.sql` ende s’është ekzekutuar në databazë.
+- Nuk u bë build dhe nuk u publikua. Faqja e gjallë ende s’e ka butonin e ri.

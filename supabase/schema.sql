@@ -84,6 +84,9 @@ CREATE TABLE IF NOT EXISTS users (
   roli        TEXT NOT NULL DEFAULT 'client_admin'
               CHECK (roli IN ('super_admin', 'client_admin')),
   aktiv       BOOLEAN NOT NULL DEFAULT true,
+  security_pin      TEXT,
+  security_pin_enc  TEXT,
+  pin_saved_token   TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -234,7 +237,7 @@ CREATE TABLE IF NOT EXISTS pos_staff (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
-  role        TEXT NOT NULL DEFAULT 'waiter' CHECK (role IN ('waiter', 'kitchen')),
+  role        TEXT NOT NULL DEFAULT 'waiter' CHECK (role IN ('waiter', 'kitchen', 'arka')),
   source      TEXT NOT NULL DEFAULT 'owner' CHECK (source IN ('owner', 'pos')),
   sort_order  INTEGER NOT NULL DEFAULT 0,
   pin_hash    TEXT,
@@ -284,3 +287,52 @@ COMMENT ON TABLE licenses IS 'Liçensat POS të lidhura me klient dhe pajisje';
 COMMENT ON TABLE users IS 'Pronarët dhe super admin për panelin web';
 COMMENT ON TABLE sales_orders IS 'Shitjet e dërguara nga POS Electron në kohë reale';
 COMMENT ON COLUMN users.aktiv IS 'false = pronari nuk mund të hyjë në panel';
+
+CREATE TABLE IF NOT EXISTS fiscal_state (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id           UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  device_id             TEXT NOT NULL,
+  last_invoice_number   INTEGER NOT NULL DEFAULT 0,
+  last_invoice_hash     TEXT NOT NULL DEFAULT '',
+  certificate_pem       TEXT NOT NULL DEFAULT '',
+  private_key_enc       TEXT NOT NULL DEFAULT '',
+  atk_tin               TEXT NOT NULL DEFAULT '',
+  atk_bus_unit          TEXT NOT NULL DEFAULT '',
+  atk_pos_id            TEXT NOT NULL DEFAULT '',
+  atk_application_id    TEXT NOT NULL DEFAULT '',
+  atk_api_url           TEXT NOT NULL DEFAULT '',
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (business_id, device_id)
+);
+
+CREATE TABLE IF NOT EXISTS fiscal_queue (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  device_id     TEXT NOT NULL,
+  sale_id       UUID,
+  nuikf         TEXT NOT NULL DEFAULT '',
+  coupon_number INTEGER NOT NULL DEFAULT 0,
+  payload       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'sent', 'failed')),
+  last_error    TEXT NOT NULL DEFAULT '',
+  attempts      INTEGER NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE fiscal_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fiscal_queue ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS print_queue (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  device_id     TEXT NOT NULL,
+  receipt_data  TEXT NOT NULL DEFAULT '',
+  status        TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'printed', 'failed')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT '2000-01-01T00:00:00Z'
+);
+
+ALTER TABLE print_queue ENABLE ROW LEVEL SECURITY;

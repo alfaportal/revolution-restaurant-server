@@ -32,7 +32,7 @@ export default function Navbar() {
             <Gjuhet />
             <div className="hidden items-center gap-3 md:flex">
               <a
-                href="/#kontakti"
+                href="/kycu"
                 className="rounded-full border border-white/40 bg-transparent px-4 py-2 text-sm text-white transition-colors duration-200 hover:border-[#0EA5E9] hover:text-[#0EA5E9]"
               >
                 {t.nav.kycu}

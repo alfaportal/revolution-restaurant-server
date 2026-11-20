@@ -1,5 +1,5 @@
-:HL["/_next/static/chunks/2da1m4o71p9l0.css","style"]
+:HL["/_next/static/chunks/42f80bujmg73w.css","style"]
 :HL["/_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 2:[["children",{"s":"__PAGE__","h":160}]]
-1:[["children",{"s":{"n":"slug","t":"d","k":"dyqane","s":["cookies","hap","kushtet","privatesia","udhezuesi"]},"h":96,"c":"$Q2"}]]
-0:{"b":"mQIqQiLwkxcCTQn2nQ1qo","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+1:[["children",{"s":{"n":"slug","t":"d","k":"dyqane","s":["cookies","hap","kushtet","kycu","privatesia","udhezuesi"]},"h":96,"c":"$Q2"}]]
+0:{"b":"SE8tPbHMLLlSnzv_X2YHg","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

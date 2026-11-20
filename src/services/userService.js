@@ -36,7 +36,7 @@ function sanitizeOwnerForAdmin(user, baseUrl) {
     status === "pending" && user.invite_token
       ? buildInviteUrl(user.invite_token, baseUrl)
       : null;
-  const { passwordi, invite_token, ...safe } = user;
+  const { passwordi, invite_token, security_pin, security_pin_enc, pin_saved_token, ...safe } = user;
   return {
     ...safe,
     account_status: status,
@@ -166,6 +166,19 @@ async function createOwner({ client_id, emri, email, password }, baseUrl) {
     } catch (err) {
       console.error("[owner-invite] email failed:", err.message);
       owner.invite_email_sent = false;
+    }
+  }
+
+  if (pw && data?.id && isEmailConfigured()) {
+    try {
+      const { assignPermanentPin } = require("./kycuLogin");
+      const sent = await assignPermanentPin(data);
+      if (sent) {
+        owner.aktiv = false;
+        owner.activation_email_sent = true;
+      }
+    } catch (err) {
+      console.error("[createOwner] pin:", err.message);
     }
   }
 

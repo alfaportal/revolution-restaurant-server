@@ -312,7 +312,9 @@ async function registerFullDashboardClient(body, baseUrl) {
 
     if (!client?.id) throw new Error("Klienti nuk u krijua.");
 
-    const ownerUrl = buildOwnerLoginUrl(client, program);
+    const ownerUrl = owner?.activation_email_sent
+      ? `${String(getPublicAppOrigin() || baseUrl || "").replace(/\/+$/, "")}/kycu`
+      : buildOwnerLoginUrl(client, program);
     const expires = license?.data_skadimit || license?.expires_at || bridgeResult?.expires_at || null;
 
     const result = {

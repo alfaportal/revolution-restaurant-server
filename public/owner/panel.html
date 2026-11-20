@@ -1024,6 +1024,12 @@
         </div>
         <button type="button" class="btn btn-primary" id="btn-owner-password-save">Ndrysho fjalëkalimin</button>
         <div id="owner-password-msg" class="owner-license-msg" role="status"></div>
+        <label class="links-hint" style="display:flex;gap:8px;align-items:center;margin-top:1rem">
+          <input type="checkbox" id="kycu-ruaj">
+          Ruaje kodin
+        </label>
+        <button type="button" class="btn btn-ghost" id="kycu-kod-ri" style="margin-top:0.6rem">Ndrysho kodin</button>
+        <div id="kycu-ruaj-msg" class="owner-license-msg" role="status"></div>
       </div>
     </div>
 
@@ -1397,5 +1403,52 @@
   <script src="/js/owner-ai-assistant.js?v=2"></script>
   <script src="/js/owner-ai-modules.js?v=1"></script>
   <script src="/js/owner-notifications.js?v=2"></script>
+  <script>
+    (function () {
+      var box = document.getElementById("kycu-ruaj");
+      var msg = document.getElementById("kycu-ruaj-msg");
+      if (!box) return;
+      var saved = localStorage.getItem("owner_token") || "";
+      function headers() {
+        return { "Content-Type": "application/json", Authorization: "Bearer " + saved };
+      }
+      fetch("/api/owner/login-code", { credentials: "include", headers: headers() })
+        .then(function (res) { return res.json(); })
+        .then(function (data) { box.checked = !!(data && data.remembered); })
+        .catch(function () {});
+      var btn = document.getElementById("kycu-kod-ri");
+      if (btn) btn.addEventListener("click", function () {
+        if (msg) msg.textContent = "";
+        btn.disabled = true;
+        fetch("/api/owner/pin/new", { method: "POST", credentials: "include", headers: headers() })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data && data.ok) {
+              box.checked = false;
+              if (msg) msg.textContent = "Kodi i ri u dërgua në email.";
+            } else if (msg) msg.textContent = (data && data.gabim) || "Nuk u dërgua.";
+          })
+          .catch(function () { if (msg) msg.textContent = "Nuk u dërgua."; })
+          .then(function () { btn.disabled = false; });
+      });
+      box.addEventListener("change", function () {
+        if (msg) msg.textContent = "";
+        fetch("/api/owner/login-code", {
+          method: "POST",
+          credentials: "include",
+          headers: headers(),
+          body: JSON.stringify({ remember: box.checked })
+        }).then(function (res) { return res.json(); }).then(function (data) {
+          if (!data || !data.ok) {
+            box.checked = !box.checked;
+            if (msg) msg.textContent = "Nuk u ruajt.";
+          }
+        }).catch(function () {
+          box.checked = !box.checked;
+          if (msg) msg.textContent = "Nuk u ruajt.";
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

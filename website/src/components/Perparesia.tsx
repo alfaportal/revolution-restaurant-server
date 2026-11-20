@@ -97,7 +97,7 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
           {pajisjet.map((pika) => (
             <Link
               key={pika.id}
-              href="/hap"
+              href="/kycu"
               className="flex items-center gap-4 rounded-2xl border border-[#1E293B] bg-[#0F172A] px-4 py-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#0EA5E9]/40"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0EA5E9]/10 text-[#0EA5E9]">
