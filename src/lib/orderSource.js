@@ -42,7 +42,7 @@ function orderSourceLabel({ device_id, waiter_name, terminal_role } = {}) {
   if (device === WEB_KIOSK || isKioskWaiterName(waiter_name)) {
     return { code: "table", label: "Tavolinë", icon: "🪑" };
   }
-  if (device === WEB_WAITER) {
+  if (device === WEB_WAITER || isArkaWebDevice(device)) {
     return { code: "waiter", label: "Kamarier", icon: "📱" };
   }
   return { code: "pos", label: posTerminalLabel(terminal_role), icon: "🖥️" };
@@ -53,7 +53,8 @@ function isPublicWebOrder(order) {
 }
 
 function isStaffWaiterOrder(order) {
-  return String(order?.device_id || "").trim().toUpperCase() === WEB_WAITER;
+  const device = String(order?.device_id || "").trim().toUpperCase();
+  return device === WEB_WAITER || isArkaWebDevice(device);
 }
 
 /** Porosi nga klientët (QR, kiosk, web) — jo nga kamarierët me telefon */
@@ -65,7 +66,7 @@ function isCustomerBarOrder(order) {
 
 function isBarMobileOrder(order) {
   const device = String(order?.device_id || "").trim().toUpperCase();
-  if (device === WEB_WAITER || device === WEB_KIOSK || device === WEB_PUBLIC) return true;
+  if (device === WEB_WAITER || isArkaWebDevice(device) || device === WEB_KIOSK || device === WEB_PUBLIC) return true;
   if (isKioskWaiterName(order?.waiter_name)) return true;
   return false;
 }
@@ -79,7 +80,7 @@ function isCustomerChannelDevice(deviceId) {
 /** Porosi aktive nga telefon/tablet — mos i anulo kur POS thotë «tavolinë e lirë» lokale */
 function isRemoteActiveTableOrder(deviceId) {
   const d = String(deviceId || "").trim().toUpperCase();
-  return d === WEB_KIOSK || d === WEB_PUBLIC || d === WEB_WAITER;
+  return d === WEB_KIOSK || d === WEB_PUBLIC || d === WEB_WAITER || isArkaWebDevice(d);
 }
 
 function isArkaWebDevice(deviceId) {

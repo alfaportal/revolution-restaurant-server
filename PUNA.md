@@ -1,3 +1,7 @@
+## 2026-11-20 — Arka e shfletuesit kalon në të njëjtat filtra si telefoni
+
+Te `src/lib/orderSource.js` WEB-ARKA u shtua kudo ku kalon WEB-WAITER: rreshti 45 (etiketa), 56–58 (porosi e stafit), 68 (porosi e hapur për Setup), 82 (tavolinë aktive). Shitjet e mbyllura e kishin tashmë te rreshti 1346 i `salesService.js`. Paratë në arkë dhe numri i zonave nuk filtrohen në server. Nuk u prek sinkronizimi, programi në kompjuter, as telefoni. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Arka e shfletuesit shkon te programi
 
 Te `src/lib/orderSource.js` rreshtat 85–92 u shtua `isClosedSaleForPosImport`. Te `src/services/salesService.js` rreshti 1346 filtri i shitjeve të mbyllura tani përfshin edhe `WEB-ARKA`, bashkë me telefonin, QR dhe faqen publike. Shitjet e vetë programit mbeten jashtë, që të mos hyjnë dy herë. Programi i ruan një herë me numrin e shitjes. U dërgua te faqja e gjallë me lejen e Naserit.
