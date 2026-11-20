@@ -28,15 +28,10 @@
     document.addEventListener("keydown", function (event) {
       const key = event.key || "";
       const ctrl = event.ctrlKey || event.metaKey;
-      if (key === "F12") {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.repeat) return;
-        const btn = document.querySelector("#pay-grid button[data-pay='cash'][data-mode='thermal']");
-        if (btn) btn.click();
-        return;
-      }
-      const block = (ctrl && event.shiftKey && /^[IJC]$/i.test(key)) || (ctrl && /^u$/i.test(key));
+      const block =
+        key === "F12" ||
+        (ctrl && event.shiftKey && /^[IJC]$/i.test(key)) ||
+        (ctrl && /^u$/i.test(key));
       if (!block) return;
       event.preventDefault();
       event.stopPropagation();

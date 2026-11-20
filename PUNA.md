@@ -1,3 +1,7 @@
+## 2026-11-21 — F12 te arka vetëm bllokohet
+
+`public/arka.html`: F12 nuk paguan më. Bllokohet njësoj si Ctrl+Shift+I dhe Ctrl+U. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-20 — Arka dhe paneli bllokojnë mjetet e shfletuesit
 
 `public/admin-cloud.html` ngarkon `public/js/owner-guard.js`, njësoj si hyrja e pronarit: F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U dhe klikimi i djathtë bllokohen. `public/arka.html` ka të njëjtin bllokim, por F12 shtyp butonin «Paguaj (Termik)». Nuk u dërgua te faqja e gjallë. Nuk u bë build.
