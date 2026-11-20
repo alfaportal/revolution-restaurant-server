@@ -202,11 +202,57 @@ router.get("/:slug/print/job/:jobId", async (req, res) => {
   }
 });
 
+router.post("/:slug/order", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const result = await completeArkaSale(req.kitchenClient.id, staff, {
+      ...(req.body || {}),
+      keep_open: true,
+    });
+    res.json({ ok: true, ...result });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.get("/:slug/z-report", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const { buildDailyZReport } = require("../services/zReportService");
+    const day = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Belgrade",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    const report = await buildDailyZReport(req.kitchenClient.id, day);
+    const cash = Number(report.payment_totals && report.payment_totals.cash) || 0;
+    const card = Number(report.payment_totals && report.payment_totals.karte) || 0;
+    res.json({
+      ok: true,
+      date: report.report_date,
+      business: report.business_name || "",
+      cash,
+      card,
+      total: Math.round((cash + card) * 100) / 100,
+      sales: Array.isArray(report.sales) ? report.sales.length : 0,
+      coupons: report.coupon_count || 0,
+    });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
 router.post("/:slug/sale", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);
     if (!staff) return;
-    const result = await completeArkaSale(req.kitchenClient.id, staff, req.body || {});
+    const result = await completeArkaSale(req.kitchenClient.id, staff, {
+      ...(req.body || {}),
+      keep_open: false,
+    });
     res.json({ ok: true, ...result });
   } catch (e) {
     res.status(e.status || 400).json({ ok: false, gabim: e.message });

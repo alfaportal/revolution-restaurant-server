@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sq">
+<html lang="sq" class="waiter-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,145 +9,149 @@
   <link rel="manifest" id="pwa-manifest" href="/logo-icon.svg">
   <link rel="icon" href="/logo-icon.svg">
   <title>Revolution Arka</title>
+  <link rel="stylesheet" href="/css/pos-program-style.css">
+  <link rel="stylesheet" href="/css/pos-program-waiter.css">
+  <link rel="stylesheet" href="/css/pos-program-truffle.css">
+  <link rel="stylesheet" href="/css/pos-program-tables.css">
   <style>
-    :root { color-scheme: dark; --bg:#1a1a2e; --text:#f8fafc; --muted:#9ca3af; --accent:#ff6b35; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family:Inter,system-ui,-apple-system,sans-serif; background:#0b1220; color:var(--text); }
-    header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; }
-    h1 { font-size:1.35rem; margin:0; font-weight:900; }
-    .sub { color:#f1f5f9; font-size:.9rem; font-weight:700; margin-top:2px; }
-    main { padding:0 12px 16px; }
-    .card { background:#16213a; border:1px solid #1e293b; border-radius:14px; padding:16px; max-width:480px; margin:16px auto; }
-    label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:6px; }
-    #pin, #find { width:100%; font-family:inherit; border-radius:8px; }
-    #pin { font-size:1.4rem; letter-spacing:.35em; text-align:center; padding:12px; border:1px solid #2e2e45; background:#12121f; color:#fff; }
-    #find { font-size:1rem; letter-spacing:0; text-align:left; padding:.55rem .7rem; border:1px solid #e5e7eb; background:#fff; color:#111827; }
-    #sell { display:flex; flex-direction:column; min-height:100vh; background:#1a1a2e; margin:0 -12px; }
-    .sell-top { background:#1e1e2e; border-bottom:1px solid rgba(255,255,255,.06); }
-    .back-bar { display:flex; align-items:center; justify-content:space-between; padding:.7rem 1rem; }
-    #back { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:999px; color:#f8fafc; font-weight:600; font-size:.84rem; min-height:40px; padding:.45rem 1rem; width:auto; margin:0; }
-    .table-banner { background:#ff6b35; color:#fff; padding:.9rem 1.15rem; }
-    .table-banner h2 { margin:0; font-size:1.45rem; font-weight:800; }
-    .sell { display:flex; flex-direction:column; min-height:0; }
-    .products-wrap, .cart, .pays { min-width:0; }
-    .products-wrap { display:flex; flex-direction:column; padding:.55rem .65rem .75rem; }
-    .cats { display:flex; flex-direction:row; flex-wrap:nowrap; gap:.45rem; overflow-x:auto; padding:.45rem .1rem .65rem; }
-    .cat { flex:0 0 auto; background:#2d2d44; color:#fff; border:0; border-radius:999px; min-height:38px; padding:.45rem 1rem; font-weight:700; font-size:.8rem; width:auto; margin:0; white-space:nowrap; }
-    .cat.on, .cat.on:hover { background:#ff6b35; color:#fff; }
-    .products { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:.5rem; }
-    .prod { background:#fff; color:#111827; border:1px solid rgba(0,0,0,.04); border-radius:12px; min-height:5.1rem; padding:0; margin:0; width:100%; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.12); display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; }
-    .prod .strip { display:block; height:44px; background:linear-gradient(145deg,rgba(255,107,53,.16),rgba(26,26,46,.04)),#f3f4f6; }
-    .prod img { width:100%; aspect-ratio:1.1/1; object-fit:cover; display:block; background:#fff; }
-    .prod.has-photo .strip { display:none; }
-    .prod b { display:block; font-size:.74rem; font-weight:700; line-height:1.2; padding:.4rem .35rem 0; }
-    .prod .price { display:block; color:#ff6b35; font-weight:800; font-size:.76rem; padding:0 .35rem .45rem; }
-    .warn { color:#b91c1c; font-size:.7rem; padding-bottom:.3rem; }
-    .cart, .pays { background:#f8f9fb; color:#111827; }
-    .cart { padding:.45rem .5rem; }
-    .cart-title { font-weight:800; margin-bottom:.35rem; }
-    .line { padding:.45rem 0; border-bottom:1px solid #e5e7eb; }
-    .line .nm { font-weight:700; font-size:.82rem; }
-    .line .sum { color:#ff6b35; font-weight:800; font-size:.8rem; }
-    .qty { display:flex; gap:4px; align-items:center; margin-top:4px; }
-    .qty button { width:28px; height:28px; padding:0; margin:0; border-radius:8px; background:#111827; color:#fff; }
-    #cart-total { margin:.6rem 0; font-size:1rem; font-weight:800; }
-    .pays { padding:.4rem .45rem .6rem; }
-    .pay-row { display:grid; grid-template-columns:1fr; gap:.4rem; }
-    .pay-row .btn { margin:0; width:100%; min-height:3rem; height:3rem; border:0; border-radius:10px; background:#111827; color:#fff; font-weight:700; font-size:.78rem; }
-    .pay-row .btn.on { background:#16a34a; }
-    #pay-msg { color:#b91c1c; }
-    #fiscal-retry { background:#111827; color:#fff; }
-    @media (min-width: 768px) {
-      .sell { flex-direction:row; align-items:stretch; min-height:calc(100vh - 120px); }
-      .products-wrap { flex:0 0 70%; width:70%; }
-      .cart { flex:0 0 15%; width:15%; overflow:auto; }
-      .pays { flex:0 0 15%; width:15%; background:#f3f4f6; overflow:auto; }
-    }
-    button { font-family:inherit; cursor:pointer; }
-    .btn { background:#ff6b35; color:#fff; width:100%; margin-top:12px; border:0; border-radius:10px; padding:12px 16px; font-weight:700; }
-    .btn-ghost { background:transparent; color:var(--muted); border:1px solid #334155; width:auto; border-radius:10px; padding:10px 14px; }
-    .msg { min-height:1.2rem; margin-top:10px; color:#f0b4b4; }
-    .zone { margin:0 0 18px; }
-    .zone h2 { margin:0 0 .55rem; padding-bottom:.4rem; border-bottom:1px solid #ef4444; color:#f8fafc; font-size:.95rem; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
-    .grid { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:10px 8px; }
-    @media (max-width: 900px) { .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
-    .table-card { width:100%; min-height:118px; border-radius:16px; padding:.45rem .3rem .4rem; display:flex; flex-direction:column; align-items:center; justify-content:space-between; color:#ecfdf5; margin:0; }
-    .table-card .ico { width:22px; height:22px; opacity:.9; }
-    .table-card.free { background:linear-gradient(180deg,#123526 0%,#0a1f18 100%); border:1px solid rgba(52,211,153,.75); box-shadow:0 0 0 1px rgba(16,185,129,.25),0 0 18px rgba(16,185,129,.42); }
-    .table-card.occupied { background:linear-gradient(180deg,#3d1f08 0%,#1a0e05 100%); color:#fff7ed; border:1px solid rgba(251,146,60,.85); box-shadow:0 0 0 1px rgba(234,88,12,.3),0 0 20px rgba(234,88,12,.5); }
-    .table-card b { font-size:.95rem; font-weight:800; text-align:center; }
-    .table-card span { font-size:.72rem; text-align:center; font-weight:700; }
-    .sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; }
-    .sheet .panel { background:#101c38; width:min(520px,100%); border-radius:16px 16px 0 0; padding:16px; max-height:80vh; overflow:auto; }
-    #net-banner { background:#c9891a; color:#1a1204; text-align:center; padding:8px 12px; font-weight:650; }
-    .hidden { display:none !important; }
-    ul { margin:8px 0 0; padding-left:18px; }
+    .pos-pazar-eye { border: 0; background: transparent; color: inherit; padding: 4px; line-height: 0; cursor: pointer; }
+    .waiter-kpi-cash { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; }
+    .pos-shift-pazar-box:not([hidden]) { display: flex; flex-direction: column; align-items: flex-end; }
+    #gate, #pin-box { max-width: 420px; margin: 24px auto; background: #fff; color: #111827; border-radius: 16px; padding: 16px; }
+    #pin { width: 100%; font-size: 1.4rem; letter-spacing: .35em; text-align: center; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    #pay-msg { min-height: 1.2rem; margin: 0 0 8px; color: #b91c1c; font-weight: 700; }
+    .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+    .sheet .panel { background: #fff; color: #111827; width: min(520px, 100%); border-radius: 16px 16px 0 0; padding: 16px; max-height: 80vh; overflow: auto; }
+    .sheet li { margin: 6px 0; }
+    #net-banner { background: #c9891a; color: #1a1204; text-align: center; padding: 8px 12px; font-weight: 650; }
+    .hidden { display: none !important; }
+    html, body.waiter-screen { height: 100%; margin: 0; }
+    #ekrani-porosia .line { padding: .45rem 0; border-bottom: 1px solid #e5e7eb; color: #111827; }
+    #ekrani-porosia .line .nm { font-weight: 700; font-size: .82rem; }
+    #ekrani-porosia .line .sum { color: #ff6b35; font-weight: 800; font-size: .8rem; }
+    #ekrani-porosia .qty { display: flex; gap: 4px; align-items: center; margin-top: 4px; }
+    #ekrani-porosia .qty button { width: 28px; height: 28px; padding: 0; border-radius: 8px; background: #111827; color: #fff; }
+    #ekrani-porosia .card-title { font-weight: 800; margin: .35rem 0; }
+    #ekrani-porosia .btn-coupon.on { box-shadow: inset 0 0 0 2px #16a34a; }
+
   </style>
 </head>
-<body>
+<body class="waiter-screen">
   <div id="net-banner" class="hidden"></div>
-  <header>
-    <div>
-      <h1>Arka</h1>
-      <div class="sub" id="biz"></div>
+  <section id="gate">
+    <p id="gate-text">Po kontrollohet hyrja…</p>
+    <a class="btn hidden" id="go-kycu" href="/kycu" style="display:inline-block;text-align:center;text-decoration:none">Hyr te Kyçu</a>
+  </section>
+  <section class="hidden" id="pin-box">
+    <label for="pin">PIN i punonjësit</label>
+    <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button type="button" class="btn" id="pin-go">Hyr</button>
+    <div class="msg" id="pin-msg"></div>
+  </section>
+  <div id="ekrani-tavolina" class="waiter-shell hidden">
+    <aside class="waiter-sidebar">
+      <div class="waiter-sidebar-top">
+        <div class="waiter-brand" title="Arka">K</div>
+        <button type="button" class="waiter-sync-btn" id="btn-rifresko-tavolina" title="Rifresko tavolinat">↻</button>
+      </div>
+      <div class="waiter-sidebar-spacer"></div>
+      <nav class="waiter-sidebar-nav">
+        <button type="button" class="waiter-nav-btn waiter-nav-new" id="btn-nav-klaim">KLAIM E RE</button>
+        <button type="button" class="waiter-nav-btn waiter-nav-orders" id="btn-nav-porosi">LISTA E POROSIVE</button>
+        <button type="button" class="waiter-nav-btn waiter-nav-z" id="btn-sidebar-raporti-z">Raporti Z</button>
+        <button type="button" class="waiter-nav-btn waiter-nav-exit" id="out">DIL</button>
+      </nav>
+    </aside>
+    <main class="waiter-main">
+      <header class="waiter-topbar">
+        <div class="waiter-topbar-left">
+          <span class="waiter-topbar-greeting">Hyrja,</span>
+          <strong id="biz">Arka</strong>
+        </div>
+        <div class="waiter-topbar-time" id="waiter-clock">--:--</div>
+      </header>
+      <div class="waiter-kpi-row">
+        <button type="button" class="waiter-kpi waiter-kpi-open" id="kpi-open-wrap"><span class="waiter-kpi-label">E HAPUR</span><span class="waiter-kpi-value" id="kpi-hapur">0</span></button>
+        <button type="button" class="waiter-kpi waiter-kpi-free" id="kpi-free-wrap"><span class="waiter-kpi-label">LIRË</span><span class="waiter-kpi-value" id="kpi-lire">0</span></button>
+        <button type="button" class="waiter-kpi waiter-kpi-new" id="kpi-re-wrap"><span class="waiter-kpi-label">QR TAVOLINA</span><span class="waiter-kpi-value" id="kpi-re">0</span></button>
+        <button type="button" class="waiter-kpi waiter-kpi-kryesore" id="kpi-kryesore-wrap"><span class="waiter-kpi-label">KRYESORE</span><span class="waiter-kpi-value" id="kpi-kryesore">0</span></button>
+        <button type="button" class="waiter-kpi waiter-kpi-terrasa" id="kpi-terrasa-wrap"><span class="waiter-kpi-label">TERRASA</span><span class="waiter-kpi-value" id="kpi-terrasa">0</span></button>
+        <button type="button" class="waiter-kpi waiter-kpi-online" id="kpi-online-wrap"><span class="waiter-kpi-label">POROSI ONLINE</span><span class="waiter-kpi-value" id="kpi-online">0</span></button>
+        <div class="waiter-kpi waiter-kpi-cash" id="kpi-cash-wrap">
+          <button type="button" class="pos-pazar-eye" aria-label="Shfaq pazarin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <div class="pos-shift-pazar-box" hidden><span class="waiter-kpi-label">MONEDHA NË ARKË</span><span class="waiter-kpi-value" id="kpi-arke">0.00 €</span></div>
+        </div>
+      </div>
+      <div class="waiter-table-toolbar">
+        <div>
+          <h1 class="waiter-main-title" id="hdr-emri">Arka</h1>
+          <p class="waiter-main-sub">Tavolina — restoranti / bari</p>
+        </div>
+        <div class="waiter-toolbar-actions">
+          <button type="button" class="pos-pazar-eye" aria-label="Shfaq pazarin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <span class="waiter-shift-total pos-shift-pazar-box" id="hdr-pazari" hidden>0.00 €</span>
+          <button type="button" class="btn btn-shift-close btn-sm" id="btn-mbyll-nderrimin">Mbyll nderrimin</button>
+        </div>
+      </div>
+      <div class="waiter-zones-scroll" id="floor"></div>
+    </main>
+  </div>
+  <div id="ekrani-porosia">
+    <div class="waiter-order-top">
+      <div class="back-bar">
+        <button type="button" class="btn btn-ghost btn-sm" id="back">← Kthehu te tavolinat</button>
+      </div>
+      <header class="header waiter-table-header"><h1 id="sell-table">Tavolina</h1></header>
     </div>
-    <button type="button" class="btn-ghost hidden" id="out">Dil</button>
-  </header>
-  <main>
-    <section class="card" id="gate">
-      <p id="gate-text">Po kontrollohet hyrja…</p>
-      <a class="btn hidden" id="go-kycu" href="/kycu" style="display:inline-block;text-align:center;text-decoration:none">Hyr te Kyçu</a>
-    </section>
-    <section class="card hidden" id="pin-box">
-      <label for="pin">PIN i punonjësit të arkës</label>
-      <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
-      <button type="button" class="btn" id="pin-go">Hyr</button>
-      <div class="msg" id="pin-msg"></div>
-    </section>
-    <section id="floor" class="hidden"></section>
-    <section id="sell" class="hidden">
-      <div class="sell-top">
-        <div class="back-bar">
-          <button type="button" id="back">← Kthehu te tavolinat</button>
-        </div>
-        <div class="table-banner"><h2 id="sell-table"></h2></div>
+    <div class="waiter-order-body">
+      <div class="menu-pos-wrap">
+        <input id="find" type="search" placeholder="Skano barkodin" autocomplete="off" aria-label="Skano barkodin">
+        <div class="menu-group-bar" id="cats"></div>
+        <div class="menu-photo-grid" id="products"></div>
       </div>
-      <div class="sell">
-        <div class="products-wrap">
-          <input id="find" type="search" placeholder="Skano barkodin" autocomplete="off">
-          <div class="cats" id="cats"></div>
-          <div class="products" id="products"></div>
-        </div>
-        <aside class="cart">
-          <div class="cart-title">Porosi e re</div>
+      <aside class="waiter-orders-panel">
+        <div class="order-list">
+          <div class="card-title" id="sent-title">Në tavolinë (tashmë dërguar)</div>
+          <div id="sent-lines"></div>
+          <div class="card-title">Porosi e re</div>
           <div id="cart-lines"></div>
-          <div id="cart-total"></div>
-        </aside>
-        <aside class="pays">
-          <div class="pay-row" id="pay-grid">
-            <button type="button" class="btn" data-act="send">Dërgo porosinë</button>
-            <button type="button" class="btn" data-act="cancel">Anullo porosinë</button>
-            <button type="button" class="btn" data-act="coupon" data-coupon="fiscal">Kuponi Fiskal</button>
-            <button type="button" class="btn" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
-            <button type="button" class="btn" data-pay="cash">Cash</button>
-            <button type="button" class="btn" data-pay="card">Kartë</button>
-            <button type="button" class="btn" data-pay="cash" data-mode="fiscal">Paguaj Fiskal</button>
-            <button type="button" class="btn" data-pay="cash" data-mode="thermal">Paguaj (Termik)</button>
-            <button type="button" class="btn" data-pay="cash" data-mode="paper">Paguaj pa letër</button>
-            <button type="button" class="btn" data-act="preview">Shiko kuponin</button>
-            <button type="button" class="btn" data-act="split">Nda faturën</button>
+        </div>
+        <div class="order-totals-stack">
+          <div class="total-bar total-bar-line">
+            <span class="total-bar-label">Totali</span>
+            <span class="total-bar-amount" id="cart-total">0.00 €</span>
           </div>
-          <div class="msg" id="pay-msg"></div>
+        </div>
+      </aside>
+      <aside class="waiter-payments-panel">
+        <div class="action-bar">
+          <div id="pay-msg"></div>
+          <div class="payments-btn-grid" id="pay-grid">
+            <button type="button" class="btn btn-primary pos-pay-btn pos-pay-btn-send" data-act="send">Dërgo porosinë</button>
+            <button type="button" class="btn btn-danger pos-pay-btn" data-act="cancel">Anullo porosinë</button>
+            <div class="coupon-type-row payments-coupon-row">
+              <button type="button" class="btn-coupon btn-coupon-fiscal pos-pay-btn" data-act="coupon" data-coupon="fiscal">Kuponi Fiskal</button>
+              <button type="button" class="btn-coupon btn-coupon-thermal pos-pay-btn" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
+            </div>
+            <button type="button" class="btn btn-payment-cash pos-pay-btn" data-pay="cash">Cash</button>
+            <button type="button" class="btn btn-payment-karte pos-pay-btn" data-pay="card">Kartë</button>
+            <button type="button" class="btn btn-primary pos-pay-btn" data-pay="cash" data-mode="fiscal">Paguaj Fiskal</button>
+            <button type="button" class="btn btn-ghost pos-pay-btn" data-pay="cash" data-mode="thermal">Paguaj (Termik)</button>
+            <button type="button" class="btn btn-pay-nopaper pos-pay-btn" data-pay="cash" data-mode="paper">Paguaj pa letër</button>
+            <button type="button" class="btn btn-ghost pos-pay-btn" data-act="preview">Shiko kuponin</button>
+            <button type="button" class="btn btn-ghost btn-split-bill pos-pay-btn" data-act="split">Nda faturën</button>
+          </div>
           <button type="button" class="btn hidden" id="fiscal-retry">Provo fiskalizimin përsëri</button>
-        </aside>
-      </div>
-    </section>
-  </main>
+        </div>
+      </aside>
+    </div>
+  </div>
   <div class="sheet hidden" id="sheet">
     <div class="panel">
       <h2 id="sheet-title" style="margin:0 0 8px"></h2>
       <p id="sheet-note" class="sub"></p>
       <ul id="sheet-items"></ul>
+      <button type="button" class="btn hidden" id="sheet-go">Paguaj të zgjedhurat</button>
       <button type="button" class="btn" id="sheet-close">Mbyll</button>
     </div>
   </div>
@@ -196,11 +200,13 @@
     const gate = document.getElementById("gate");
     const pinBox = document.getElementById("pin-box");
     const floor = document.getElementById("floor");
-    const sell = document.getElementById("sell");
+    const kpis = document.getElementById("ekrani-tavolina");
+    const sell = document.getElementById("ekrani-porosia");
     const biz = document.getElementById("biz");
     const outBtn = document.getElementById("out");
     let current = [];
     let cart = [];
+    let sentLines = [];
     let sellTable = null;
     let paying = false;
     let lastSaleId = "";
@@ -210,6 +216,8 @@
     function euro(n) { return (Number(n) || 0).toFixed(2) + " €"; }
     function showGate(text, kycu) {
       floor.classList.add("hidden");
+      kpis.classList.add("hidden");
+      sell.classList.remove("active");
       sell.classList.add("hidden");
       pinBox.classList.add("hidden");
       outBtn.classList.add("hidden");
@@ -220,6 +228,8 @@
     function showPin() {
       gate.classList.add("hidden");
       floor.classList.add("hidden");
+      kpis.classList.add("hidden");
+      sell.classList.remove("active");
       sell.classList.add("hidden");
       outBtn.classList.add("hidden");
       pinBox.classList.remove("hidden");
@@ -227,7 +237,38 @@
     function cartTotal() {
       return cart.reduce(function (s, it) { return s + it.price * it.quantity; }, 0);
     }
+    function asLine(it) {
+      return {
+        id: it.id != null && it.id !== "" ? String(it.id) : "",
+        name: it.name || "",
+        price: Number(it.price) || 0,
+        quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
+      };
+    }
+    function payloadItems(list) {
+      return list.map(function (it) { return { product_id: it.id, quantity: it.quantity, price: it.price }; });
+    }
+    function paintSent() {
+      const box = document.getElementById("sent-lines");
+      const title = document.getElementById("sent-title");
+      box.innerHTML = "";
+      title.classList.toggle("hidden", !sentLines.length);
+      sentLines.forEach(function (it) {
+        const row = document.createElement("div");
+        row.className = "line";
+        const name = document.createElement("div");
+        name.className = "nm";
+        name.textContent = it.quantity + " × " + it.name;
+        const sum = document.createElement("div");
+        sum.className = "sum";
+        sum.textContent = euro(it.price * it.quantity);
+        row.appendChild(name);
+        row.appendChild(sum);
+        box.appendChild(row);
+      });
+    }
     function paintCart() {
+      paintSent();
       const box = document.getElementById("cart-lines");
       box.innerHTML = "";
       cart.forEach(function (it, idx) {
@@ -268,7 +309,8 @@
         row.appendChild(qty);
         box.appendChild(row);
       });
-      document.getElementById("cart-total").textContent = cart.length ? ("Totali i porosisë së re " + euro(cartTotal())) : "Shtoni artikuj nga menuja";
+      const sentSum = sentLines.reduce(function (s, it) { return s + it.price * it.quantity; }, 0);
+      document.getElementById("cart-total").textContent = euro(sentSum + cartTotal());
     }
     function addProduct(p) {
       const found = cart.find(function (it) { return it.id === p.id; });
@@ -282,25 +324,31 @@
       (list || []).forEach(function (p) {
         const b = document.createElement("button");
         b.type = "button";
-        b.className = "prod";
-        const strip = document.createElement("span");
-        strip.className = "strip";
-        const name = document.createElement("b");
-        name.textContent = p.name;
-        const price = document.createElement("span");
-        price.className = "price";
-        price.textContent = euro(p.price);
+        b.className = "menu-item-text-btn";
+        const card = document.createElement("div");
+        card.className = "menu-item-card" + (p.photo_url ? " has-photo" : "");
         if (p.photo_url) {
+          const wrap = document.createElement("div");
+          wrap.className = "menu-item-photo-wrap";
           const img = document.createElement("img");
+          img.className = "menu-item-photo";
           img.alt = "";
           img.src = p.photo_url;
-          b.classList.add("has-photo");
-          b.appendChild(img);
-        } else {
-          b.appendChild(strip);
+          wrap.appendChild(img);
+          card.appendChild(wrap);
         }
-        b.appendChild(name);
-        b.appendChild(price);
+        const meta = document.createElement("div");
+        meta.className = "menu-item-meta";
+        const name = document.createElement("span");
+        name.className = "emri";
+        name.textContent = p.name;
+        const price = document.createElement("span");
+        price.className = "cmimi";
+        price.textContent = euro(p.price);
+        meta.appendChild(name);
+        meta.appendChild(price);
+        card.appendChild(meta);
+        b.appendChild(card);
         if (p.low_stock) {
           const w = document.createElement("span");
           w.className = "warn";
@@ -312,8 +360,8 @@
       });
     }
     async function loadCategory(id, btn) {
-      document.querySelectorAll(".cat").forEach(function (el) { el.classList.remove("on"); });
-      if (btn) btn.classList.add("on");
+      document.querySelectorAll(".menu-group-btn").forEach(function (el) { el.classList.remove("active"); });
+      if (btn) btn.classList.add("active");
       const res = await api("/products/" + encodeURIComponent(id));
       const data = await res.json().catch(function () { return {}; });
       if (!res.ok) return;
@@ -321,11 +369,12 @@
     }
     async function openSell(t) {
       sellTable = t;
-      cart = (t.items || []).filter(function (it) { return it.id; }).map(function (it) {
-        return { id: it.id, name: it.name, price: Number(it.price) || 0, quantity: Math.max(1, Math.round(Number(it.quantity) || 1)) };
-      });
+      sentLines = (t.items || []).filter(function (it) { return it.name; }).map(asLine);
+      cart = [];
       floor.classList.add("hidden");
+      kpis.classList.add("hidden");
       sell.classList.remove("hidden");
+      sell.classList.add("active");
       document.getElementById("sell-table").textContent = "Tavolina " + t.number;
       document.getElementById("pay-msg").textContent = "";
       paintCart();
@@ -336,7 +385,7 @@
       (data.categories || []).forEach(function (c, i) {
         const b = document.createElement("button");
         b.type = "button";
-        b.className = "cat" + (i === 0 ? " on" : "");
+        b.className = "menu-group-btn" + (i === 0 ? " active" : "");
         b.textContent = c.name;
         b.addEventListener("click", function () { loadCategory(c.id, b); });
         cats.appendChild(b);
@@ -346,49 +395,122 @@
         api("/products/" + encodeURIComponent(c.id));
       });
     }
+    let floorFilter = "all";
+    let lastFloor = null;
+    function hallOf(name) {
+      const n = String(name || "").toLowerCase();
+      if (n.indexOf("terras") >= 0) return "terrasa";
+      if (n.indexOf("online") >= 0) return "online";
+      return "kryesore";
+    }
+    function isQrTable(t) {
+      const d = String(t.device_id || "").toUpperCase();
+      return d.indexOf("WEB-KIOSK") === 0 || d.indexOf("WEB-PUBLIC") === 0;
+    }
+    function tableMatches(t, areaName) {
+      if (floorFilter === "open") return t.status === "occupied";
+      if (floorFilter === "free") return t.status !== "occupied";
+      if (floorFilter === "qr") return isQrTable(t);
+      if (floorFilter === "kryesore") return hallOf(areaName) === "kryesore";
+      if (floorFilter === "terrasa") return hallOf(areaName) === "terrasa";
+      if (floorFilter === "online") return hallOf(areaName) === "online";
+      return true;
+    }
     function paint(data) {
+      lastFloor = data;
       gate.classList.add("hidden");
       pinBox.classList.add("hidden");
       floor.classList.remove("hidden");
+      kpis.classList.remove("hidden");
       outBtn.classList.remove("hidden");
+      sell.classList.remove("active");
+      sell.classList.add("hidden");
+      let openN = 0;
+      let freeN = 0;
+      let qrN = 0;
+      let kryesoreN = 0;
+      let terrasaN = 0;
+      let onlineN = 0;
+      (data.areas || []).forEach(function (area) {
+        const hall = hallOf(area.name);
+        (area.tables || []).forEach(function (t) {
+          if (t.status === "occupied") openN += 1;
+          else freeN += 1;
+          if (isQrTable(t)) qrN += 1;
+          if (hall === "terrasa") terrasaN += 1;
+          else if (hall === "online") onlineN += 1;
+          else kryesoreN += 1;
+        });
+      });
+      document.getElementById("kpi-hapur").textContent = String(openN);
+      document.getElementById("kpi-lire").textContent = String(freeN);
+      document.getElementById("kpi-re").textContent = String(qrN);
+      document.getElementById("kpi-kryesore").textContent = String(kryesoreN);
+      document.getElementById("kpi-terrasa").textContent = String(terrasaN);
+      document.getElementById("kpi-online").textContent = String(onlineN);
+      document.getElementById("kpi-arke").textContent = euro(data.cash_total);
+      document.getElementById("hdr-pazari").textContent = euro(data.cash_total);
+      ["open", "free", "qr", "kryesore", "terrasa", "online"].forEach(function (name) {
+        const el = document.getElementById(name === "open" ? "kpi-open-wrap" : name === "free" ? "kpi-free-wrap" : name === "qr" ? "kpi-re-wrap" : "kpi-" + name + "-wrap");
+        if (el) el.classList.toggle("waiter-kpi-selected", floorFilter === name);
+      });
       if (data.staff && data.staff.name) staffName = data.staff.name;
-      biz.textContent = (staffName ? staffName + " · " : "") + "tavolinat";
+      biz.textContent = staffName || "Arka";
+      if (data.business) document.getElementById("hdr-emri").textContent = data.business;
       current = [];
       floor.innerHTML = "";
       (data.areas || []).forEach(function (area) {
+        const tables = (area.tables || []).filter(function (t) { return tableMatches(t, area.name); });
+        if (!tables.length && floorFilter !== "all") return;
         const zone = document.createElement("section");
-        zone.className = "zone";
-        const h = document.createElement("h2");
-        h.textContent = area.name || "Tavolinat";
-        zone.appendChild(h);
-        const grid = document.createElement("div");
-        grid.className = "grid";
-        (area.tables || []).forEach(function (t) {
+        zone.className = "waiter-zone-section";
+        const head = document.createElement("div");
+        head.className = "waiter-zone-head";
+        const title = document.createElement("span");
+        title.className = "waiter-zone-title";
+        const hall = hallOf(area.name);
+        title.textContent = hall === "terrasa" ? "Terrasa" : hall === "online" ? "Porosi online" : (area.name && area.name.toLowerCase().indexOf("tavolin") !== 0 ? area.name : "Kryesore");
+        head.appendChild(title);
+        const map = document.createElement("div");
+        map.className = "table-floor-map";
+        const rows = Math.max(1, Math.ceil(tables.length / 8));
+        map.style.minHeight = Math.max(440, rows * 140) + "px";
+        tables.forEach(function (t, i) {
           current.push(t);
           const b = document.createElement("button");
           b.type = "button";
           b.className = "table-card " + (t.status !== "occupied" ? "free" : "occupied");
-          const title = document.createElement("b");
-          title.textContent = "Tavolina " + t.number;
-          const ico = document.createElement("span");
-          ico.className = "ico";
+          const col = i % 8;
+          const row = Math.floor(i / 8);
+          b.style.position = "absolute";
+          b.style.left = (1.5 + col * 12.2) + "%";
+          b.style.top = (8 + row * 130) + "px";
+          const name = document.createElement("div");
+          name.className = "table-card-name";
+          name.textContent = "Tavolina " + t.number;
+          const ico = document.createElement("div");
+          ico.className = "table-card-icon";
           ico.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.4-3.2 3.8-4.8 7-4.8S17.6 15.8 19 19"/></svg>';
-          const line = document.createElement("span");
-          if (t.status !== "occupied") line.textContent = "Lirë";
-          else line.textContent = (t.item_count || t.order_count || 1) + " artikuj · " + euro(t.total);
-          const who = document.createElement("span");
-          if (t.status === "occupied" && t.waiter_name) who.textContent = t.waiter_name;
-          b.appendChild(title);
+          const meta = document.createElement("div");
+          meta.className = "table-card-meta";
+          meta.textContent = t.status !== "occupied" ? "Lirë" : ((t.item_count || t.order_count || 1) + " artikuj · " + euro(t.total));
+          b.appendChild(name);
           b.appendChild(ico);
-          if (who.textContent) b.appendChild(who);
-          b.appendChild(line);
+          if (t.status === "occupied" && t.waiter_name) {
+            const who = document.createElement("div");
+            who.className = "table-card-status";
+            who.textContent = t.waiter_name;
+            b.appendChild(who);
+          }
+          b.appendChild(meta);
           b.addEventListener("click", function () { openTable(t); });
-          grid.appendChild(b);
+          map.appendChild(b);
         });
-        zone.appendChild(grid);
+        zone.appendChild(head);
+        zone.appendChild(map);
         floor.appendChild(zone);
       });
-      if (!floor.children.length) floor.innerHTML = "<p class='sub'>Nuk ka tavolina.</p>";
+      if (!floor.children.length) floor.textContent = "Nuk ka tavolina.";
     }
     function openTable(t) {
       openSell(t);
@@ -396,9 +518,157 @@
     document.getElementById("sheet-close").addEventListener("click", function () {
       document.getElementById("sheet").classList.add("hidden");
     });
+    function openSheet(title, note) {
+      document.getElementById("sheet-title").textContent = title;
+      document.getElementById("sheet-note").textContent = note || "";
+      document.getElementById("sheet-items").innerHTML = "";
+      const go = document.getElementById("sheet-go");
+      go.classList.add("hidden");
+      go.onclick = null;
+      document.getElementById("sheet").classList.remove("hidden");
+    }
+    function showPreview() {
+      const lines = sentLines.concat(cart);
+      openSheet("Shiko kuponin", lines.length ? "" : "Shporta është bosh.");
+      const list = document.getElementById("sheet-items");
+      lines.forEach(function (it) {
+        const li = document.createElement("li");
+        li.textContent = it.quantity + " × " + it.name + " · " + euro(it.price * it.quantity);
+        list.appendChild(li);
+      });
+      if (lines.length) {
+        const li = document.createElement("li");
+        li.textContent = "Totali " + document.getElementById("cart-total").textContent;
+        list.appendChild(li);
+      }
+    }
+    function splitBill() {
+      const lines = sentLines.concat(cart);
+      if (lines.length < 2) {
+        openSheet("Nda faturën", "Duhen të paktën dy artikuj.");
+        return;
+      }
+      openSheet("Nda faturën", "Zgjidh artikujt që paguhen tani.");
+      const picked = {};
+      const list = document.getElementById("sheet-items");
+      lines.forEach(function (it, idx) {
+        const li = document.createElement("li");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn";
+        b.textContent = it.quantity + " × " + it.name;
+        b.addEventListener("click", function () {
+          picked[idx] = !picked[idx];
+          b.style.outline = picked[idx] ? "3px solid #16a34a" : "";
+        });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+      const go = document.getElementById("sheet-go");
+      go.classList.remove("hidden");
+      go.onclick = async function () {
+        const chosen = lines.filter(function (it, idx) { return picked[idx]; });
+        const left = lines.filter(function (it, idx) { return !picked[idx]; });
+        if (!chosen.length || !left.length) {
+          document.getElementById("sheet-note").textContent = "Zgjidh një pjesë, jo të gjitha.";
+          return;
+        }
+        document.getElementById("sheet").classList.add("hidden");
+        sentLines = chosen;
+        cart = [];
+        paintCart();
+        await pay("cash", couponKind);
+        const msg = document.getElementById("pay-msg").textContent;
+        if (msg.indexOf("Shitja u ruajt") !== 0) {
+          sentLines = lines;
+          cart = [];
+          paintCart();
+          return;
+        }
+        const res = await api("/order", {
+          method: "POST",
+          body: JSON.stringify({ table_id: sellTable.number, items: payloadItems(left) }),
+        });
+        sentLines = left;
+        cart = [];
+        paintCart();
+        if (!res || !res.ok) document.getElementById("pay-msg").textContent = msg + " Pjesa tjetër nuk u la në tavolinë.";
+        else document.getElementById("pay-msg").textContent = msg + " Pjesa tjetër mbeti në tavolinë.";
+      };
+    }
+    document.addEventListener("click", function (ev) {
+      const eye = ev.target.closest && ev.target.closest(".pos-pazar-eye");
+      if (!eye) return;
+      ev.preventDefault();
+      const box = eye.parentElement && eye.parentElement.querySelector(".pos-shift-pazar-box");
+      if (!box) return;
+      box.hidden = !box.hidden;
+    });
+    function setFloorFilter(name) {
+      floorFilter = floorFilter === name ? "all" : name;
+      if (lastFloor) paint(lastFloor);
+    }
+    document.getElementById("kpi-open-wrap").addEventListener("click", function () { setFloorFilter("open"); });
+    document.getElementById("kpi-free-wrap").addEventListener("click", function () { setFloorFilter("free"); });
+    document.getElementById("kpi-re-wrap").addEventListener("click", function () { setFloorFilter("qr"); });
+    document.getElementById("kpi-kryesore-wrap").addEventListener("click", function () { setFloorFilter("kryesore"); });
+    document.getElementById("kpi-terrasa-wrap").addEventListener("click", function () { setFloorFilter("terrasa"); });
+    document.getElementById("kpi-online-wrap").addEventListener("click", function () { setFloorFilter("online"); });
+    document.getElementById("btn-rifresko-tavolina").addEventListener("click", function () { loadTables(); });
+    function allTables() {
+      const out = [];
+      ((lastFloor && lastFloor.areas) || []).forEach(function (area) {
+        (area.tables || []).forEach(function (t) { out.push(t); });
+      });
+      return out;
+    }
+    document.getElementById("btn-nav-klaim").addEventListener("click", function () {
+      const free = allTables().find(function (t) { return t.status !== "occupied"; });
+      if (!free) return openSheet("Klaim e re", "Nuk ka tavolina të lira.");
+      openSell(free);
+    });
+    document.getElementById("btn-nav-porosi").addEventListener("click", function () {
+      const rows = allTables().filter(function (t) { return t.status === "occupied"; });
+      openSheet("Lista e porosive", rows.length ? "Kliko një porosi." : "Nuk ka porosi të hapura.");
+      const list = document.getElementById("sheet-items");
+      rows.forEach(function (t) {
+        const li = document.createElement("li");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn";
+        b.textContent = "Tavolina " + t.number + " · " + euro(t.total);
+        b.addEventListener("click", function () {
+          document.getElementById("sheet").classList.add("hidden");
+          openSell(t);
+        });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+    });
+    document.getElementById("btn-sidebar-raporti-z").addEventListener("click", async function () {
+      openSheet("Raporti Z", "Po ngarkohet...");
+      const res = await api("/z-report");
+      const data = await res.json().catch(function () { return {}; });
+      document.getElementById("sheet-note").textContent = !res.ok
+        ? (data.gabim || "Raporti nuk u hap.")
+        : ("Data " + (data.date || "") + " · Shitje " + (data.sales || 0) + " · Cash " + euro(data.cash) + " · Kartë " + euro(data.card) + " · Totali " + euro(data.total));
+    });
+    document.getElementById("btn-mbyll-nderrimin").addEventListener("click", function () {
+      openSheet("Mbyll nderrimin", "Monedha në arkë " + document.getElementById("kpi-arke").textContent);
+    });
+    function tickClock() {
+      const el = document.getElementById("waiter-clock");
+      if (!el) return;
+      const n = new Date();
+      el.textContent = String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
     document.getElementById("back").addEventListener("click", function () {
+      sell.classList.remove("active");
       sell.classList.add("hidden");
       cart = [];
+      sentLines = [];
       sellTable = null;
       loadTables();
     });
@@ -413,47 +683,79 @@
         if (res.ok) paintProducts(data.products || []);
       }, 250);
     });
-    async function pay(type, mode) {
+    async function sendOrder() {
       if (paying || !sellTable) return;
       if (!cart.length) {
+        document.getElementById("pay-msg").textContent = "Shtoni të paktën një artikull.";
+        return;
+      }
+      const items = sentLines.concat(cart);
+      paying = true;
+      document.getElementById("pay-msg").textContent = "Po regjistrohet porosia...";
+      try {
+        const res = await api("/order", {
+          method: "POST",
+          body: JSON.stringify({ table_id: sellTable.number, items: payloadItems(items) }),
+        });
+        const data = await res.json().catch(function () { return {}; });
+        if (!res || !res.ok) {
+          document.getElementById("pay-msg").textContent = (data && data.gabim) || "Porosia nuk u regjistrua.";
+          return;
+        }
+        sentLines = items;
+        cart = [];
+        paintCart();
+        document.getElementById("pay-msg").textContent = "Porosia u regjistrua. " + euro(data.total);
+      } finally {
+        paying = false;
+      }
+    }
+    async function pay(type, mode) {
+      if (paying || !sellTable) return;
+      const items = sentLines.concat(cart);
+      if (!items.length) {
         document.getElementById("pay-msg").textContent = "Shporta është bosh.";
         return;
       }
       const how = mode || couponKind || "fiscal";
       paying = true;
-      document.getElementById("pay-msg").textContent = "";
+      document.getElementById("pay-msg").textContent = "Po ruhet shitja...";
+      try {
       const res = await api("/sale", {
         method: "POST",
         body: JSON.stringify({
           table_id: sellTable.number,
           payment_type: type,
-          items: cart.map(function (it) { return { product_id: it.id, quantity: it.quantity, price: it.price }; })
+          items: payloadItems(items)
         })
       });
       const data = await res.json().catch(function () { return {}; });
-      paying = false;
-      if (!res.ok) {
-        document.getElementById("pay-msg").textContent = data.gabim || "Shitja nuk u ruajt.";
+      if (!res || !res.ok) {
+        document.getElementById("pay-msg").textContent = (data && data.gabim) || "Shitja nuk u ruajt.";
         return;
       }
       lastSaleId = data.sale_id || "";
       lastPayType = type;
       cart = [];
+      sentLines = [];
       paintCart();
       if (how === "thermal") {
-        document.getElementById("pay-msg").textContent = "Shitja u ruajt. Duke printuar kuponin termik...";
+        document.getElementById("pay-msg").textContent = "Shitja u ruajt. " + euro(data.total) + " Duke printuar kuponin termik...";
         document.getElementById("fiscal-retry").classList.add("hidden");
         sendPrint(null);
         return;
       }
       if (how === "paper") {
-        document.getElementById("pay-msg").textContent = "Shitja u ruajt.";
+        document.getElementById("pay-msg").textContent = "Shitja u ruajt. " + euro(data.total);
         document.getElementById("fiscal-retry").classList.add("hidden");
         return;
       }
-      document.getElementById("pay-msg").textContent = "Shitja u ruajt. Duke fiskalizuar...";
+      document.getElementById("pay-msg").textContent = "Shitja u ruajt. " + euro(data.total) + " Duke fiskalizuar...";
       document.getElementById("fiscal-retry").classList.add("hidden");
       fiscalize(true);
+      } finally {
+        paying = false;
+      }
     }
     function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
     async function sendPrint(fiscal) {
@@ -526,9 +828,22 @@
     document.getElementById("pay-grid").addEventListener("click", function (ev) {
       const btn = ev.target.closest("button");
       if (!btn || !document.getElementById("pay-grid").contains(btn)) return;
+      if (btn.getAttribute("data-act") === "send") {
+        sendOrder();
+        return;
+      }
       if (btn.getAttribute("data-act") === "cancel") {
         cart = [];
         paintCart();
+        document.getElementById("pay-msg").textContent = "Porosia e re u hoq.";
+        return;
+      }
+      if (btn.getAttribute("data-act") === "preview") {
+        showPreview();
+        return;
+      }
+      if (btn.getAttribute("data-act") === "split") {
+        splitBill();
         return;
       }
       if (btn.getAttribute("data-act") === "coupon") {
@@ -558,7 +873,7 @@
       const data = await res.json().catch(function () { return {}; });
       if (res.status === 401) return showGate("Hyni fillimisht me email, fjalëkalim dhe kodin 6-shifror.", true);
       if (!res.ok) return showGate(data.gabim || "Hyrja dështoi.", false);
-      biz.textContent = data.business || "";
+      document.getElementById("hdr-emri").textContent = data.business || "Arka";
       if (data.staff && window.ArkaOffline) ArkaOffline.saveSession(slug, { staff: data.staff, business: data.business || "" });
       if (!data.staff) return showPin();
       loadTables();

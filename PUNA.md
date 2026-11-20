@@ -1,3 +1,7 @@
+## 2026-11-20 — Arka si programi
+
+Te `public/arka.html` pamja u vu si te programi: ana majtas (Klaim e re, Lista e porosive, Raporti Z, Dil), numrat lart (E hapur, Lirë, QR, Kryesore, Terrasa, Porosi online, monedha me sy), tavolinat, dhe butonat e pagesës. Dërgo porosinë e ruan porosinë. Paguaj (Termik) e ruan shitjen dhe e dërgon në printim. Monedha në arkë është cash i sotëm. Stilet e programit u kopjuan te `public/css/pos-program-style.css`, `pos-program-waiter.css`, `pos-program-truffle.css`, `pos-program-tables.css`. Te `src/services/arkaService.js` porosia e hapur ruhet, dhe cash i ditës kthehet me tavolinat. Te `src/routes/arka.js` u shtua ruajtja e porosisë dhe Raporti Z. Nuk u dërgua ende te faqja e gjallë. Programi në kompjuter nuk u prek.
+
 ## 2026-11-20 — Kuponi termik dhe pagesa te arka
 
 Te `public/arka.html` Kuponi Termik zgjedh kuponin termik. Cash, Kartë dhe Paguaj (Termik) e ruajnë shitjen dhe e dërgojnë në printim, pa fiskalizim. Paguaj Fiskal fiskalizon. Tavolina e hapur në program hapet për pagesë. Te `src/services/arkaService.js` pagesa nuk ndalet më kur tavolina është e programit, dhe njeh produktin edhe me numrin e programit. U dërgua te faqja e gjallë me lejen e Naserit.

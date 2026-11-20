@@ -178,7 +178,7 @@ async function getArkaTables(clientId) {
         owner: access.owner,
         items: access.occupied
           ? items.map(it => ({
-            id: it.menu_id || null,
+            id: it.menu_id != null && it.menu_id !== "" ? String(it.menu_id) : null,
             name: it.name,
             quantity: it.quantity,
             price: it.price,
@@ -190,7 +190,38 @@ async function getArkaTables(clientId) {
   return {
     areas: areasOut,
     table_count: areasOut.reduce((sum, area) => sum + (area.tables || []).length, 0),
+    cash_total: await cashInDrawer(clientId),
   };
+}
+
+function belgradeDayStartIso() {
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Belgrade",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const utcGuess = new Date(`${day}T00:00:00Z`);
+  const hour = Number(new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Belgrade",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).format(utcGuess));
+  return new Date(utcGuess.getTime() - hour * 60 * 60000).toISOString();
+}
+
+async function cashInDrawer(clientId) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("sales_orders")
+    .select("total")
+    .eq("client_id", clientId)
+    .eq("status", "closed")
+    .eq("payment_method", "cash")
+    .gte("closed_at", belgradeDayStartIso())
+    .limit(1000);
+  if (error) return 0;
+  return (data || []).reduce((sum, row) => sum + (Number(row.total) || 0), 0);
 }
 
 function arkaDeviceId(staffId) {
@@ -302,7 +333,8 @@ async function completeArkaSale(clientId, staff, body) {
     err.status = 400;
     throw err;
   }
-  const method = paymentMethodFor(body?.payment_type || body?.payment_method);
+  const keepOpen = body?.keep_open === true;
+  const method = keepOpen ? null : paymentMethodFor(body?.payment_type || body?.payment_method);
   const deviceId = arkaDeviceId(staff.id);
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
@@ -376,19 +408,21 @@ async function completeArkaSale(clientId, staff, body) {
   const row = {
     client_id: clientId,
     local_order_id: own?.local_order_id || `arka-${crypto.randomUUID()}`,
-    device_id: deviceId,
+    device_id: keepOpen && own?.device_id ? own.device_id : deviceId,
     table_number: tableNumber,
     waiter_name: staff.name,
     waiter_id: staff.id,
     items_json: items,
     total,
-    status: "closed",
-    payment_status: "paid",
-    payment_method: method,
-    paid_at: now,
+    status: keepOpen ? "ordered" : "closed",
+    payment_status: keepOpen ? "pending" : "paid",
     closed_at: now,
     ordered_at: own?.ordered_at || now,
   };
+  if (!keepOpen) {
+    row.payment_method = method;
+    row.paid_at = now;
+  }
   if (licenseId) row.license_id = licenseId;
   let saved;
   let error;
@@ -416,7 +450,7 @@ async function completeArkaSale(clientId, staff, body) {
     }
   }
   if (error) throw new Error(error.message || "Shitja nuk u ruajt.");
-  if (saved?.id) {
+  if (!keepOpen && saved?.id) {
     await db
       .from("sales_orders")
       .update({ status: "cancelled", closed_at: now, total: 0, ready_at: null })
@@ -425,17 +459,27 @@ async function completeArkaSale(clientId, staff, body) {
       .in("status", ["ordered", "ready"])
       .neq("id", saved.id);
   }
-  for (const it of items) {
-    const product = byId.get(it.id);
-    if (product?.stock_quantity == null) continue;
-    const next = Number(product.stock_quantity) - it.quantity;
-    await db
-      .from("pos_menu_items")
-      .update({ stock_quantity: next })
-      .eq("id", product.id)
-      .eq("client_id", clientId);
+  if (!keepOpen) {
+    for (const it of items) {
+      const product = byId.get(it.id);
+      if (product?.stock_quantity == null) continue;
+      const next = Number(product.stock_quantity) - it.quantity;
+      await db
+        .from("pos_menu_items")
+        .update({ stock_quantity: next })
+        .eq("id", product.id)
+        .eq("client_id", clientId);
+    }
   }
-  return { sale_id: saved.id, total, payment_method: method };
+  try {
+    require("./kdsEvents").notifyKitchenUpdate(clientId, {
+      order_id: saved.id,
+      table_number: tableNumber,
+      status: keepOpen ? "ordered" : "closed",
+      device_id: row.device_id,
+    });
+  } catch (err) {}
+  return { sale_id: saved.id, total, payment_method: method, status: keepOpen ? "ordered" : "closed" };
 }
 
 module.exports = {
