@@ -1,5 +1,9 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-20 — Arka hapet me PIN-in e kamarierit
+
+Te `src/services/arkaService.js` hyrja me PIN përdor të njëjtin kontroll si kamarieri (`verifyWaiterPin`). Nëse PIN-i është i kamarierit, arka e lejon. Personi mbetet i njohur edhe pas hyrjes. U dërgua te faqja e gjallë me lejen e Naserit. Programi në kompjuter nuk ndryshoi.
+
 ## 2026-11-20 — Arka pranon të njëjtin kod si kamarieri
 
 Te `src/routes/arka.js` u hoq kërkesa e hyrjes së pronarit. Lokali njihet me `kitchen_key`, njësoj si kamarieri. Pastaj punonjësi shkruan PIN-in. `public/arka.html` dërgon të njëjtin kod te `?key=` dhe te kryeja `x-kitchen-key`. Kamarieri nuk u prek. U dërgua te faqja e gjallë me lejen e Naserit.

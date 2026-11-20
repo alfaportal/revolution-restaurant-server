@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const { getSupabase } = require("../db");
+const { verifyWaiterPin } = require("./waiterPinService");
 const { normalizeItems } = require("./salesService");
 const { buildTablesFromAreas } = require("../lib/tableLayout");
 const { loadAreasForClient } = require("./venueService");
@@ -47,11 +48,6 @@ async function loginArkaWithPin(clientId, pin) {
     throw err;
   }
   const staff = await loadArkaStaff(clientId);
-  if (!staff.length) {
-    const err = new Error("Nuk ka punonjës të arkës. Kamarieri i zakonshëm nuk hyn këtu.");
-    err.status = 403;
-    throw err;
-  }
   for (const row of staff) {
     let ok = false;
     try {
@@ -61,9 +57,14 @@ async function loginArkaWithPin(clientId, pin) {
     }
     if (ok) return { id: row.id, name: row.name, role: ARKA_ROLE };
   }
-  const err = new Error("PIN i gabuar, ose ky person nuk është i arkës.");
-  err.status = 401;
-  throw err;
+  try {
+    const waiter = await verifyWaiterPin(clientId, p);
+    return { id: waiter.id, name: waiter.name, role: "waiter" };
+  } catch (e) {
+    const err = new Error(e.message || "PIN i gabuar.");
+    err.status = 401;
+    throw err;
+  }
 }
 
 async function getArkaStaffById(clientId, staffId) {
@@ -75,11 +76,11 @@ async function getArkaStaffById(clientId, staffId) {
     .select("id, name, role, active")
     .eq("client_id", clientId)
     .eq("id", id)
-    .eq("role", ARKA_ROLE)
+    .in("role", [ARKA_ROLE, "waiter"])
     .maybeSingle();
   if (error) throw error;
   if (!data?.id || data.active === false) return null;
-  return { id: data.id, name: data.name, role: ARKA_ROLE };
+  return { id: data.id, name: data.name, role: data.role || "waiter" };
 }
 
 async function loadOpenOrders(clientId) {
