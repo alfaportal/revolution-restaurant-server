@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Cloud, Download, Shield, WifiOff, type LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -42,8 +41,6 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
   const { t } = useGjuha();
   const pikat = t.perparesia.pikat.map((pika, index) => ({ ...pika, Ikona: ikonat[index] }));
   const pajisjet = t.perparesia.pajisjet;
-  const [zgjedhur, setZgjedhur] = useState(pajisjet[0].id);
-  const pajisja = pajisjet.find((pika) => pika.id === zgjedhur) ?? pajisjet[0];
   if (kompakt) {
     return (
       <section className="border-y border-[#0EA5E9]/10 bg-[#0A0A0F] px-6 py-12">
@@ -97,42 +94,30 @@ export default function Perparesia({ kompakt = false }: { kompakt?: boolean }) {
       <div className="mx-auto mt-16 max-w-6xl">
         <p className="text-center text-sm text-[#94A3B8]">{t.perparesia.zgjidh}</p>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {pajisjet.map((pika) => {
-            const aktive = pika.id === pajisja.id;
-            return (
-              <button
-                key={pika.id}
-                type="button"
-                onClick={() => setZgjedhur(pika.id)}
-                aria-pressed={aktive}
-                className={`flex items-center gap-4 rounded-2xl border px-4 py-4 text-left transition duration-300 ${
-                  aktive
-                    ? "border-[#0EA5E9] bg-[#0F172A] shadow-[0_0_28px_rgba(14,165,233,0.16)]"
-                    : "border-[#1E293B] bg-[#0F172A] hover:-translate-y-0.5 hover:border-[#0EA5E9]/40"
-                }`}
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0EA5E9]/10 text-[#0EA5E9]">
-                  <Shenja lloji={pika.id} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-white">{pika.emri}</span>
-                  <span className="block text-sm text-[#94A3B8]">{pika.vendi}</span>
-                </span>
-                <ArrowUpRight className={`h-4 w-4 shrink-0 ${aktive ? "text-[#0EA5E9]" : "text-zinc-500"}`} />
-              </button>
-            );
-          })}
+          {pajisjet.map((pika) => (
+            <Link
+              key={pika.id}
+              href="/hap"
+              className="flex items-center gap-4 rounded-2xl border border-[#1E293B] bg-[#0F172A] px-4 py-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#0EA5E9]/40"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0EA5E9]/10 text-[#0EA5E9]">
+                <Shenja lloji={pika.id} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-white">{pika.emri}</span>
+                <span className="block text-sm text-[#94A3B8]">{pika.vendi}</span>
+              </span>
+              <ArrowUpRight className="h-4 w-4 shrink-0 text-zinc-500" />
+            </Link>
+          ))}
         </div>
         <div className="mt-5 flex flex-col items-center justify-between gap-4 rounded-2xl border border-[#0EA5E9]/20 bg-[#0A0A0F] px-5 py-4 sm:flex-row">
-          <p className="text-sm text-zinc-300">
-            <span className="font-semibold text-white">{pajisja.emri}. </span>
-            {pajisja.tekst}
-          </p>
+          <p className="text-sm text-zinc-300">{t.perparesia.zgjidh}</p>
           <Link
-            href="/#kontakti"
+            href="/hap"
             className="shrink-0 rounded-full bg-[#0EA5E9] px-5 py-2.5 text-sm font-semibold text-white hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
           >
-            {t.perparesia.kerko} {pajisja.emri}
+            {t.perparesia.hap}
           </Link>
         </div>
       </div>

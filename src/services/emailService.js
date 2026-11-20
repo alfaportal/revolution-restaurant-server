@@ -912,6 +912,28 @@ async function sendFiscalReceiptConsumerEmail({
   return deliverEmail({ to, subject, text, html, attachments });
 }
 
+async function sendSuperAdminEmergencyAccessEmail({ to, clientName, code }) {
+  const biz = String(clientName || "biznesi").trim();
+  const safe = biz.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+  const subject = `Kod emergjence — ${biz}`;
+  const text = [
+    "Kod emergjence për panelin e pronarit.",
+    "",
+    `Biznesi: ${biz}`,
+    `Kodi 6-shifror: ${code}`,
+    "",
+    "Shkruaje te hyrja e atij biznesi. Vlen 15 minuta dhe përdoret një herë.",
+    "Nëse nuk e ke kërkuar ti, injoroje.",
+  ].join("\n");
+  const html = `
+    <p>Kod emergjence për panelin e pronarit.</p>
+    <p>Biznesi: <strong>${safe}</strong></p>
+    <p style="font-size:28px;font-weight:bold;letter-spacing:6px;margin:16px 0">${code}</p>
+    <p style="color:#666;font-size:13px">Vlen 15 minuta dhe përdoret një herë.</p>
+  `;
+  return deliverEmail({ to, subject, text, html });
+}
+
 module.exports = {
   isEmailConfigured,
   deliverEmail,
@@ -919,6 +941,7 @@ module.exports = {
   resolveAdminNotifyEmail,
   sendOwnerPasswordResetEmail,
   sendOwnerEmergencyCodeEmail,
+  sendSuperAdminEmergencyAccessEmail,
   sendOwnerInviteEmail,
   sendTrialExpiry7DayEmail,
   sendTrialExpiry1DayEmail,

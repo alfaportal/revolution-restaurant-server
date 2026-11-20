@@ -8,10 +8,11 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#1a1a2e">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="RI POS">
+  <meta name="apple-mobile-web-app-title" content="Revolution POS">
   <link rel="manifest" href="/owner/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="/css/owner.css">
+  <script src="/js/owner-guard.js"></script>
 </head>
 <body>
   <div class="login-wrap">
@@ -33,7 +34,20 @@
         <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
         <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Hyr në panel</button>
         <button type="button" id="btn-forgot" class="btn btn-ghost owner-forgot-link">Harrove fjalëkalimin?</button>
+        <button type="button" id="btn-emergency" class="btn btn-ghost owner-forgot-link">Kod Emergjence</button>
         <a href="/owner/register" id="link-owner-register" class="btn btn-ghost owner-forgot-link hidden" style="display:none">Regjistrohu me kod</a>
+      </form>
+
+      <form id="form-emergency" class="owner-auth-form hidden">
+        <p class="owner-reset-hint">Kodi 6-shifror shkon te emaili i Super Admin. Vlen për këtë biznes.</p>
+        <div id="emergency-slug-wrap" class="hidden">
+          <label for="emergency-slug">Kodi i biznesit</label>
+          <input type="text" id="emergency-slug" autocomplete="off" placeholder="kodi i biznesit">
+        </div>
+        <label for="emergency-code">Kodi nga email</label>
+        <input type="text" id="emergency-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 shifra">
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Hyr me kod</button>
+        <button type="button" id="btn-emergency-back" class="btn btn-ghost owner-forgot-link">Kthehu te hyrja</button>
       </form>
 
       <form id="form-reset" class="owner-auth-form hidden">
@@ -50,21 +64,6 @@
     </div>
   </div>
   <script>
-    (async function clearStaleOwnerCache() {
-      try {
-        if ("serviceWorker" in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map((r) => r.unregister()));
-        }
-        if (window.caches) {
-          const keys = await caches.keys();
-          await Promise.all(
-            keys.filter((k) => k.startsWith("ri-pos-owner")).map((k) => caches.delete(k)),
-          );
-        }
-      } catch (_) { /* ignore */ }
-    })();
-
     const MIN_PASSWORD = 6;
     let mode = "login";
 
@@ -142,7 +141,16 @@
       mode = next;
       document.getElementById("form-login").classList.toggle("hidden", mode !== "login");
       document.getElementById("form-reset").classList.toggle("hidden", mode !== "reset");
+      document.getElementById("form-emergency").classList.toggle("hidden", mode !== "emergency");
       hideAlerts();
+    }
+
+    function slugNgaFaqe() {
+      const parts = location.pathname.split("/").filter(Boolean);
+      if (parts.length >= 3 && (parts[2] === "owner" || parts[2] === "pronari")) {
+        return decodeURIComponent(parts[1] || "");
+      }
+      return "";
     }
 
     function ownerPortalFromStorage() {
@@ -273,6 +281,75 @@
         } else {
           localStorage.removeItem("owner_portal");
         }
+        location.href = "/owner/panel";
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+
+    document.getElementById("btn-emergency").addEventListener("click", async () => {
+      hideAlerts();
+      const fromUrl = slugNgaFaqe();
+      document.getElementById("emergency-slug-wrap").classList.toggle("hidden", !!fromUrl);
+      setMode("emergency");
+      if (!fromUrl) {
+        showInfo("Shkruaj kodin e biznesit, pastaj kërko kodin.");
+        return;
+      }
+      try {
+        const res = await fetch("/api/auth/owner/emergency/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug: fromUrl }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.gabim || "Gabim");
+        showInfo(data.message || "Kodi u dërgua te emaili i Super Admin.");
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+
+    document.getElementById("btn-emergency-back").addEventListener("click", () => setMode("login"));
+
+    document.getElementById("form-emergency").addEventListener("submit", async e => {
+      e.preventDefault();
+      hideAlerts();
+      const slug = slugNgaFaqe() || document.getElementById("emergency-slug").value.trim();
+      const code = document.getElementById("emergency-code").value.trim();
+      if (!slug) {
+        showError("Shkruaj kodin e biznesit.");
+        return;
+      }
+      if (!/^\d{6}$/.test(code)) {
+        if (code) {
+          showError("Kodi duhet të jetë 6 shifra.");
+          return;
+        }
+        const send = await fetch("/api/auth/owner/emergency/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug }),
+        });
+        const sent = await send.json().catch(() => ({}));
+        if (!send.ok) {
+          showError(sent.gabim || "Gabim");
+          return;
+        }
+        showInfo(sent.message || "Kodi u dërgua te emaili i Super Admin.");
+        return;
+      }
+      try {
+        const res = await fetch("/api/auth/owner/emergency/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ slug, code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.gabim || "Gabim");
+        localStorage.setItem("owner_token", data.token);
+        localStorage.removeItem("owner_portal");
         location.href = "/owner/panel";
       } catch (err) {
         showError(err.message);

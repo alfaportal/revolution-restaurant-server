@@ -127,6 +127,7 @@ const RESERVED_URL_TIPI = new Set([
   "privacy",
   "terms",
   "website",
+  "hap",
   "ri-super",
   "restaurant",
   "panel.html",
@@ -183,6 +184,17 @@ function withQuery(url, query = {}) {
   });
   const qs = q.toString();
   return qs ? `${url}${url.includes("?") ? "&" : "?"}${qs}` : url;
+}
+
+function ownerEntryPath(client) {
+  const urlTipi = urlTipiSegment(client);
+  const cat = tipiCategory(urlTipi);
+  const slug = cat === "hotel" ? publicKitchenSlugForClient(client) : (client?.kitchen_slug || client?.id);
+  if (!slug || !urlTipi) return "";
+  const role = cat === "security" ? "pronari" : "owner";
+  const path = buildRolePath(urlTipi, slug, role);
+  if (!path || path.includes("?") || path.includes("key=")) return "";
+  return path;
 }
 
 function buildRoleUrl(baseUrl, urlTipi, slug, role, { query = {}, table } = {}) {
@@ -377,6 +389,7 @@ module.exports = {
   isReservedUrlTipi,
   buildRolePath,
   buildRoleUrl,
+  ownerEntryPath,
   buildStaffUrl,
   buildClientWebLinks,
   buildClientWebLinksList,

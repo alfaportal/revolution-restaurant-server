@@ -60,6 +60,7 @@ const tekstet = {
         { id: "mac", emri: "macOS", vendi: "Mac", tekst: "Hapet në Mac, me të njëjtën punë." },
       ],
       kerko: "Kërko për",
+      hap: "Hap Programin",
     },
     produktet: { sy: "15 PRODUKTE", titulli: "Një program për biznesin tënd", nentitulli: "Zgjidh llojin e punës. Secili program ka arkën, kuponin dhe raportin e vet." },
     fiskal: {
@@ -238,6 +239,7 @@ const tekstet = {
         { id: "mac", emri: "macOS", vendi: "Mac", tekst: "It opens on a Mac, with the same work." },
       ],
       kerko: "Ask for",
+      hap: "Open the program",
     },
     produktet: { sy: "15 PRODUCTS", titulli: "One program for your business", nentitulli: "Pick the kind of work. Each program has its own till, receipt and report." },
     fiskal: {
@@ -416,6 +418,7 @@ const tekstet = {
         { id: "mac", emri: "macOS", vendi: "Mac", tekst: "Es öffnet sich auf dem Mac, mit derselben Arbeit." },
       ],
       kerko: "Anfragen für",
+      hap: "Programm öffnen",
     },
     produktet: { sy: "15 PRODUKTE", titulli: "Ein Programm für dein Geschäft", nentitulli: "Wähle die Art der Arbeit. Jedes Programm hat seine Kasse, seinen Beleg und seinen Bericht." },
     fiskal: {
@@ -594,6 +597,7 @@ const tekstet = {
         { id: "mac", emri: "macOS", vendi: "Mac", tekst: "Otvara se na Mac-u, sa istim radom." },
       ],
       kerko: "Zatraži za",
+      hap: "Otvori program",
     },
     produktet: { sy: "15 PROIZVODA", titulli: "Jedan program za tvoj posao", nentitulli: "Izaberi vrstu rada. Svaki program ima svoju kasu, kupon i izveštaj." },
     fiskal: {

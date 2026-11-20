@@ -742,6 +742,28 @@ p.hint{color:#555;font-size:.95rem}
     });
   }
 });
+app.get("/api/public/hap", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const { findClientForHap } = require("./lib/kitchenAccess");
+    const { ownerEntryPath } = require("./lib/productUrls");
+    const found = await findClientForHap(req.query.q);
+    if (!found || found.error) {
+      const code = found && found.error === "many" ? "many" : found && found.error === "empty" ? "empty" : "missing";
+      const status = code === "many" ? 409 : code === "empty" ? 400 : 404;
+      return res.status(status).json({ ok: false, error: code });
+    }
+    const url = ownerEntryPath(found.client);
+    if (!url || !url.startsWith("/") || url.includes("?") || /key=/i.test(url) || url.includes("\\")) {
+      return res.status(404).json({ ok: false, error: "missing" });
+    }
+    return res.json({ ok: true, url });
+  } catch (err) {
+    console.error("[hap]", err && err.message);
+    return res.status(500).json({ ok: false, error: "missing" });
+  }
+});
+
 /** Ndihmë AI për manualin publik — max 3 pyetje / sesion, përgjigje të shkurtra. */
 app.get("/api/public/manual-help/status", (req, res) => {
   try {
@@ -845,6 +867,8 @@ app.get("/", (_req, res) => sendMarketingPage(res, "/"));
 
 app.get(
   [
+    "/hap",
+    "/hap/",
     "/udhezuesi",
     "/udhezuesi/",
     "/privatesia",

@@ -66,6 +66,24 @@ async function getClientBySlugOrId(identifier) {
   return data;
 }
 
+async function findClientForHap(raw) {
+  const q = String(raw || "").trim();
+  if (!q || q.length > 80 || /[%_\\/?#]/.test(q)) return { error: "empty" };
+  const bySlug = await getClientBySlugOrId(q);
+  if (bySlug) return { client: bySlug };
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("clients")
+    .select("id, emri, kitchen_slug, tipi")
+    .ilike("emri", q)
+    .limit(5);
+  if (error) throw error;
+  const rows = data || [];
+  if (rows.length === 0) return { error: "missing" };
+  if (rows.length > 1) return { error: "many" };
+  return { client: rows[0] };
+}
+
 async function ensureKitchenCredentials(client) {
   if (!client?.id) return client;
   if (client.kitchen_slug && client.kitchen_key) return client;
@@ -146,6 +164,7 @@ module.exports = {
   extractKitchenKey,
   verifyKitchenKey,
   getClientBySlugOrId,
+  findClientForHap,
   ensureKitchenCredentials,
   buildKitchenUrl,
   buildTableMenuUrl,

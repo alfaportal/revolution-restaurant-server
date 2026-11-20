@@ -1,6 +1,6 @@
 {
-  "name": "Revolution Invest POS",
-  "short_name": "RI POS",
+  "name": "Revolution POS",
+  "short_name": "Revolution POS",
   "description": "Paneli i pronarit — Revolution Invest POS",
   "start_url": "/owner/panel",
   "scope": "/owner/",

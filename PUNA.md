@@ -1,5 +1,17 @@
 # PUNA.md — revolution-restaurant-server (gateway)
 
+## 2026-11-20 — Ndërtim dhe publikim
+
+Faqja u ndërtua. `/hap` doli në 24 faqe. Skedarët shkuan te `public/site/` pa fshirë të vjetrat. Po publikohet te faqja e gjallë.
+
+## 2026-11-19 — Kod emergjence, mbrojtje paneli, PWA
+
+Te hyrja e pronarit u shtua «Kod Emergjence». Kodi 6-shifror shkon vetëm te emaili i Super Admin dhe hap panelin e atij biznesi. Hyrja me email dhe fjalëkalim mbeti si ishte. Paneli i pronarit njeh klikimin e djathtë dhe mjetet e shfletuesit. Manifesti quhet Revolution POS. Ikona ishte tashmë logoja R. Paneli i kamarierit nuk u prek.
+
+## 2026-11-19 — Faqja Hap Programin
+
+U shtua faqja `/hap`. Klienti shkruan emrin ose kodin dhe shkon te paneli i pronarit: `/{tipi}/{kodi}/owner`. Te siguria shkon te `/pronari`. Adresa nuk mban çelës. Katër butonat te Përparësia (Windows, Android, iPhone/iPad, macOS) shkojnë te `/hap`. Në Windows shfaqet shkarkimi i Setup. Në Android dhe iPhone/iPad shfaqet udhëzimi për ta shtuar në ekranin kryesor. Në Mac thuhet që hapet në shfletues. Nuk u bë ndërtim dhe nuk u publikua.
+
 ## 2026-11-19 — Programet hapet me shtypje
 
 `website/src/components/Navbar.tsx`. Lista e programeve hapet vetëm kur shtypet «Programet». Nuk hapet më kur kalon mausi mbi shkrim.

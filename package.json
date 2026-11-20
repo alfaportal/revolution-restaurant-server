@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "test:pako5": "node scripts/test-pako5-e2e.mjs",
     "verify:setup": "node scripts/verify-setup-download.mjs",
+    "obfuscate:panels": "node scripts/obfuscate-owner-panel.js",
     "build:blog": "npm --prefix marketing-blog install && npm --prefix marketing-blog run build:integrated",
     "build:blog:vercel": "npm --prefix marketing-blog install && npm --prefix marketing-blog run build"
   },

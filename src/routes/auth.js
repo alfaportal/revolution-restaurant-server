@@ -23,6 +23,10 @@ const {
 } = require("../services/ownerPasswordReset");
 const { buildOwnerAuthContext } = require("../services/ownerGroupService");
 const { issueOwnerSession, OWNER_COOKIE_OPTS } = require("../lib/ownerSession");
+const {
+  requestSuperAdminEmergencyAccess,
+  verifySuperAdminEmergencyAccess,
+} = require("../services/superAdminEmergencyAccess");
 const { hotelOwnerLogin, hotelOwnerBranding } = require("../lib/hotelOwnerBridge");
 
 const router = express.Router();
@@ -407,6 +411,35 @@ router.get("/me", authRequired, (req, res) => {
 
 router.get("/owner/me", authOwner, (req, res) => {
   res.json({ ok: true, user: req.user });
+});
+
+router.post("/owner/emergency/request", async (req, res) => {
+  try {
+    const result = await requestSuperAdminEmergencyAccess(req.body?.slug);
+    res.json(result);
+  } catch (e) {
+    const status =
+      e.code === "EMPTY" ? 400
+      : e.code === "NOT_FOUND" ? 404
+      : e.code === "EMAIL_NOT_CONFIGURED" ? 503
+      : 500;
+    res.status(status).json({ ok: false, gabim: e.message, code: e.code || null });
+  }
+});
+
+router.post("/owner/emergency/verify", async (req, res) => {
+  try {
+    const result = await verifySuperAdminEmergencyAccess(req.body?.slug, req.body?.code);
+    res.cookie("owner_token", result.token, OWNER_COOKIE_OPTS);
+    res.clearCookie("owner_portal");
+    res.json(result);
+  } catch (e) {
+    const status =
+      e.code === "EMPTY" || e.code === "INVALID_CODE" || e.code === "CODE_EXPIRED" ? 400
+      : e.code === "NOT_FOUND" ? 404
+      : 500;
+    res.status(status).json({ ok: false, gabim: e.message, code: e.code || null });
+  }
 });
 
 module.exports = router;
