@@ -1326,7 +1326,7 @@ async function getOwnerReport(clientId, from, to) {
 /** Porosi të mbyllura (të gjitha kanalet) — për sync në daily_log të POS-it. */
 async function listClosedWebWaiterSalesForPos(clientId, sinceIso = "") {
   const db = getSupabase();
-  const { isRemoteActiveTableOrder } = require("../lib/orderSource");
+  const { isClosedSaleForPosImport } = require("../lib/orderSource");
   let q = db
     .from("sales_orders")
     .select(
@@ -1340,10 +1340,10 @@ async function listClosedWebWaiterSalesForPos(clientId, sinceIso = "") {
   if (since) q = q.gte("closed_at", since);
   const { data, error } = await q;
   if (error) throw error;
-  // Vetëm porosi nga telefon/QR/web — JO mbylljet e panelit POS.
+  // Telefon, QR, faqe publike dhe arka e shfletuesit — JO mbylljet e panelit POS.
   // Përndryshe closeTable lokale + pushSale + re-import = dyfishim daily_log / faturë.
   const rows = (data || [])
-    .filter(row => isRemoteActiveTableOrder(row.device_id))
+    .filter(row => isClosedSaleForPosImport(row.device_id))
     .slice()
     .sort((a, b) =>
       String(a.closed_at || "").localeCompare(String(b.closed_at || "")),
@@ -1355,7 +1355,7 @@ async function listClosedWebWaiterSalesForPos(clientId, sinceIso = "") {
     since || "(all)",
     "found=",
     rows.length,
-    "(web-only; POS closes excluded)",
+    "(web+arka; POS closes excluded)",
   );
   return rows.map(row => ({
     id: row.id,

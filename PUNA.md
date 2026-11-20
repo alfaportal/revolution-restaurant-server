@@ -1,3 +1,11 @@
+## 2026-11-20 — Arka e shfletuesit shkon te programi
+
+Te `src/lib/orderSource.js` rreshtat 85–92 u shtua `isClosedSaleForPosImport`. Te `src/services/salesService.js` rreshti 1346 filtri i shitjeve të mbyllura tani përfshin edhe `WEB-ARKA`, bashkë me telefonin, QR dhe faqen publike. Shitjet e vetë programit mbeten jashtë, që të mos hyjnë dy herë. Programi i ruan një herë me numrin e shitjes. U dërgua te faqja e gjallë me lejen e Naserit.
+
+## 2026-11-20 — U hoq shënimi te Ndërrimet
+
+Te `public/admin-cloud.html` u hoq fjalia te Ndërrimet. Mbeten shifrat: shitje sot dhe totali. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Hyrja nga kompjuteri hap Pasqyrën
 
 Te `public/owner/login.html` funksioni `ownerPanelHref` sheh nëse është telefon apo ekran i gjerë. Telefoni shkon te `/owner/panel`. Ekrani i gjerë (kompjuter ose tablet) shkon te `/admin-cloud.html`. Të katër hyrjet e përdorin: kur është futur tashmë, pas fjalëkalimit, pas kodit të emergjencës, pas fjalëkalimit të ri. Pronari i hotelit mbetet te `/owner/panel`. Paneli i telefonit dhe `admin.html` nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.

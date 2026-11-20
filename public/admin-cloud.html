@@ -353,7 +353,7 @@
       if (title) title.textContent = payload.show_register_labels ? "Arkat e lokalit" : "Ndërrimet";
       var regs = payload.registers || [];
       if (!regs.length) {
-        list.innerHTML = '<span style="color:#a0a0b8">Ndërrimi qëndron te programi në kompjuter. Këtu shihen vetëm shitjet e mbyllura që janë dërguar në cloud.</span>';
+        list.innerHTML = "";
       }
       if (salesLine) salesLine.textContent = "Shitje sot: " + euro(payload.sales_today_total || 0);
       if (totalLine) totalLine.textContent = "TOTALI (sot): " + euro(payload.sales_today_total || 0);

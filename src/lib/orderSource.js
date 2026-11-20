@@ -82,6 +82,15 @@ function isRemoteActiveTableOrder(deviceId) {
   return d === WEB_KIOSK || d === WEB_PUBLIC || d === WEB_WAITER;
 }
 
+function isArkaWebDevice(deviceId) {
+  const d = String(deviceId || "").trim().toUpperCase();
+  return d === "WEB-ARKA" || d.startsWith("WEB-ARKA-");
+}
+
+function isClosedSaleForPosImport(deviceId) {
+  return isRemoteActiveTableOrder(deviceId) || isArkaWebDevice(deviceId);
+}
+
 /** Terminali lokal Electron — jo WEB-WAITER/KIOSK/PUBLIC */
 function isPosDesktopDevice(deviceId) {
   const d = String(deviceId || "").trim().toUpperCase();
@@ -130,6 +139,8 @@ module.exports = {
   isBarMobileOrder,
   isCustomerChannelDevice,
   isRemoteActiveTableOrder,
+  isArkaWebDevice,
+  isClosedSaleForPosImport,
   isPosDesktopDevice,
   isDirectCustomerKitchenOrder,
   isKitchenGatedByPosAccept,
