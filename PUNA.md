@@ -1,3 +1,11 @@
+## 2026-11-20 — Hyrja si te programi
+
+Te `public/arka.html` hyrja u bë si te programi: majtas pronari, djathtas PIN-i i punonjësit. Katër shifrat dhe butoni Hyr hapin panelin e kamarierëve (tavolinat). Hyr si Pronari shkon te hyrja e pronarit të të njëjtit lokal. Nuk u prek programi në kompjuter, kamarieri i telefonit, as paneli i pronarit. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-20 — Fotot dhe kuponi termik
+
+Te `public/arka.html` fotot e produkteve u vendosën në rrjetë të vogël, si te programi. Kuponi termik është zgjedhur që në fillim. Dërgo porosinë ruan porosinë dhe e dërgon kuponin «POROSI» te printeri. Paguaj (Termik), Cash dhe Kartë e dërgojnë kuponin e pagesës, pa fiskalizim. Te `src/services/printServerService.js` kuponi i porosisë shkruan POROSI dhe nuk ka rresht pagese. Fiskali mbetet te Paguaj Fiskal, sepse aty duhet ATK. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-20 — Arka si programi
 
 Te `public/arka.html` pamja u vu si te programi: ana majtas (Klaim e re, Lista e porosive, Raporti Z, Dil), numrat lart (E hapur, Lirë, QR, Kryesore, Terrasa, Porosi online, monedha me sy), tavolinat, dhe butonat e pagesës. Dërgo porosinë e ruan porosinë. Paguaj (Termik) e ruan shitjen dhe e dërgon në printim. Monedha në arkë është cash i sotëm. Stilet e programit u kopjuan te `public/css/pos-program-style.css`, `pos-program-waiter.css`, `pos-program-truffle.css`, `pos-program-tables.css`. Te `src/services/arkaService.js` porosia e hapur ruhet, dhe cash i ditës kthehet me tavolinat. Te `src/routes/arka.js` u shtua ruajtja e porosisë dhe Raporti Z. Nuk u dërgua ende te faqja e gjallë. Programi në kompjuter nuk u prek.

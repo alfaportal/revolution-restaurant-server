@@ -91,13 +91,17 @@ function receiptText(info) {
   if (info.business) rows.push(center(info.business, w));
   rows.push(center(whenText(info.at), w));
   rows.push(line);
+  if (info.kind === "order") {
+    rows.push(center("POROSI", w));
+    rows.push(center("(jo fature perfundimtare)", w));
+  }
   if (info.table) rows.push(`Tavolina: T${info.table}`);
   if (info.staff) rows.push(pair("Arka:", info.staff, w));
   rows.push(line);
   for (const item of info.items || []) rows.push(itemLine(item, w));
   rows.push(line);
   rows.push(pair("TOTALI:", `${money(info.total)} EUR`, w));
-  if (info.payment) rows.push(pair("Pagesa:", paymentLabel(info.payment), w));
+  if (info.kind !== "order" && info.payment) rows.push(pair("Pagesa:", paymentLabel(info.payment), w));
   if (info.fiscalNumber) rows.push(pair("Nr fiskal:", String(info.fiscalNumber), w));
   if (info.nuikf) rows.push(pair("NUIKF:", String(info.nuikf), w));
   rows.push(line);
@@ -125,13 +129,25 @@ async function queueArkaPrint(clientId, staff, body, businessName) {
     err.status = 404;
     throw err;
   }
+  const kind = body?.kind === "order" ? "order" : "sale";
+  let storedItems = sale.items_json;
+  if (typeof storedItems === "string") {
+    try { storedItems = JSON.parse(storedItems); } catch (err) { storedItems = []; }
+  }
+  const sentItems = Array.isArray(body?.items) && body.items.length
+    ? body.items
+    : (Array.isArray(storedItems) ? storedItems : []);
+  const slipTotal = kind === "order"
+    ? sentItems.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0)
+    : sale.total;
   const text = receiptText({
+    kind,
     business: businessName || "",
     at: body?.at || sale.ordered_at,
     table: sale.table_number,
     staff: staff?.name || sale.waiter_name || "",
-    items: Array.isArray(sale.items_json) ? sale.items_json : [],
-    total: sale.total,
+    items: sentItems,
+    total: slipTotal,
     payment: sale.payment_method,
     fiscalNumber: body?.fiscal_number || "",
     nuikf: body?.nuikf || "",

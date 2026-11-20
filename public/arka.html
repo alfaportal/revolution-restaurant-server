@@ -17,8 +17,49 @@
     .pos-pazar-eye { border: 0; background: transparent; color: inherit; padding: 4px; line-height: 0; cursor: pointer; }
     .waiter-kpi-cash { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; }
     .pos-shift-pazar-box:not([hidden]) { display: flex; flex-direction: column; align-items: flex-end; }
-    #gate, #pin-box { max-width: 420px; margin: 24px auto; background: #fff; color: #111827; border-radius: 16px; padding: 16px; }
-    #pin { width: 100%; font-size: 1.4rem; letter-spacing: .35em; text-align: center; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    #hyrja { position: fixed; inset: 0; z-index: 60; display: flex; background: #f4f7fb; color: #0f172a; }
+    #hyrja .brand { width: 240px; flex-shrink: 0; background: #0c1730; color: #fff; display: flex; flex-direction: column; padding: 28px 20px; }
+    #hyrja .brand img { width: 72px; height: 72px; object-fit: contain; background: #000; border-radius: 10px; }
+    #hyrja .brand .tag { letter-spacing: .12em; font-size: 11px; opacity: .65; margin: 16px 0 6px; }
+    #hyrja .brand h2 { margin: 0; font-size: 22px; letter-spacing: .06em; }
+    #hyrja .brand .foot { margin-top: auto; font-size: 12px; opacity: .65; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+    #hyrja .brand .cloud { border: 1px solid #166534; background: #052e16; color: #86efac; border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+    #hyrja .main { flex: 1; padding: 28px 36px 40px; overflow: auto; }
+    #hyrja h1 { margin: 0 0 6px; font-size: 28px; }
+    #hyrja .lead { margin: 0 0 18px; color: #64748b; }
+    #hyrja .split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+    #hyrja .col-title { text-align: center; margin: 0 0 12px; font-size: 15px; color: #334155; }
+    #hyrja label { display: block; font-size: 13px; margin-bottom: 6px; }
+    #hyrja input[type="password"] { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 15px; }
+    #hyrja .btn-owner { width: 100%; margin-top: 12px; background: #0f1b3d; color: #fff; border: 0; border-radius: 10px; padding: 14px; font-weight: 800; cursor: pointer; }
+    #hyrja .tile { margin-top: 14px; border-radius: 12px; padding: 16px; text-align: center; }
+    #hyrja .tile b { display: block; margin-bottom: 4px; }
+    #hyrja .tile span { color: #64748b; font-size: 13px; }
+    #hyrja .tile-rfid { border: 1px dashed #93c5fd; background: #f8fbff; }
+    #hyrja .tile-em { background: #fff7d6; border: 1px solid #fde68a; }
+    #hyrja .orders { background: #e8f3ff; border: 1px solid #dbeafe; border-radius: 12px; text-align: center; padding: 14px; margin-bottom: 16px; }
+    #hyrja .orders b { color: #1d4ed8; display: block; }
+    #hyrja .orders span { color: #64748b; font-size: 13px; }
+    #hyrja .pin-hint { text-align: center; color: #64748b; font-size: 13px; margin: 0 0 8px; }
+    #hyrja .dots { display: flex; justify-content: center; gap: 10px; margin: 8px 0 14px; }
+    #hyrja .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff; }
+    #hyrja .dot.on { background: #0f172a; border-color: #0f172a; }
+    #hyrja .pad { display: grid; grid-template-columns: repeat(3, 72px); gap: 10px; justify-content: center; }
+    #hyrja .pad button { width: 72px; height: 56px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-size: 20px; font-weight: 700; cursor: pointer; }
+    #hyrja .pad button:last-child { visibility: hidden; }
+    #hyrja .pin-actions { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+    #hyrja .btn-clear { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 18px; font-weight: 700; cursor: pointer; }
+    #hyrja .btn-hyr { background: #0f1b3d; color: #fff; border: 0; border-radius: 10px; padding: 10px 28px; font-weight: 800; cursor: pointer; }
+    #hyrja .tile-wait { margin-top: 14px; background: #fffbeb; border: 1px solid #fde68a; }
+    #hyrja .tile-card { margin-top: 10px; border: 1px dashed #86efac; background: #f0fdf4; }
+    #hyrja #pin { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    #hyrja #pin-msg { text-align: center; color: #b91c1c; font-weight: 700; min-height: 1.2rem; margin-top: 8px; }
+    #hyrja #gate { background: #fff7ed; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+    @media (max-width: 900px) {
+      #hyrja { flex-direction: column; overflow: auto; }
+      #hyrja .brand { width: auto; }
+      #hyrja .split { grid-template-columns: 1fr; }
+    }
     #pay-msg { min-height: 1.2rem; margin: 0 0 8px; color: #b91c1c; font-weight: 700; }
     .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
     .sheet .panel { background: #fff; color: #111827; width: min(520px, 100%); border-radius: 16px 16px 0 0; padding: 16px; max-height: 80vh; overflow: auto; }
@@ -33,20 +74,88 @@
     #ekrani-porosia .qty button { width: 28px; height: 28px; padding: 0; border-radius: 8px; background: #111827; color: #fff; }
     #ekrani-porosia .card-title { font-weight: 800; margin: .35rem 0; }
     #ekrani-porosia .btn-coupon.on { box-shadow: inset 0 0 0 2px #16a34a; }
+    #ekrani-porosia .menu-photo-grid-inner {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 112px);
+      gap: 0.5rem;
+      align-content: start;
+    }
+    #ekrani-porosia .menu-item-card { max-width: 112px; }
+    #ekrani-porosia .menu-item-photo-wrap { height: 78px; aspect-ratio: auto; }
+    #ekrani-porosia .menu-item-photo { height: 78px; object-fit: cover; }
 
   </style>
 </head>
 <body class="waiter-screen">
   <div id="net-banner" class="hidden"></div>
-  <section id="gate">
-    <p id="gate-text">Po kontrollohet hyrja…</p>
-    <a class="btn hidden" id="go-kycu" href="/kycu" style="display:inline-block;text-align:center;text-decoration:none">Hyr te Kyçu</a>
-  </section>
-  <section class="hidden" id="pin-box">
-    <label for="pin">PIN i punonjësit</label>
-    <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
-    <button type="button" class="btn" id="pin-go">Hyr</button>
-    <div class="msg" id="pin-msg"></div>
+  <section id="hyrja">
+    <aside class="brand">
+      <img src="/logo-source.png" alt="Revolution">
+      <p class="tag">REVOLUTION INVEST POS</p>
+      <h2>REVOLUTION</h2>
+      <div class="foot">Powered by Revolution POS<span class="cloud">Cloud</span></div>
+    </aside>
+    <main class="main">
+      <h1>Hyrje në sistem</h1>
+      <p class="lead">Zgjidhni rolin: pronari (fjalëkalim ose kartelë RFID) ose kamarier (PIN / RFID).</p>
+      <section id="gate">
+        <p id="gate-text">Po kontrollohet hyrja…</p>
+        <a class="btn hidden" id="go-kycu" href="/kycu">Hyr te Kyçu</a>
+      </section>
+      <div class="split">
+        <div>
+          <h2 class="col-title">Pronari</h2>
+          <label for="fjalekalimi">Fjalëkalimi</label>
+          <input type="password" id="fjalekalimi" placeholder="Shkruani fjalëkalimin…" autocomplete="current-password">
+          <button type="button" class="btn-owner" id="hyr-pronari">Hyr si Pronari</button>
+          <div class="tile tile-rfid">
+            <b>Skanoni kartën RFID — ose përdorni fjalëkalimin</b>
+            <span>Gati për skanim</span>
+          </div>
+          <div class="tile tile-em">
+            <b>Kod emergjence</b>
+            <span>Harruat fjalëkalimin?</span>
+          </div>
+        </div>
+        <div id="pin-box">
+          <div class="orders">
+            <b>Porosi të reja</b>
+            <span>Nuk ka porosi të reja</span>
+          </div>
+          <h2 class="col-title">Kamarier</h2>
+          <p class="pin-hint">Shkruani PIN-in (4 shifra) ose skanoni kartelën RFID</p>
+          <div class="dots" id="pin-dots">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="pad" id="numpad">
+            <button type="button" data-digit="1">1</button>
+            <button type="button" data-digit="2">2</button>
+            <button type="button" data-digit="3">3</button>
+            <button type="button" data-digit="4">4</button>
+            <button type="button" data-digit="5">5</button>
+            <button type="button" data-digit="6">6</button>
+            <button type="button" data-digit="7">7</button>
+            <button type="button" data-digit="8">8</button>
+            <button type="button" data-digit="9">9</button>
+            <button type="button" data-act="back">←</button>
+            <button type="button" data-digit="0">0</button>
+            <button type="button" tabindex="-1"></button>
+          </div>
+          <div class="pin-actions">
+            <button type="button" class="btn-clear" id="pin-pastro">Pastro</button>
+            <button type="button" class="btn-hyr" id="pin-go">Hyr</button>
+          </div>
+          <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off">
+          <div id="pin-msg"></div>
+          <div class="tile tile-wait">
+            <b>Kod emergjence (harruat PIN-in?)</b>
+          </div>
+          <div class="tile tile-card">
+            <b>Skanoni kartën RFID për të hyrë</b>
+          </div>
+        </div>
+      </div>
+    </main>
   </section>
   <div id="ekrani-tavolina" class="waiter-shell hidden">
     <aside class="waiter-sidebar">
@@ -107,7 +216,7 @@
       <div class="menu-pos-wrap">
         <input id="find" type="search" placeholder="Skano barkodin" autocomplete="off" aria-label="Skano barkodin">
         <div class="menu-group-bar" id="cats"></div>
-        <div class="menu-photo-grid" id="products"></div>
+        <div class="menu-photo-grid"><div class="menu-photo-grid-inner" id="products"></div></div>
       </div>
       <aside class="waiter-orders-panel">
         <div class="order-list">
@@ -131,7 +240,7 @@
             <button type="button" class="btn btn-danger pos-pay-btn" data-act="cancel">Anullo porosinë</button>
             <div class="coupon-type-row payments-coupon-row">
               <button type="button" class="btn-coupon btn-coupon-fiscal pos-pay-btn" data-act="coupon" data-coupon="fiscal">Kuponi Fiskal</button>
-              <button type="button" class="btn-coupon btn-coupon-thermal pos-pay-btn" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
+              <button type="button" class="btn-coupon btn-coupon-thermal pos-pay-btn on" data-act="coupon" data-coupon="thermal">Kuponi Termik</button>
             </div>
             <button type="button" class="btn btn-payment-cash pos-pay-btn" data-pay="cash">Cash</button>
             <button type="button" class="btn btn-payment-karte pos-pay-btn" data-pay="card">Kartë</button>
@@ -199,6 +308,27 @@
     }
     const gate = document.getElementById("gate");
     const pinBox = document.getElementById("pin-box");
+    const hyrja = document.getElementById("hyrja");
+    let pinValue = "";
+    let pinBusy = false;
+    function clearPin() {
+      pinValue = "";
+      document.getElementById("pin").value = "";
+      document.querySelectorAll("#pin-dots .dot").forEach(function (d) { d.classList.remove("on"); });
+    }
+    function paintDots() {
+      document.getElementById("pin").value = pinValue;
+      document.querySelectorAll("#pin-dots .dot").forEach(function (d, i) { d.classList.toggle("on", i < pinValue.length); });
+    }
+    function showLogin() {
+      hyrja.classList.remove("hidden");
+      floor.classList.add("hidden");
+      kpis.classList.add("hidden");
+      sell.classList.remove("active");
+      sell.classList.add("hidden");
+      outBtn.classList.add("hidden");
+      pinBox.classList.remove("hidden");
+    }
     const floor = document.getElementById("floor");
     const kpis = document.getElementById("ekrani-tavolina");
     const sell = document.getElementById("ekrani-porosia");
@@ -211,28 +341,20 @@
     let paying = false;
     let lastSaleId = "";
     let lastPayType = "cash";
-    let couponKind = "fiscal";
+    let couponKind = "thermal";
     let staffName = "";
     function euro(n) { return (Number(n) || 0).toFixed(2) + " €"; }
     function showGate(text, kycu) {
-      floor.classList.add("hidden");
-      kpis.classList.add("hidden");
-      sell.classList.remove("active");
-      sell.classList.add("hidden");
-      pinBox.classList.add("hidden");
-      outBtn.classList.add("hidden");
+      showLogin();
       gate.classList.remove("hidden");
       document.getElementById("gate-text").textContent = text;
       document.getElementById("go-kycu").classList.toggle("hidden", !kycu);
     }
     function showPin() {
+      showLogin();
       gate.classList.add("hidden");
-      floor.classList.add("hidden");
-      kpis.classList.add("hidden");
-      sell.classList.remove("active");
-      sell.classList.add("hidden");
-      outBtn.classList.add("hidden");
-      pinBox.classList.remove("hidden");
+      clearPin();
+      document.getElementById("pin-msg").textContent = "";
     }
     function cartTotal() {
       return cart.reduce(function (s, it) { return s + it.price * it.quantity; }, 0);
@@ -418,6 +540,7 @@
     }
     function paint(data) {
       lastFloor = data;
+      hyrja.classList.add("hidden");
       gate.classList.add("hidden");
       pinBox.classList.add("hidden");
       floor.classList.remove("hidden");
@@ -690,6 +813,7 @@
         return;
       }
       const items = sentLines.concat(cart);
+      const fresh = cart.slice();
       paying = true;
       document.getElementById("pay-msg").textContent = "Po regjistrohet porosia...";
       try {
@@ -702,10 +826,13 @@
           document.getElementById("pay-msg").textContent = (data && data.gabim) || "Porosia nuk u regjistrua.";
           return;
         }
+        lastSaleId = data.sale_id || "";
+        lastPayType = "";
         sentLines = items;
         cart = [];
         paintCart();
-        document.getElementById("pay-msg").textContent = "Porosia u regjistrua. " + euro(data.total);
+        document.getElementById("pay-msg").textContent = "Porosia u regjistrua. " + euro(data.total) + " Duke printuar kuponin termik...";
+        sendPrint(null, { kind: "order", items: fresh });
       } finally {
         paying = false;
       }
@@ -742,7 +869,7 @@
       if (how === "thermal") {
         document.getElementById("pay-msg").textContent = "Shitja u ruajt. " + euro(data.total) + " Duke printuar kuponin termik...";
         document.getElementById("fiscal-retry").classList.add("hidden");
-        sendPrint(null);
+        sendPrint(null, { kind: "sale" });
         return;
       }
       if (how === "paper") {
@@ -758,13 +885,16 @@
       }
     }
     function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
-    async function sendPrint(fiscal) {
+    async function sendPrint(fiscal, extra) {
       const note = document.getElementById("pay-msg").textContent;
+      const slip = extra || {};
       document.getElementById("pay-msg").textContent = note + " Duke printuar...";
       const res = await api("/print", {
         method: "POST",
         body: JSON.stringify({
           sale_id: lastSaleId,
+          kind: slip.kind || "sale",
+          items: slip.items || [],
           fiscal_number: fiscal && fiscal.fiscal_number ? fiscal.fiscal_number : "",
           nuikf: fiscal && fiscal.nuikf ? fiscal.nuikf : "",
           payment_type: lastPayType,
@@ -777,11 +907,11 @@
         document.getElementById("pay-msg").textContent = note + " Printimi do dërgohet kur kthehet interneti.";
         return;
       }
-      if (!res.ok || !data.id) {
-        document.getElementById("pay-msg").textContent = note + " " + (data.gabim || "Printeri nuk u gjet");
+      if (!res || !res.ok || !data.id) {
+        document.getElementById("pay-msg").textContent = note + " " + ((data && data.gabim) || "Printeri nuk u gjet");
         return;
       }
-      for (let i = 0; i < 4; i += 1) {
+      for (let i = 0; i < 10; i += 1) {
         await wait(2000);
         const st = await api("/print/job/" + encodeURIComponent(data.id));
         const job = await st.json().catch(function () { return {}; });
@@ -794,7 +924,7 @@
           return;
         }
       }
-      document.getElementById("pay-msg").textContent = note + " Printeri nuk u gjet";
+      document.getElementById("pay-msg").textContent = note + " Kuponi është në radhë. Te kompjuteri duhet të jetë hapur ura e printerit.";
     }
     async function fiscalize(andPrint) {
       if (!lastSaleId) return;
@@ -874,6 +1004,7 @@
       if (res.status === 401) return showGate("Hyni fillimisht me email, fjalëkalim dhe kodin 6-shifror.", true);
       if (!res.ok) return showGate(data.gabim || "Hyrja dështoi.", false);
       document.getElementById("hdr-emri").textContent = data.business || "Arka";
+      if (data.staff && data.staff.name) staffName = data.staff.name;
       if (data.staff && window.ArkaOffline) ArkaOffline.saveSession(slug, { staff: data.staff, business: data.business || "" });
       if (!data.staff) return showPin();
       loadTables();
@@ -961,15 +1092,58 @@
         else paintNet("");
       }
     }
-    document.getElementById("pin-go").addEventListener("click", async function () {
+    document.getElementById("numpad").addEventListener("click", function (ev) {
+      const b = ev.target.closest("button");
+      if (!b || pinBusy) return;
+      const digit = b.getAttribute("data-digit");
+      if (digit && pinValue.length < 4) pinValue += digit;
+      if (b.getAttribute("data-act") === "back") pinValue = pinValue.slice(0, -1);
+      paintDots();
+      if (pinValue.length === 4) document.getElementById("pin-go").click();
+    });
+    document.getElementById("pin-pastro").addEventListener("click", function () {
+      clearPin();
       document.getElementById("pin-msg").textContent = "";
-      const res = await api("/pin", { method: "POST", body: JSON.stringify({ pin: document.getElementById("pin").value }) });
-      const data = await res.json().catch(function () { return {}; });
-      if (!res.ok) {
-        document.getElementById("pin-msg").textContent = data.gabim || "PIN i gabuar.";
+    });
+    document.addEventListener("keydown", function (e) {
+      if (hyrja.classList.contains("hidden")) return;
+      if (document.activeElement && document.activeElement.id === "fjalekalimi") return;
+      if (/^[0-9]$/.test(e.key) && pinValue.length < 4 && !pinBusy) {
+        pinValue += e.key;
+        paintDots();
+        if (pinValue.length === 4) document.getElementById("pin-go").click();
+      } else if (e.key === "Backspace") {
+        pinValue = pinValue.slice(0, -1);
+        paintDots();
+      } else if (e.key === "Enter" && pinValue.length === 4) {
+        document.getElementById("pin-go").click();
+      }
+    });
+    document.getElementById("hyr-pronari").addEventListener("click", function () {
+      const tipi = parts[0] || "kafene";
+      location.assign("/" + encodeURIComponent(tipi) + "/" + encodeURIComponent(slug) + "/owner" + location.search);
+    });
+    document.getElementById("pin-go").addEventListener("click", async function () {
+      if (pinBusy) return;
+      if (pinValue.length !== 4) {
+        document.getElementById("pin-msg").textContent = "Shkruani 4 shifra PIN.";
         return;
       }
-      loadTables();
+      pinBusy = true;
+      document.getElementById("pin-msg").textContent = "";
+      try {
+        const res = await api("/pin", { method: "POST", body: JSON.stringify({ pin: pinValue }) });
+        const data = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+          document.getElementById("pin-msg").textContent = data.gabim || "PIN i gabuar.";
+          clearPin();
+          return;
+        }
+        if (data.staff && data.staff.name) staffName = data.staff.name;
+        loadTables();
+      } finally {
+        pinBusy = false;
+      }
     });
     outBtn.addEventListener("click", async function () {
       await api("/logout-pin", { method: "POST", body: "{}" });
