@@ -1,10 +1,18 @@
+## 2026-11-20 — Hyrja nga kompjuteri hap Pasqyrën
+
+Te `public/owner/login.html` funksioni `ownerPanelHref` sheh nëse është telefon apo ekran i gjerë. Telefoni shkon te `/owner/panel`. Ekrani i gjerë (kompjuter ose tablet) shkon te `/admin-cloud.html`. Të katër hyrjet e përdorin: kur është futur tashmë, pas fjalëkalimit, pas kodit të emergjencës, pas fjalëkalimit të ri. Pronari i hotelit mbetet te `/owner/panel`. Paneli i telefonit dhe `admin.html` nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.
+
+## 2026-11-20 — Pasqyra e cloud lexon shitjet
+
+Te `src/routes/adminCloud.js` u shtua `GET /api/admin-cloud/pasqyra`. Te `src/services/adminCloudService.js` lexohen shitjet e mbyllura (`sales_orders`), TVSH e kuponëve (`fiscal_receipts`), shpenzimet e pronarit (`owner_expenses`) dhe stoku i ulët (`pos_menu_items`). Te `src/server.js` rruga u hap. Te `public/admin-cloud.html` skeda Pasqyra tregon të njëjtat blloqe si programi: të ardhurat sot, porositë, mesataren, shpenzimet, ndërrimet, Rifresko Arkën, stokun e ulët, skadencën dhe grafikët. Rifresko Arkën vetëm i ngarkon shifrat, nuk fshin asgjë. Ndërrimi dhe skadenca nuk ruhen në cloud, prandaj ndërrimi tregon vetëm totalin e shitjeve dhe skadenca qëndron e fshehur kur s’ka të dhëna. Programi në kompjuter, telefoni dhe hoteli nuk u prekën. U dërgua te faqja e gjallë me lejen e Naserit.
+
 ## 2026-11-20 — Hyrja si te programi
 
-Te `public/arka.html` hyrja u bë si te programi: majtas pronari, djathtas PIN-i i punonjësit. Katër shifrat dhe butoni Hyr hapin panelin e kamarierëve (tavolinat). Hyr si Pronari shkon te hyrja e pronarit të të njëjtit lokal. Nuk u prek programi në kompjuter, kamarieri i telefonit, as paneli i pronarit. Nuk u dërgua te faqja e gjallë.
+Te `public/arka.html` hyrja u bë si te programi: majtas pronari, djathtas PIN-i i punonjësit. Katër shifrat dhe butoni Hyr hapin panelin e kamarierëve (tavolinat). Hyr si Pronari shkon te hyrja e pronarit të të njëjtit lokal. Nuk u prek programi në kompjuter, kamarieri i telefonit, as paneli i pronarit. U dërgua te faqja e gjallë me lejen e Naserit.
 
 ## 2026-11-20 — Fotot dhe kuponi termik
 
-Te `public/arka.html` fotot e produkteve u vendosën në rrjetë të vogël, si te programi. Kuponi termik është zgjedhur që në fillim. Dërgo porosinë ruan porosinë dhe e dërgon kuponin «POROSI» te printeri. Paguaj (Termik), Cash dhe Kartë e dërgojnë kuponin e pagesës, pa fiskalizim. Te `src/services/printServerService.js` kuponi i porosisë shkruan POROSI dhe nuk ka rresht pagese. Fiskali mbetet te Paguaj Fiskal, sepse aty duhet ATK. Nuk u dërgua te faqja e gjallë.
+Te `public/arka.html` fotot e produkteve u vendosën në rrjetë të vogël, si te programi. Kuponi termik është zgjedhur që në fillim. Dërgo porosinë ruan porosinë dhe e dërgon kuponin «POROSI» te printeri. Paguaj (Termik), Cash dhe Kartë e dërgojnë kuponin e pagesës, pa fiskalizim. Te `src/services/printServerService.js` kuponi i porosisë shkruan POROSI dhe nuk ka rresht pagese. Fiskali mbetet te Paguaj Fiskal, sepse aty duhet ATK. U dërgua te faqja e gjallë bashkë me hyrjen, me lejen e Naserit.
 
 ## 2026-11-20 — Arka si programi
 

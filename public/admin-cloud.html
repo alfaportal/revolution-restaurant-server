@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="sq" class="admin-app-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paneli</title>
+  <style>
+    html.admin-app-root, body.admin-app { height: 100%; margin: 0; overflow: hidden; }
+    body.admin-app {
+      background: #12121f;
+      color: #e8e8ef;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .admin-shell { display: flex; flex-direction: column; height: 100vh; min-height: 0; }
+    .admin-topbar {
+      flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 0.65rem 1.25rem; background: #1a1a2e; border-bottom: 1px solid #2e2e45;
+    }
+    .admin-topbar-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+    .admin-topbar-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; flex-shrink: 0; background: #000; }
+    .admin-topbar-brand { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-topbar-sep { color: #3a3a55; font-weight: 300; }
+    .admin-topbar-crumb { font-size: 0.95rem; font-weight: 600; color: #a0a0b8; }
+    .admin-topbar-right { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
+    .fiscal-z-bell-btn {
+      position: relative; border: 1px solid rgba(251, 146, 60, 0.5); background: rgba(234, 88, 12, 0.15);
+      color: #fdba74; border-radius: 10px; padding: 0.35rem 0.55rem; font-size: 1.05rem; line-height: 1;
+    }
+    .app-version-pill {
+      display: inline-flex; align-items: center; padding: 0.18rem 0.55rem; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; background: rgba(59, 130, 246, 0.18);
+      color: #93c5fd; border: 1px solid rgba(147, 197, 253, 0.32);
+    }
+    .cloud-status-pill {
+      display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.78rem; font-weight: 700;
+      padding: 0.3rem 0.65rem; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.35); white-space: nowrap;
+    }
+    .cloud-status-pill.cloud-status-bad { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+    .admin-topbar-clock { font-size: 0.88rem; font-weight: 600; color: #c8c8d8; font-variant-numeric: tabular-nums; }
+    .admin-user-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; border-radius: 999px;
+      background: #252538; color: #e8e8ef; font-size: 0.82rem; font-weight: 600;
+    }
+    .admin-user-badge .user-initial {
+      width: 22px; height: 22px; border-radius: 50%; background: #FF6B35; color: #fff;
+      font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .admin-logout {
+      padding: 0.45rem 0.85rem; border: 1px solid #3a3a55; border-radius: 8px; background: #252538;
+      color: #c8c8d8; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .admin-logout:hover { background: rgba(220, 38, 38, 0.15); border-color: #ef4444; color: #fca5a5; }
+    .admin-tabbar {
+      flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 0; padding: 0 0.75rem;
+      background: #1a1a2e; border-bottom: 2px solid #2e2e45;
+    }
+    .admin-tab-btn {
+      flex: 0 0 auto; padding: 0.75rem 1rem; border: none; border-bottom: 3px solid transparent;
+      margin-bottom: -2px; background: transparent; color: #a0a0b8; font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; font-family: inherit;
+    }
+    .admin-tab-btn:hover { color: #FF6B35; }
+    .admin-tab-btn.active { color: #FF6B35; border-bottom-color: #FF6B35; }
+    .admin-main { flex: 1; min-height: 0; overflow: auto; background: #12121f; }
+    .admin-main-inner { max-width: 1280px; margin: 0 auto; padding: 1.25rem 1.25rem 2rem; }
+    section.panel { display: none; }
+    section.panel.active { display: block; }
+    .card {
+      background: #1a1a2e; border-radius: 12px; border: 1px solid rgba(255, 107, 53, 0.28);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2); padding: 1.25rem; color: #e8e8ef;
+    }
+    .card-title { font-weight: 800; margin: 0 0 0.65rem; color: #fff; }
+    .cloud-status-pill.cloud-status-ok { background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(134, 239, 172, 0.35); }
+    .dashboard-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+    .dashboard-kpi {
+      background: #1a1a2e; border: 1px solid rgba(255, 107, 53, 0.28); border-radius: 12px;
+      padding: 1.15rem 1.25rem; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
+    }
+    .dashboard-kpi-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #a0a0b8; margin-bottom: 0.35rem; }
+    .dashboard-kpi-val { font-size: 1.65rem; font-weight: 800; color: #fff; line-height: 1.2; }
+    .dashboard-kpi-sub { font-size: 0.78rem; color: #a0a0b8; margin-top: 0.2rem; }
+    .dashboard-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .dashboard-chart-area, .dashboard-chart-bars { min-height: 200px; padding: 0.5rem 0; }
+    .dashboard-empty { color: #a0a0b8; text-align: center; padding: 2.5rem 1rem; }
+    .dash-bar-row { display: grid; grid-template-columns: 88px 1fr auto; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem; font-size: 0.82rem; }
+    .dash-bar-label, .dash-col-label, .dashboard-top-table th { color: #a0a0b8; font-weight: 600; }
+    .dash-bar-track { height: 10px; background: #252538; border-radius: 999px; overflow: hidden; }
+    .dash-bar-fill, .dash-col-bar { background: #FF6B35; }
+    .dash-bar-fill { height: 100%; border-radius: 999px; min-width: 2px; }
+    .dash-bar-val { font-weight: 700; color: #e8e8ef; font-size: 0.78rem; white-space: nowrap; }
+    .dash-col-chart { display: flex; align-items: flex-end; gap: 3px; height: 180px; overflow-x: auto; }
+    .dash-col { flex: 1; min-width: 14px; max-width: 28px; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+    .dash-col-bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; }
+    .dash-col-label { font-size: 0.58rem; margin-top: 0.25rem; }
+    .dashboard-top-table { width: 100%; border-collapse: collapse; }
+    .dashboard-top-table th, .dashboard-top-table td { text-align: left; padding: 0.4rem 0.35rem; border-bottom: 1px solid #2e2e45; font-size: 0.85rem; }
+    .btn { padding: 0.4rem 0.75rem; border-radius: 8px; border: 1px solid #3a3a55; background: #252538; color: #e8e8ef; cursor: pointer; font-family: inherit; font-weight: 600; }
+    .hint { color: #a0a0b8; font-size: 0.85rem; }
+    @media (max-width: 800px) {
+      .dashboard-kpi-row, .dashboard-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="admin-app">
+  <div class="admin-shell">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <img src="/logo-icon.svg" alt="" class="admin-topbar-logo" width="36" height="36">
+        <span class="admin-topbar-brand" id="hdr-emri">Kafene</span>
+        <span class="admin-topbar-sep">/</span>
+        <span class="admin-topbar-crumb">Paneli</span>
+      </div>
+      <div class="admin-topbar-right">
+        <button type="button" class="fiscal-z-bell-btn" aria-label="Kujtesë">🔔</button>
+        <span class="app-version-pill" id="hdr-app-version"></span>
+        <span class="cloud-status-pill cloud-status-bad" id="cloud-pill">☁ …</span>
+        <span class="admin-topbar-clock" id="admin-clock">--:--</span>
+        <span class="admin-user-badge">
+          <span class="user-initial">P</span>
+          <span>pronari</span>
+        </span>
+        <button type="button" class="admin-logout" id="btn-dilni">Dilni</button>
+      </div>
+    </header>
+    <nav class="admin-tabbar" id="tabs">
+      <button type="button" class="admin-tab-btn active" data-panel="pasqyra">Pasqyra</button>
+      <button type="button" class="admin-tab-btn" data-panel="importo-produkte">Importo Produkte</button>
+      <button type="button" class="admin-tab-btn" data-panel="menuja">Produktet</button>
+      <button type="button" class="admin-tab-btn" data-panel="blerjet">Blerjet</button>
+      <button type="button" class="admin-tab-btn" data-panel="stoku">Stoku</button>
+      <button type="button" class="admin-tab-btn" data-panel="receta-perberesit">Receptat</button>
+      <button type="button" class="admin-tab-btn" data-panel="stafi">Punonjësit</button>
+      <button type="button" class="admin-tab-btn" data-panel="tavolinat">Tavolinat</button>
+      <button type="button" class="admin-tab-btn" data-panel="rregullimi-tavolinave">Rregullimi i tavolinave</button>
+      <button type="button" class="admin-tab-btn" data-panel="rezervime">Rezervimet</button>
+      <button type="button" class="admin-tab-btn" data-panel="faturat">Faturat</button>
+      <button type="button" class="admin-tab-btn" data-panel="furnitoret">Furnitorët</button>
+      <button type="button" class="admin-tab-btn" data-panel="promocione">Promocione</button>
+      <button type="button" class="admin-tab-btn" data-panel="ditari">Ditari</button>
+      <button type="button" class="admin-tab-btn" data-panel="raportet">Raportet</button>
+      <button type="button" class="admin-tab-btn" data-panel="raporte-avancuara">Raporte të avancuara</button>
+      <button type="button" class="admin-tab-btn" data-panel="licenca-admin">Licenca</button>
+      <button type="button" class="admin-tab-btn" data-panel="fiskalizimi">Fiskalizimi</button>
+      <button type="button" class="admin-tab-btn" data-panel="audit-fiskal">Audit</button>
+      <button type="button" class="admin-tab-btn" data-panel="kuponet-fiskale">Kuponët</button>
+      <button type="button" class="admin-tab-btn" data-panel="bllokim-i-letres">Bllokimi i letrës</button>
+      <button type="button" class="admin-tab-btn" data-panel="lokal">Lokal dhe biznesi</button>
+      <button type="button" class="admin-tab-btn" data-panel="fiskale">Printer dhe TVSH</button>
+      <button type="button" class="admin-tab-btn" data-panel="cloud">Cloud dhe linke</button>
+      <button type="button" class="admin-tab-btn" data-panel="faqja-publike">Faqja publike</button>
+      <button type="button" class="admin-tab-btn" data-panel="cilesimet">Cilësimet</button>
+      <button type="button" class="admin-tab-btn" data-panel="qr-tavolinat">QR Kodet</button>
+      <button type="button" class="admin-tab-btn" data-panel="ai">AI</button>
+      <button type="button" class="admin-tab-btn" data-panel="kontabilisti">Kontabilisti</button>
+    </nav>
+    <main class="admin-main">
+      <div class="admin-main-inner" id="panels">
+        <section id="panel-pasqyra" class="panel active">
+          <div class="dashboard-kpi-row">
+            <div class="dashboard-kpi">
+              <div class="dashboard-kpi-label">TË ARDHURAT SOT</div>
+              <div class="dashboard-kpi-val" id="dash-revenue">0.00 €</div>
+              <div class="dashboard-kpi-sub" id="dash-vat-out">TVSH 0.00 €</div>
+            </div>
+            <div class="dashboard-kpi">
+              <div class="dashboard-kpi-label">POROSITË SOT</div>
+              <div class="dashboard-kpi-val" id="dash-orders">0</div>
+            </div>
+            <div class="dashboard-kpi">
+              <div class="dashboard-kpi-label">MESATARJA</div>
+              <div class="dashboard-kpi-val" id="dash-average">0.00 €</div>
+              <div class="dashboard-kpi-sub">Për transaksion</div>
+            </div>
+          </div>
+          <div class="card" id="dash-shpenzime-card" style="margin-bottom:1rem">
+            <div class="card-title">Shpenzimet sot</div>
+            <div class="dashboard-kpi-val" id="dash-expenses">0.00 €</div>
+            <div style="overflow-x:auto;margin-top:0.75rem">
+              <table class="dashboard-top-table">
+                <thead>
+                  <tr><th>Kategoria</th><th>Shuma</th><th>TVSH</th></tr>
+                </thead>
+                <tbody id="dash-shpenzime-body">
+                  <tr><td colspan="3" style="color:#a0a0b8">Nuk ka shpenzime sot</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" id="dash-register-status-card" style="margin-bottom:1rem">
+            <div class="card-title" id="dash-register-status-title">Ndërrimet</div>
+            <div id="dash-register-status-list" style="display:flex;flex-direction:column;gap:0.45rem;font-size:0.92rem">
+              <span style="color:#a0a0b8">Duke ngarkuar statusin e arkave…</span>
+            </div>
+            <p id="dash-register-sales-line" style="margin:0.75rem 0 0;font-size:0.88rem;color:#a0a0b8"></p>
+            <p id="dash-register-total-line" style="margin:0.35rem 0 0;font-weight:800;font-size:1.05rem"></p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin:0 0 1rem 0">
+            <button type="button" class="btn" id="btn-rebuild-register">🔄 Rifresko Arkën</button>
+            <span class="hint" id="rebuild-register-msg"></span>
+          </div>
+          <div id="low-stock-banner" class="card" hidden style="border-left:4px solid #b45309;background:#fffbeb;margin-bottom:1rem;color:#78350f">
+            <div class="card-title" style="color:#92400e">⚠ Stok i ulët</div>
+            <ul id="low-stock-list" style="margin:0.4rem 0 0.6rem 1.1rem;padding:0;color:#78350f;font-size:0.9rem"></ul>
+            <button type="button" class="btn" id="btn-low-stock-goto">Shiko Stokun</button>
+          </div>
+          <div id="expiry-banner" class="card" hidden style="border-left:4px solid #b45309;background:#fffbeb;margin-bottom:1rem;color:#78350f">
+            <div class="card-title" style="color:#92400e">Skadencë</div>
+            <p style="margin:0 0 0.35rem;font-size:0.88rem;color:#78350f">Produkte që skadojnë brenda 7 ditëve ose që kanë skaduar. Shitja nuk ndalet.</p>
+            <ul id="expiry-list" style="margin:0;padding-left:1.25rem;color:#78350f;font-size:0.9rem"></ul>
+          </div>
+          <div class="dashboard-grid-2">
+            <div class="card">
+              <div class="card-title">Shitjet sipas orës — Sot</div>
+              <div id="chart-hourly" class="dashboard-chart-area"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Të ardhurat ditore — 30 ditë</div>
+              <div id="chart-daily" class="dashboard-chart-bars"></div>
+            </div>
+          </div>
+          <div class="dashboard-grid-2">
+            <div class="card">
+              <div class="card-title">Të ardhurat sipas kategorisë</div>
+              <div id="chart-category" class="dashboard-chart-area"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Produktet kryesore</div>
+              <div style="overflow-x:auto">
+                <table class="dashboard-top-table">
+                  <thead>
+                    <tr><th>#</th><th>Emri</th><th>Porosi</th><th>Të ardhurat</th></tr>
+                  </thead>
+                  <tbody id="dash-top-products"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    var tabs = document.querySelectorAll(".admin-tab-btn");
+    var box = document.getElementById("panels");
+    tabs.forEach(function (btn) {
+      var id = btn.getAttribute("data-panel");
+      var sec = document.getElementById("panel-" + id);
+      if (!sec) {
+        sec = document.createElement("section");
+        sec.className = "panel";
+        sec.id = "panel-" + id;
+        var card = document.createElement("div");
+        card.className = "card";
+        card.textContent = "Kjo skedë do të lidhet së shpejti";
+        sec.appendChild(card);
+        box.appendChild(sec);
+      }
+      btn.addEventListener("click", function () {
+        tabs.forEach(function (b) { b.classList.remove("active"); });
+        box.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
+        btn.classList.add("active");
+        sec.classList.add("active");
+      });
+    });
+    function tick() {
+      var d = new Date();
+      document.getElementById("admin-clock").textContent =
+        String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    }
+    tick();
+    setInterval(tick, 10000);
+    document.getElementById("btn-dilni").addEventListener("click", function () {
+      localStorage.removeItem("owner_token");
+      localStorage.removeItem("owner_portal");
+      sessionStorage.removeItem("rs_user");
+      location.assign("/owner/login");
+    });
+    function euro(n) {
+      return (Number(n) || 0).toFixed(2) + " €";
+    }
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function emptyChart(msg) {
+      return '<p class="dashboard-empty">' + esc(msg || "Pa të dhëna") + "</p>";
+    }
+    function paintHourly(rows) {
+      var el = document.getElementById("chart-hourly");
+      var active = (rows || []).filter(function (r) { return r.total > 0; });
+      if (!active.length) { el.innerHTML = emptyChart(); return; }
+      var max = Math.max.apply(null, active.map(function (r) { return r.total; }).concat([1]));
+      el.innerHTML = active.map(function (r) {
+        var pct = Math.round((r.total / max) * 100);
+        var label = String(r.hour).padStart(2, "0") + ":00";
+        return '<div class="dash-bar-row"><span class="dash-bar-label">' + label +
+          '</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:' + pct +
+          '%"></div></div><span class="dash-bar-val">' + euro(r.total) + "</span></div>";
+      }).join("");
+    }
+    function paintDaily(rows) {
+      var el = document.getElementById("chart-daily");
+      var list = rows || [];
+      var active = list.filter(function (r) { return r.total > 0; });
+      if (!active.length) { el.innerHTML = emptyChart(); return; }
+      var max = Math.max.apply(null, list.map(function (r) { return r.total; }).concat([1]));
+      el.innerHTML = '<div class="dash-col-chart">' + list.map(function (r) {
+        var total = Number(r.total) || 0;
+        var parts = String(r.date || "").split("-");
+        var lbl = parts.length >= 3 ? parts[2] + "/" + parts[1] : r.date;
+        var bar = total > 0
+          ? '<div class="dash-col-bar" style="height:' + Math.max(4, Math.round((total / max) * 100)) + '%"></div>'
+          : "";
+        return '<div class="dash-col" title="' + esc(r.date) + ": " + euro(r.total) + '">' +
+          bar + '<span class="dash-col-label">' + esc(lbl) + "</span></div>";
+      }).join("") + "</div>";
+    }
+    function paintCategory(rows) {
+      var el = document.getElementById("chart-category");
+      if (!rows || !rows.length) { el.innerHTML = emptyChart(); return; }
+      var max = Math.max.apply(null, rows.map(function (r) { return r.total; }).concat([1]));
+      el.innerHTML = rows.map(function (r) {
+        var pct = Math.round((r.total / max) * 100);
+        return '<div class="dash-bar-row"><span class="dash-bar-label">' + esc(r.category) +
+          '</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:' + pct +
+          '%"></div></div><span class="dash-bar-val">' + euro(r.total) + "</span></div>";
+      }).join("");
+    }
+    function paintProducts(rows) {
+      var body = document.getElementById("dash-top-products");
+      body.innerHTML = rows && rows.length
+        ? rows.map(function (p, i) {
+          return "<tr><td>" + (i + 1) + "</td><td>" + esc(p.name) + "</td><td>" +
+            esc(p.orders) + "</td><td>" + euro(p.revenue) + "</td></tr>";
+        }).join("")
+        : '<tr><td colspan="4" style="color:#a0a0b8">Pa të dhëna</td></tr>';
+    }
+    function paintExpenses(rows, total) {
+      document.getElementById("dash-expenses").textContent = euro(total);
+      var body = document.getElementById("dash-shpenzime-body");
+      body.innerHTML = rows && rows.length
+        ? rows.map(function (r) {
+          return "<tr><td>" + esc(r.category) + "</td><td>" + euro(r.total) + "</td><td>" + euro(r.vat) + "</td></tr>";
+        }).join("")
+        : '<tr><td colspan="3" style="color:#a0a0b8">Nuk ka shpenzime sot</td></tr>';
+    }
+    function paintShifts(reg) {
+      var list = document.getElementById("dash-register-status-list");
+      var salesLine = document.getElementById("dash-register-sales-line");
+      var totalLine = document.getElementById("dash-register-total-line");
+      var title = document.getElementById("dash-register-status-title");
+      var payload = reg || {};
+      if (title) title.textContent = payload.show_register_labels ? "Arkat e lokalit" : "Ndërrimet";
+      var regs = payload.registers || [];
+      if (!regs.length) {
+        list.innerHTML = '<span style="color:#a0a0b8">Ndërrimi qëndron te programi në kompjuter. Këtu shihen vetëm shitjet e mbyllura që janë dërguar në cloud.</span>';
+      }
+      if (salesLine) salesLine.textContent = "Shitje sot: " + euro(payload.sales_today_total || 0);
+      if (totalLine) totalLine.textContent = "TOTALI (sot): " + euro(payload.sales_today_total || 0);
+    }
+    function paintLow(items) {
+      var boxEl = document.getElementById("low-stock-banner");
+      var list = document.getElementById("low-stock-list");
+      if (!items || !items.length) { boxEl.hidden = true; list.innerHTML = ""; return; }
+      boxEl.hidden = false;
+      list.innerHTML = items.map(function (it) {
+        return "<li>" + esc(it.name) + " — " + esc(it.stock_qty) + "</li>";
+      }).join("");
+    }
+    function paintExpiry(items) {
+      var boxEl = document.getElementById("expiry-banner");
+      var list = document.getElementById("expiry-list");
+      if (!items || !items.length) { boxEl.hidden = true; list.innerHTML = ""; return; }
+      boxEl.hidden = false;
+      list.innerHTML = items.map(function (it) {
+        return "<li>" + esc(it.name) + " — " + esc(it.expiry_date) + "</li>";
+      }).join("");
+    }
+    function paint(d) {
+      document.getElementById("dash-revenue").textContent = euro(d.totalSales);
+      document.getElementById("dash-vat-out").textContent = "TVSH " + euro(d.vat_output);
+      document.getElementById("dash-orders").textContent = String(d.orderCount || 0);
+      document.getElementById("dash-average").textContent = euro(d.average);
+      if (d.business_name) document.getElementById("hdr-emri").textContent = d.business_name;
+      paintExpenses(d.expense_book, d.expenses_total);
+      paintShifts(d.register);
+      paintLow(d.lowStockItems);
+      paintExpiry(d.expiryItems);
+      paintHourly(d.salesByHour);
+      paintDaily(d.dailyLast30);
+      paintCategory(d.byCategory);
+      paintProducts(d.topProducts);
+      var pill = document.getElementById("cloud-pill");
+      pill.className = "cloud-status-pill cloud-status-ok";
+      pill.textContent = "☁ Cloud";
+    }
+    function ngarkoPasqyra() {
+      var msg = document.getElementById("rebuild-register-msg");
+      var token = localStorage.getItem("owner_token") || "";
+      if (!token) {
+        msg.textContent = "Hyni si pronar që të shihen shifrat.";
+        return Promise.resolve();
+      }
+      msg.textContent = "Duke ngarkuar…";
+      return fetch("/api/admin-cloud/pasqyra", {
+        headers: { Authorization: "Bearer " + token }
+      }).then(function (r) {
+        return r.json().then(function (body) { return { status: r.status, body: body }; });
+      }).then(function (res) {
+        if (res.status === 401 || res.status === 403) {
+          msg.textContent = "Hyrja skadoi. Dilni dhe hyni prapë.";
+          return;
+        }
+        if (!res.body || res.body.ok === false) {
+          msg.textContent = (res.body && res.body.gabim) || "Nuk u lexuan shifrat.";
+          return;
+        }
+        paint(res.body);
+        msg.textContent = "U rifreskua.";
+      }).catch(function () {
+        msg.textContent = "Nuk u lidh me serverin.";
+      });
+    }
+    document.getElementById("btn-rebuild-register").addEventListener("click", ngarkoPasqyra);
+    document.getElementById("btn-low-stock-goto").addEventListener("click", function () {
+      var btn = document.querySelector('.admin-tab-btn[data-panel="stoku"]');
+      if (btn) btn.click();
+    });
+    ngarkoPasqyra();
+  </script>
+</body>
+</html>
