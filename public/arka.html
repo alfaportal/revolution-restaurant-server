@@ -6,6 +6,10 @@
   <meta name="theme-color" content="#0f1b3d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Revolution Arka">
+  <meta name="description" content="Revolution Arka">
+  <meta property="og:title" content="Revolution Arka">
+  <meta property="og:description" content="Revolution Arka">
+  <meta property="og:site_name" content="Revolution Arka">
   <link rel="manifest" id="pwa-manifest" href="/logo-icon.svg">
   <link rel="icon" href="/logo-icon.svg">
   <title>Revolution Arka</title>
@@ -111,6 +115,27 @@
       #hyrja { flex-direction: column; overflow: auto; }
       #hyrja .brand { width: auto; }
       #hyrja .split { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      #ekrani-tavolina .table-floor-map {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible;
+      }
+      #ekrani-tavolina .table-floor-map .table-card {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 92px !important;
+        max-height: none !important;
+      }
     }
     #pay-msg { min-height: 1.2rem; margin: 0 0 8px; color: #b91c1c; font-weight: 700; }
     .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
@@ -336,7 +361,15 @@
     const parts = location.pathname.split("/").filter(Boolean);
     let slug = parts[1] || "";
     try { slug = decodeURIComponent(slug); } catch (e) { slug = parts[1] || ""; }
-    const key = new URLSearchParams(location.search).get("key") || "";
+    const keyName = "arka-hyrje:" + slug;
+    let key = new URLSearchParams(location.search).get("key") || "";
+    if (key) {
+      try { localStorage.setItem(keyName, key); } catch (e) {}
+    } else {
+      try { key = localStorage.getItem(keyName) || ""; } catch (e) { key = ""; }
+    }
+    if (location.search) history.replaceState(null, "Revolution Arka", location.pathname);
+    document.title = "Revolution Arka";
     let syncing = false;
     function apiUrl(path) {
       const q = key ? (path.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(key) : "";
@@ -667,6 +700,16 @@
         title.className = "waiter-zone-title";
         title.textContent = (hall === "terrasa" ? "Terrasa" : hall === "online" ? "Porosi online" : (area.name && area.name.toLowerCase().indexOf("tavolin") !== 0 ? area.name : "Kryesore")).toUpperCase();
         head.appendChild(title);
+        if (!floor.querySelector(".waiter-mobile-dil-btn")) {
+          const dil = document.createElement("button");
+          dil.type = "button";
+          dil.className = "waiter-mobile-dil-btn";
+          dil.textContent = "DIL";
+          dil.addEventListener("click", function () {
+            if (outBtn) outBtn.click();
+          });
+          head.appendChild(dil);
+        }
         const map = document.createElement("div");
         map.className = "table-floor-map";
         const rows = Math.max(1, Math.ceil(tables.length / 8));
@@ -1302,7 +1345,7 @@
     });
     document.getElementById("hyr-pronari").addEventListener("click", function () {
       const tipi = parts[0] || "kafene";
-      location.assign("/" + encodeURIComponent(tipi) + "/" + encodeURIComponent(slug) + "/owner" + location.search);
+      location.assign("/" + encodeURIComponent(tipi) + "/" + encodeURIComponent(slug) + "/owner" + (key ? "?key=" + encodeURIComponent(key) : ""));
     });
     document.getElementById("pin-go").addEventListener("click", async function () {
       if (pinBusy) return;
@@ -1330,7 +1373,7 @@
       await api("/logout-pin", { method: "POST", body: "{}" });
       showPin();
     });
-    document.getElementById("pwa-manifest").href = location.pathname + "/manifest.json" + location.search;
+    document.getElementById("pwa-manifest").href = location.pathname + "/manifest.json";
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/arka-sw.js", { scope: location.pathname }).catch(function () {});
     }

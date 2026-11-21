@@ -37,11 +37,11 @@ function registerArkaPageRoutes(app, ctx) {
     if (!client) return res.status(404).json({ gabim: "Biznesi nuk u gjet." });
     const expected = urlTipiSegment(client);
     if (tipiCategory(expected) !== "pos") return res.status(404).json({ gabim: "Vetëm për restorantin." });
-    const start = `/${expected}/${encodeURIComponent(req.params.slug)}/arka${querySuffix(req)}`;
+    const start = `/${expected}/${encodeURIComponent(req.params.slug)}/arka`;
     res.set("Cache-Control", "no-store");
     res.type("application/manifest+json").json({
       name: "Revolution Arka",
-      short_name: "Arka",
+      short_name: "Revolution Arka",
       start_url: start,
       scope: `/${expected}/${encodeURIComponent(req.params.slug)}/arka`,
       display: "standalone",

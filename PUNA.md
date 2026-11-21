@@ -1,3 +1,11 @@
+## 2026-11-21 — Emri dhe numri i linkut
+
+`public/arka.html` dhe `src/routes/arkaPages.js`: kur hapet linku, në ekran mbetet «Revolution Arka». Numri i gjatë hiqet nga shiriti. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Tavolinat në telefon dhe Dil
+
+`public/arka.html`: në telefon tavolinat dalin dy nga dy, jo të prera. Butoni i kuq DIL te Kryesore kthen te hyrja. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Pagesa pa numër produkti
 
 `src/services/arkaService.js`: nëse faqja nuk dërgon emrin, pagesa merr faturën që është në tavolinë (Americano, Cappuccino, Cortado).
