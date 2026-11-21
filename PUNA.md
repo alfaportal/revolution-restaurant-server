@@ -1,3 +1,15 @@
+## 2026-11-21 — Pamja e skedave si te programi
+
+`public/admin-cloud.html`: Pasqyra, Ditari mbetet, Produktet, Stoku, Furnitorët dhe Raporte të avancuara morën titujt, kartat, tabelat dhe butonat e programit. Ruajtja që s’ka të dhëna këtu mbetet te programi. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Pamja e Importo Produkte
+
+`public/admin-cloud.html`: skeda Importo Produkte u kthye te pamja e programit (kutia, butonat, tabela, dritarja USB, historiku). Regjistrimi mbetet te programi. Rregulli i dizajnit u shkrua te `.cursor/rules/26-dizajn-nje-me-nje-naseri.mdc`. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Skedat si te programi dhe Importo Produkte
+
+`public/admin-cloud.html`: u hoqën skedat Kategoritë dhe Ndërrimet. Kategoritë janë brenda Produkteve. Ndërrimet janë brenda Raporte të avancuara. 29 skeda, i njëjti rend si te programi. Nuk kishte skedë Klientët. U shtua Importo Produkte: formati, shembulli, pamja e csv, pa regjistrim. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Krahasim i skedave me programin
 
 `public/admin-cloud.html`: Ditari mori fjalinë e refuzimeve. Furnitorët morën formën, emailin, adresën, TVSH, Ndrysho, Pagesë, Fshi dhe kartën e pagesës. Kategoritë morën Stop, fshirjen, Banak/Kuzhinë dhe formën. Produktet morën formën, njësinë, TVSH, stokun, Ndrysho, Stop dhe Fshi. Ruajtja e këtyre butonave mbetet te programi. Nuk u dërgua te faqja e gjallë. Ekrani nuk u hap.

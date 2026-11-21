@@ -160,9 +160,58 @@
     .stoku-chip { display: inline-block; margin-top: 0.2rem; font-size: 0.75rem; color: #a0a0b8; }
     .stoku-zero { color: #fca5a5; font-weight: 800; }
     .stoku-low { color: #fdba74; font-weight: 800; }
-    .stoku-form { display:flex; flex-wrap:wrap; gap:0.6rem; align-items:flex-end; margin:0.6rem 0; }
     .stoku-form label { display:block; font-size:0.8rem; margin-bottom:0.25rem; }
     .stoku-form input, .stoku-form select { padding:0.45rem 0.55rem; border:1px solid #3a3a55; border-radius:8px; background:#252538; color:#e8e8ef; font-family:inherit; }
+    .purchases-panel-header, .reports-panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .purchases-panel-title, .reports-panel-title { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.25rem; color: #fff; }
+    .purchases-panel-sub, .reports-panel-sub, .field-hint { margin: 0; color: #a0a0b8; font-size: 0.88rem; }
+    .form-row, .sup-form, .purchases-filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; }
+    .form-row > * { flex: 1; min-width: 120px; }
+    .form-row input, .form-row select, .sup-form input, .product-add-field input, .product-add-field select, .purchases-filter-bar input, .purchases-filter-bar select {
+      width: 100%; box-sizing: border-box; padding: 0.5rem 0.6rem; border: 1px solid #3a3a55; border-radius: 8px;
+      background: #252538; color: #e8e8ef; font-family: inherit;
+    }
+    .product-add-form-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.55rem 0.65rem; width: 100%; }
+    .product-add-field { flex: 1 1 140px; min-width: 120px; }
+    .product-add-break { flex: 0 0 100%; height: 0; }
+    .product-add-actions { flex: 0 0 auto; }
+    #prod-shto-more-box[hidden] { display: none !important; }
+    .product-cat-filter { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; }
+    .product-cat-tab { border: 1px solid #3a3a55; background: #252538; color: #c8c8d8; border-radius: 999px; padding: 0.32rem 0.7rem; font-size: 0.74rem; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .product-cat-tab.active { background: #FF6B35; border-color: #FF6B35; color: #fff; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .product-grid-empty { grid-column: 1 / -1; color: #a0a0b8; text-align: center; padding: 2rem; }
+    .product-card { background: #1a1a2e; border: 1px solid #2e2e45; border-radius: 14px; border-top: 3px solid var(--product-accent, #FF6B35); overflow: hidden; }
+    .product-card-inactive { opacity: 0.62; }
+    .product-card-inner { padding: 1rem; display: flex; flex-direction: column; gap: 0.65rem; position: relative; }
+    .product-card-header { display: flex; align-items: center; gap: 0.75rem; }
+    .product-initial { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FF6B35; background: rgba(255, 107, 53, 0.14); border: 1px solid rgba(255, 107, 53, 0.28); }
+    .product-card-name, .product-card-price { color: #fff; font-weight: 800; }
+    .product-card-price { font-size: 1.2rem; }
+    .product-cat-chip { display: inline-block; margin-top: 0.3rem; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.68rem; font-weight: 700; color: #FF6B35; background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.35); }
+    .product-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+    .product-card-stock { font-size: 0.75rem; color: #a0a0b8; font-weight: 600; }
+    .product-card-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .product-card-actions .btn { flex: 1; }
+    .product-card-edit-fields { display: flex; flex-direction: column; gap: 0.5rem; }
+    .product-card-edit-fields input, .product-card-edit-fields select, .product-card-edit-fields textarea { width: 100%; box-sizing: border-box; padding: 0.5rem 0.6rem; border: 1px solid #3a3a55; border-radius: 8px; background: #252538; color: #e8e8ef; font-family: inherit; }
+    .badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-free { background: #14532d; color: #bbf7d0; }
+    .badge-occupied { background: #7f1d1d; color: #fecaca; }
+    .btn-sm { min-height: 44px; padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+    .btn-danger { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
+    #lista-kategorive.tag-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.75rem, 1fr)); gap: 0.35rem 0.45rem; }
+    @media (min-width: 1100px) { #lista-kategorive.tag-list { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    #lista-kategorive .tag { display: flex; align-items: center; gap: 0.2rem; padding: 0.22rem 0.35rem; border-radius: 8px; font-size: 0.72rem; font-weight: 600; border: 1px solid #3a3a55; background: #252538; }
+    #lista-kategorive .tag-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #lista-kategorive .tag-route { width: 4.35rem; font-size: 0.65rem; background: #12121f; color: #c8c8d8; border: 1px solid #3a3a55; border-radius: 6px; }
+    #lista-kategorive .tag-stop, #lista-kategorive .tag-del { background: transparent; color: #e8e8ef; border: 0; cursor: pointer; font-family: inherit; }
+    .purchases-table, .adv-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .purchases-table th, .purchases-table td, .adv-table th, .adv-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #2e2e45; text-align: left; }
+    #panel-raporte-avancuara .adv-subtabs { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+    #panel-raporte-avancuara .adv-subtab { padding: 0.45rem 0.85rem; border-radius: 8px; border: 1px solid rgba(255,107,53,0.35); background: #1a1a2e; color: #e8e8ef; cursor: pointer; font: inherit; }
+    #panel-raporte-avancuara .adv-subtab.active { background: #FF6B35; color: #fff; border-color: #FF6B35; }
+    #sup-pay-card[hidden] { display: none !important; }
     .prod-badge { display: inline-block; border-radius: 999px; padding: 0.1rem 0.45rem; font-size: 0.75rem; font-weight: 700; }
     .prod-on { background: #14532d; color: #bbf7d0; }
     .prod-off { background: #7f1d1d; color: #fecaca; }
@@ -193,7 +242,6 @@
       <button type="button" class="admin-tab-btn active" data-panel="pasqyra">Pasqyra</button>
       <button type="button" class="admin-tab-btn" data-panel="importo-produkte">Importo Produkte</button>
       <button type="button" class="admin-tab-btn" data-panel="menuja">Produktet</button>
-      <button type="button" class="admin-tab-btn" data-panel="kategorite">Kategoritë</button>
       <button type="button" class="admin-tab-btn" data-panel="blerjet">Blerjet</button>
       <button type="button" class="admin-tab-btn" data-panel="stoku">Stoku</button>
       <button type="button" class="admin-tab-btn" data-panel="receta-perberesit">Receptat</button>
@@ -205,19 +253,18 @@
       <button type="button" class="admin-tab-btn" data-panel="furnitoret">Furnitorët</button>
       <button type="button" class="admin-tab-btn" data-panel="promocione">Promocione</button>
       <button type="button" class="admin-tab-btn" data-panel="ditari">Ditari</button>
-      <button type="button" class="admin-tab-btn" data-panel="nderrimet">Ndërrimet</button>
       <button type="button" class="admin-tab-btn" data-panel="raportet">Raportet</button>
       <button type="button" class="admin-tab-btn" data-panel="raporte-avancuara">Raporte të avancuara</button>
       <button type="button" class="admin-tab-btn" data-panel="licenca-admin">Licenca</button>
       <button type="button" class="admin-tab-btn" data-panel="fiskalizimi">Fiskalizimi</button>
       <button type="button" class="admin-tab-btn" data-panel="audit-fiskal">Audit</button>
       <button type="button" class="admin-tab-btn" data-panel="kuponet-fiskale">Kuponët</button>
-      <button type="button" class="admin-tab-btn" data-panel="bllokim-i-letres">Bllokimi i letrës</button>
-      <button type="button" class="admin-tab-btn" data-panel="lokal">Lokal dhe biznesi</button>
-      <button type="button" class="admin-tab-btn" data-panel="fiskale">Printer dhe TVSH</button>
-      <button type="button" class="admin-tab-btn" data-panel="cloud">Cloud dhe linke</button>
+      <button type="button" class="admin-tab-btn" data-panel="bllokim-i-letrës">Bllokimi i letrës</button>
+      <button type="button" class="admin-tab-btn" data-panel="lokal">Lokal &amp; biznesi</button>
+      <button type="button" class="admin-tab-btn" data-panel="fiskale">Printer &amp; TVSh</button>
+      <button type="button" class="admin-tab-btn" data-panel="cloud">Cloud &amp; linke</button>
       <button type="button" class="admin-tab-btn" data-panel="faqja-publike">Faqja publike</button>
-      <button type="button" class="admin-tab-btn" data-panel="cilesimet">Cilësimet</button>
+      <button type="button" class="admin-tab-btn" data-panel="cilësimet">Cilësimet</button>
       <button type="button" class="admin-tab-btn" data-panel="qr-tavolinat">QR Kodet</button>
       <button type="button" class="admin-tab-btn" data-panel="ai">AI</button>
       <button type="button" class="admin-tab-btn" data-panel="kontabilisti">Kontabilisti</button>
@@ -263,14 +310,9 @@
             <p id="dash-register-sales-line" style="margin:0.75rem 0 0;font-size:0.88rem;color:#a0a0b8"></p>
             <p id="dash-register-total-line" style="margin:0.35rem 0 0;font-weight:800;font-size:1.05rem"></p>
           </div>
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin:0 0 1rem 0">
-            <button type="button" class="btn" id="btn-rebuild-register">🔄 Rifresko Arkën</button>
-            <span class="hint" id="rebuild-register-msg"></span>
-          </div>
-          <div id="low-stock-banner" class="card" hidden style="border-left:4px solid #b45309;background:#fffbeb;margin-bottom:1rem;color:#78350f">
-            <div class="card-title" style="color:#92400e">⚠ Stok i ulët</div>
-            <ul id="low-stock-list" style="margin:0.4rem 0 0.6rem 1.1rem;padding:0;color:#78350f;font-size:0.9rem"></ul>
-            <button type="button" class="btn" id="btn-low-stock-goto">Shiko Stokun</button>
+          <div class="register-rebuild-bar" style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin:0 0 1rem 0">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-rebuild-register">🔄 Rifresko Arkën</button>
+            <span class="hint" id="rebuild-register-msg" style="margin:0"></span>
           </div>
           <div id="expiry-banner" class="card" hidden style="border-left:4px solid #b45309;background:#fffbeb;margin-bottom:1rem;color:#78350f">
             <div class="card-title" style="color:#92400e">Skadencë</div>
@@ -438,12 +480,14 @@
           </div>
         </section>
         <section id="panel-furnitoret" class="panel">
-          <div>
-            <div class="card-title" style="font-size:1.35rem">Regjistri i furnitorëve</div>
-            <p class="tables-panel-sub">Emri, kontakti, NUI, TVSH · borxhi = blerë minus paguar. Pagesat këtu nuk hyjnë te librat ATK.</p>
+          <div class="purchases-panel-header">
+            <div>
+              <h2 class="purchases-panel-title">Regjistri i furnitorëve</h2>
+              <p class="purchases-panel-sub">Emri, kontakti, NUI, TVSH · borxhi = blerë minus paguar. Pagesat këtu nuk hyjnë te librat ATK.</p>
+            </div>
           </div>
-          <div class="card" style="margin-top:1rem">
-            <form id="forma-furnitor" class="stoku-form">
+          <div class="card settings-card">
+            <form id="forma-furnitor" class="sup-form">
               <div style="flex:1.2;min-width:140px"><label for="sup-name">Emri *</label><input id="sup-name" placeholder="p.sh. Metro"></div>
               <div style="flex:0.8;min-width:110px"><label for="sup-phone">Telefoni</label><input id="sup-phone" placeholder="044…"></div>
               <div style="flex:1;min-width:140px"><label for="sup-email">Email</label><input id="sup-email" type="email" placeholder="info@…"></div>
@@ -454,7 +498,7 @@
             </form>
             <p id="sup-msg" class="tables-panel-sub"></p>
           </div>
-          <div class="card">
+          <div class="card settings-card">
             <div class="card-title">Lista me bilancin</div>
             <div style="overflow-x:auto">
               <table class="dashboard-top-table">
@@ -469,8 +513,8 @@
           </div>
           <div class="card" id="sup-pay-card" hidden>
             <div class="card-title" id="sup-pay-title">Pagesë ndaj furnitorit</div>
-            <div class="stoku-form">
-              <div><label for="sup-pay-amount">Shuma €</label><input type="number" id="sup-pay-amount" min="0.01" step="0.01"></div>
+            <div class="sup-form">
+              <div style="flex:0.7;min-width:110px"><label for="sup-pay-amount">Shuma €</label><input type="number" id="sup-pay-amount" min="0.01" step="0.01"></div>
               <div><label for="sup-pay-date">Data</label><input type="date" id="sup-pay-date"></div>
               <div style="flex:1"><label for="sup-pay-note">Shënim</label><input id="sup-pay-note" placeholder="opsionale"></div>
               <div><label>&nbsp;</label><button type="button" class="btn btn-primary" id="btn-sup-pay">Regjistro pagesën</button></div>
@@ -483,75 +527,172 @@
             </div>
           </div>
         </section>
-        <section id="panel-kategorite" class="panel">
-          <div class="card">
-            <div class="card-title">Kategoritë e menusë</div>
-            <p class="tables-panel-sub"><strong>Stop</strong> i fsheh nga menuja · <strong>✕</strong> i fshin · <strong>Zvarrit</strong> (⋮⋮) për renditje · <strong>Pije / Ushqim</strong> vendos banak ose kuzhinë për printimin e porosive.</p>
-            <form id="forma-kategori" class="stoku-form">
-              <div style="flex:1;min-width:180px"><label for="kat-emri">Emri i kategorisë së re</label><input id="kat-emri" placeholder="p.sh. Specialitete" required></div>
-              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Shto kategori</button></div>
-            </form>
-            <div class="stoku-form">
-              <span>Porositë shkojnë te:</span>
-              <label><input type="radio" name="kat-route" value="bar" checked> Pije (banak)</label>
-              <label><input type="radio" name="kat-route" value="kitchen"> Ushqim (kuzhinë)</label>
+        <section id="panel-importo-produkte" class="panel">
+          <style>
+            #panel-importo-produkte .purchases-panel-title { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.25rem; color: #fff; }
+            #panel-importo-produkte .pi-drop { border: 2px dashed #64748b; border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; background: rgba(15,23,42,.35); }
+            #panel-importo-produkte .pi-drop-hover, #panel-importo-produkte .pi-drop:focus-visible { border-color: #38bdf8; }
+            #panel-importo-produkte .pi-drop-title { font-weight: 700; margin-bottom: 6px; }
+            #panel-importo-produkte .pi-drop-sub, #panel-importo-produkte .pi-format-hint, #panel-importo-produkte .pi-muted { color: #94a3b8; }
+            #panel-importo-produkte .pi-upload-actions, #panel-importo-produkte .pi-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
+            #panel-importo-produkte .pi-browser-overlay { position: fixed; inset: 0; background: rgba(2,6,23,.72); z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; }
+            #panel-importo-produkte .pi-browser-overlay.hidden { display: none !important; }
+            #panel-importo-produkte .pi-browser-inner { width: min(720px, 96vw); max-height: 80vh; overflow: auto; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; }
+            #panel-importo-produkte .pi-browser-head, #panel-importo-produkte .pi-browser-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+            #panel-importo-produkte .pi-browser-path { flex: 1; min-width: 120px; word-break: break-all; }
+            #panel-importo-produkte .pi-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+            #panel-importo-produkte .pi-table th, #panel-importo-produkte .pi-table td, #panel-importo-produkte .pi-browser-list th, #panel-importo-produkte .pi-browser-list td { padding: 8px 10px; border-bottom: 1px solid #334155; text-align: left; }
+            #panel-importo-produkte .pi-table-wrap { overflow: auto; max-height: 52vh; border: 1px solid #334155; border-radius: 8px; margin-top: 8px; }
+            #panel-importo-produkte .pi-new { color: #22c55e; }
+            #panel-importo-produkte .pi-exists { color: #f97316; }
+            #panel-importo-produkte .pi-error { color: #ef4444; }
+            #panel-importo-produkte .pi-progress-track { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 12px; }
+            #panel-importo-produkte .pi-progress-bar { height: 100%; width: 0; background: #22c55e; }
+            #panel-importo-produkte .pi-result { margin-top: 12px; font-weight: 700; color: #22c55e; }
+            #panel-importo-produkte .hidden { display: none !important; }
+            #panel-importo-produkte .pi-browser-row, #panel-importo-produkte .pi-browser-drive-row { cursor: pointer; }
+            #panel-importo-produkte .btn-sm { min-height: 52px; min-width: 44px; padding: 0.5rem 0.85rem; font-size: 16px; }
+          </style>
+          <h2 class="purchases-panel-title">Importo Produkte</h2>
+          <div id="pi-step-upload">
+            <div class="pi-drop" id="pi-drop" tabindex="0" role="button">
+              <div class="pi-drop-title">Zvarrit skedarin këtu</div>
+              <div class="pi-drop-sub">.csv, .xlsx, .xls</div>
+              <input type="file" id="pi-file-input" accept=".csv,.xlsx,.xls,text/csv" hidden>
             </div>
-            <p id="kat-msg" class="tables-panel-sub"></p>
-            <div id="lista-kategorive" class="stoku-cats"></div>
+            <div class="pi-upload-actions">
+              <button type="button" class="btn btn-primary" id="pi-pick-btn">Zgjidh skedarin</button>
+              <button type="button" class="btn btn-ghost" id="pi-usb-scan-btn">Skano USB</button>
+              <button type="button" class="btn btn-ghost" id="pi-sample-btn">Shkarko shembullin</button>
+            </div>
+            <p class="pi-format-hint">Formati: barcode, name, price, category, stock</p>
+            <div id="pi-browser-overlay" class="pi-browser-overlay hidden" aria-hidden="true">
+              <div class="pi-browser-inner" role="dialog" aria-labelledby="pi-browser-title">
+                <div class="pi-browser-head">
+                  <h3 id="pi-browser-title">USB / disqe të jashtme</h3>
+                  <button type="button" class="btn btn-ghost btn-sm" id="pi-browser-close">✕</button>
+                </div>
+                <div class="pi-browser-nav">
+                  <button type="button" class="btn btn-ghost btn-sm" id="pi-browser-up" hidden>⬆ Kthehu</button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="pi-browser-drives" hidden>← Kthehu te disqet</button>
+                  <span class="pi-browser-path" id="pi-browser-path"></span>
+                </div>
+                <p class="pi-browser-msg hidden" id="pi-browser-msg"></p>
+                <div class="pi-browser-list-wrap">
+                  <table class="pi-browser-list">
+                    <thead id="pi-browser-thead"><tr><th>Emri</th><th>Madhësia</th><th>Ndryshuar</th></tr></thead>
+                    <tbody id="pi-browser-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="msg" id="pi-msg"></p>
+          <div id="pi-step-preview" class="hidden">
+            <div class="pi-toolbar">
+              <p id="pi-summary" class="pi-summary"></p>
+              <label>Për produktet ekzistuese:
+                <select id="pi-global-exists">
+                  <option value="update">Përditëso të gjitha</option>
+                  <option value="skip">Anashkalo të gjitha</option>
+                </select>
+              </label>
+            </div>
+            <div class="pi-table-wrap">
+              <table class="pi-table">
+                <thead><tr><th>#</th><th>Barkodi</th><th>Emri</th><th>Çmimi</th><th>Kategoria</th><th>Sasia</th><th>Statusi</th><th>Veprim</th></tr></thead>
+                <tbody id="pi-preview-body"></tbody>
+              </table>
+            </div>
+            <div id="pi-progress-wrap" class="hidden pi-progress-wrap"><div class="pi-progress-track"><div id="pi-progress-bar" class="pi-progress-bar"></div></div></div>
+            <button type="button" class="btn btn-primary" id="pi-confirm-btn" disabled>Regjistro të gjitha</button>
+            <p id="pi-result" class="pi-result hidden"></p>
+          </div>
+          <h3 style="margin-top:24px">Historiku i importeve</h3>
+          <div class="pi-table-wrap">
+            <table class="pi-table">
+              <thead><tr><th>Data</th><th>Skedari</th><th>Rreshta</th><th>Të reja</th><th>Përditësuar</th><th>Anashkaluar</th><th>Gabime</th></tr></thead>
+              <tbody id="pi-history-body"><tr><td colspan="7" class="pi-muted">Ende pa importe.</td></tr></tbody>
+            </table>
           </div>
         </section>
         <section id="panel-menuja" class="panel">
-          <div>
-            <div class="card-title" style="font-size:1.35rem">Menuja dhe produktet</div>
-            <p class="tables-panel-sub">Kategoritë, artikujt dhe import me AI (Pako 4)</p>
+          <div class="purchases-panel-header">
+            <div>
+              <h2 class="purchases-panel-title">Menuja &amp; produktet</h2>
+              <p class="purchases-panel-sub">Kategoritë, artikujt dhe import me AI (Pako 4)</p>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-menu-scan-ai" hidden title="Skano menynë nga foto">Skano Meny me AI</button>
           </div>
-          <div class="card" style="margin-top:1rem">
-            <div class="card-title">Kategoritë e menusë</div>
-            <p class="tables-panel-sub"><strong>Stop</strong> i fsheh nga menuja · <strong>✕</strong> i fshin · <strong>Zvarrit</strong> (⋮⋮) për renditje · <strong>Pije / Ushqim</strong> vendos banak ose kuzhinë për printimin e porosive.</p>
-            <div id="lista-kategorive-menu" class="stoku-cats"></div>
+          <div id="menu-tools">
+            <div class="card">
+              <div class="card-title">Kategoritë e menusë</div>
+              <p class="purchases-panel-sub" style="margin:0 0 0.75rem"><strong>Stop</strong> i fsheh nga menuja · <strong>✕</strong> i fshin · <strong>Zvarrit</strong> (⋮⋮) për renditje · <strong>Pije / Ushqim</strong> vendos banak ose kuzhinë për printimin e porosive.</p>
+              <form id="forma-kategori">
+                <div class="form-row" style="margin-bottom:0.5rem">
+                  <div>
+                    <label for="kat-emri">Emri i kategorisë së re</label>
+                    <input type="text" id="kat-emri" placeholder="p.sh. Specialitete" required>
+                  </div>
+                  <div style="flex:0">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-primary">Shto kategori</button>
+                  </div>
+                </div>
+                <div class="form-row" style="align-items:center;gap:1rem">
+                  <span class="field-hint">Porositë shkojnë te:</span>
+                  <label><input type="radio" name="kat-route" value="bar" checked> Pije (banak)</label>
+                  <label><input type="radio" name="kat-route" value="kitchen"> Ushqim (kuzhinë)</label>
+                </div>
+              </form>
+              <p id="kat-msg" class="field-hint"></p>
+              <div id="lista-kategorive" class="tag-list"></div>
+            </div>
           </div>
-          <div class="card" style="margin-top:1rem">
-            <div class="card-title">Produktet</div>
-            <form id="forma-produkt-shto" class="stoku-form">
-              <div><label for="prod-shto-barcode">Barkod</label><input id="prod-shto-barcode" placeholder="Skano ose shkruaj"></div>
-              <div><label for="prod-shto-emri">Emri i produktit</label><input id="prod-shto-emri" placeholder="p.sh. Cappuccino" required></div>
-              <div><label for="prod-shto-kat">Kategoria</label><select id="prod-shto-kat" required></select></div>
-              <div><label for="prod-shto-cmim">Çmimi (€)</label><input id="prod-shto-cmim" type="number" min="0" step="0.0001" placeholder="2.50" required></div>
-              <div><label for="prod-shto-vat">TVSH</label><select id="prod-shto-vat"><option value="18">18%</option><option value="8">8%</option><option value="0">0%</option></select></div>
-              <div><label for="prod-shto-unit">Njësia ATK</label><select id="prod-shto-unit"><option value="EA">EA — Copë</option></select></div>
-              <div><label for="prod-shto-atk-cat">Kategoria ATK</label><select id="prod-shto-atk-cat"><option value="TT">TT — Të tjera</option></select></div>
-              <div><label for="prod-shto-kosto">Çmimi i blerjes</label><input id="prod-shto-kosto" type="number" min="0" step="0.01" placeholder="0.00"></div>
-              <div><label>&nbsp;</label><button type="button" class="btn" id="prod-shto-more">Më shumë ↓</button></div>
-              <div id="prod-shto-more-box" hidden style="flex-basis:100%">
-                <label for="prod-shto-skadence">Skadenca</label><input type="date" id="prod-shto-skadence">
-                <label for="prod-shto-desc">Përshkrimi</label><input id="prod-shto-desc" maxlength="2000">
+          <div class="card">
+            <h3 class="card-title">Produktet</h3>
+            <form id="forma-produkt-shto" class="form-row product-add-form-row" style="margin:0.75rem 0 1rem">
+              <div class="product-add-field"><label for="prod-shto-barcode">Barkod</label><input type="text" id="prod-shto-barcode" inputmode="numeric" autocomplete="off" placeholder="Skano ose shkruaj"></div>
+              <div class="product-add-field"><label for="prod-shto-emri">Emri i produktit</label><input type="text" id="prod-shto-emri" placeholder="p.sh. Cappuccino" required autocomplete="off"></div>
+              <div class="product-add-field"><label for="prod-shto-kat">Kategoria</label><select id="prod-shto-kat" required></select></div>
+              <div class="product-add-field"><label for="prod-shto-cmim">Çmimi (€)</label><input type="number" id="prod-shto-cmim" min="0" step="0.0001" placeholder="2.50" required></div>
+              <div class="product-add-field"><label for="prod-shto-vat">TVSH</label><select id="prod-shto-vat"><option value="18">18%</option><option value="8">8%</option><option value="0">0%</option></select></div>
+              <div class="product-add-break" aria-hidden="true"></div>
+              <div class="product-add-field"><label for="prod-shto-unit">Njësia ATK</label><select id="prod-shto-unit"><option value="EA">EA — Copë</option></select></div>
+              <div class="product-add-field"><label for="prod-shto-atk-cat">Kategoria ATK</label><select id="prod-shto-atk-cat"><option value="TT">TT — Të tjera</option></select></div>
+              <div class="product-add-field"><label for="prod-shto-kosto">Çmimi i blerjes</label><input type="number" id="prod-shto-kosto" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="product-add-actions"><label>&nbsp;</label><button type="button" class="btn btn-ghost" id="prod-shto-more">Më shumë ↓</button></div>
+              <div id="prod-shto-more-box" hidden style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:flex-end">
+                <div style="flex:0;min-width:160px"><label for="prod-shto-skadence">Skadenca</label><input type="date" id="prod-shto-skadence"></div>
+                <div style="flex:0;min-width:160px"><label for="prod-shto-foto">Foto</label><input type="file" id="prod-shto-foto" accept="image/*"></div>
+                <div style="flex-basis:100%"><label for="prod-shto-desc">Përshkrimi</label><input type="text" id="prod-shto-desc" maxlength="2000"></div>
               </div>
-              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Ruaje</button> <button type="button" class="btn" id="prod-shto-cancel">Anulo</button></div>
+              <div class="product-add-actions"><label>&nbsp;</label><span style="display:flex;gap:8px"><button type="submit" class="btn btn-primary">Ruaje</button><button type="button" class="btn btn-ghost" id="prod-shto-cancel">Anulo</button></span></div>
             </form>
-            <p id="prod-shto-status" class="tables-panel-sub"></p>
-            <div id="produktet-cats" class="stoku-cats"></div>
-            <label style="display:inline-flex;align-items:center;gap:0.4rem;margin:0.35rem 0;font-size:0.9rem">
-              <input type="checkbox" id="produktet-inactive"> Shfaq të çaktivizuarat
-            </label>
-            <p class="tables-panel-sub"><strong>Të gjitha</strong> — shfaq krejt produktet. Zgjidh një kategori (p.sh. Alkool) për të <strong>zvarritur</strong> (⋮⋮) renditjen. <strong>Ndrysho</strong> / <strong>Stop</strong> / <strong>Fshi</strong>.</p>
-            <div id="produktet-grid" class="stoku-grid"></div>
+            <p id="prod-shto-status" class="field-hint"></p>
+            <div id="product-cat-filter" class="product-cat-filter" role="tablist" aria-label="Filtro sipas kategorisë"></div>
+            <label style="display:inline-flex;align-items:center;gap:0.4rem;margin:0.35rem 0 0;font-size:0.9rem"><input type="checkbox" id="menu-show-inactive"> Shfaq të çaktivizuarat</label>
+            <p class="field-hint" style="margin:0.75rem 0"><strong>Të gjitha</strong> — shfaq krejt produktet. Zgjidh një kategori (p.sh. Alkool) për të <strong>zvarritur</strong> (⋮⋮) renditjen. <strong>Ndrysho</strong> / <strong>Stop</strong> / <strong>Fshi</strong>.</p>
+            <div id="product-grid" class="product-grid"></div>
           </div>
         </section>
         <section id="panel-stoku" class="panel">
-          <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+          <div class="purchases-panel-header">
             <div>
-              <div class="card-title" style="font-size:1.35rem">Stoku</div>
-              <p class="tables-panel-sub">Shitja zbret stokun · «+ Shto stok» rrit stokun dhe regjistron blerje (Blerjet + Kontabilisti) · stoku 0 → alarm.</p>
+              <h2 class="purchases-panel-title">Stoku</h2>
+              <p class="purchases-panel-sub">Shitja zbret stokun · «+ Shto stok» rrit stokun dhe regjistron blerje (Blerjet + Kontabilisti) · stoku 0 → alarm.</p>
             </div>
-            <button type="button" class="btn" id="btn-stoku-reconcile">Verifiko stokun</button>
+            <div class="tables-panel-actions">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-stoku-reconcile">Verifiko stokun</button>
+            </div>
           </div>
-          <div class="card" id="low-stock-banner" hidden style="border-left:4px solid #b45309;margin:1rem 0">
-            <div class="card-title">Stok i ulët</div>
-            <ul id="low-stock-list" style="margin:0.4rem 0 0 1.1rem;padding:0"></ul>
+          <div id="low-stock-banner" class="card" hidden style="border-left:4px solid #b45309;background:#fffbeb;margin-bottom:1rem">
+            <div class="card-title" style="color:#92400e">⚠ Stok i ulët</div>
+            <ul id="low-stock-list" style="margin:0.4rem 0 0 1.1rem;padding:0;color:#78350f;font-size:0.9rem"></ul>
           </div>
-          <div class="card" style="margin-top:1rem">
+          <div class="card settings-card">
             <div class="card-title">Shto artikull me barcode (stok + blerje)</div>
-            <form id="forma-stoku-barcode" class="stoku-form">
+            <form id="forma-stoku-barcode" class="form-row" style="margin-bottom:0.75rem">
               <div><label for="stoku-barcode">Barcode</label><input id="stoku-barcode" placeholder="Skano ose shkruaj!"><small id="stoku-barcode-status" class="tables-panel-sub"></small></div>
               <div><label for="stoku-emri">Emri</label><input id="stoku-emri" placeholder="Emri i artikullit" required></div>
               <div><label for="stoku-kat">Kategoria</label><select id="stoku-kat" required></select></div>
@@ -560,12 +701,12 @@
               <div><label for="stoku-tvsh">TVSH</label><select id="stoku-tvsh"><option value="18" selected>18%</option><option value="8">8%</option><option value="0">0%</option></select></div>
               <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Shto</button></div>
             </form>
-            <p class="tables-panel-sub">Skanimi rrit stokun dhe regjistron faturë «Blerje barcode» → Blerjet + Kontabilisti.</p>
+            <p class="field-hint" style="margin:0 0 0.65rem">Skanimi rrit stokun dhe regjistron faturë «Blerje barcode» → Blerjet + Kontabilisti.</p>
             <div class="card" style="margin:1rem 0">
               <div class="card-title">Përbërësit (stoku — vetëm lexim)</div>
-              <p class="tables-panel-sub">Recetat: tab-i Receptat. Blerjet e përbërësve: Blerjet.</p>
-              <div style="overflow-x:auto">
-                <table class="dashboard-top-table">
+              <p class="field-hint" style="margin:0 0 0.5rem">Recetat: tab-i Receptat. Blerjet e përbërësve: Blerjet.</p>
+              <div style="overflow-x:auto;margin-bottom:0.75rem">
+                <table class="purchases-table">
                   <thead><tr><th>Emri</th><th>Njësia</th><th>Stoku</th><th>Kosto/njësi</th><th>Min</th></tr></thead>
                   <tbody id="ingredients-table-body"><tr><td colspan="5">Hapni tab-in Stoku…</td></tr></tbody>
                 </table>
@@ -573,24 +714,24 @@
             </div>
             <div class="card" style="margin-bottom:1rem">
               <div class="card-title">Numërim stoku &amp; humbje (përbërës + copë)</div>
-              <p class="tables-panel-sub">Fut sasinë reale — programi tregon diferencën (sasi + €) dhe e regjistron me operator/kohë.</p>
+              <p class="field-hint" style="margin:0 0 0.5rem">Fut sasinë reale — programi tregon diferencën (sasi + €) dhe e regjistron me operator/kohë.</p>
               <div id="stock-count-lines" style="max-height:220px;overflow:auto;margin-bottom:0.5rem"></div>
-              <div class="stoku-form">
-                <div style="flex:1"><label for="stock-count-note">Shënim</label><input id="stock-count-note" placeholder="p.sh. numërim javor"></div>
-                <button type="button" class="btn btn-primary" id="btn-stock-count-save">Ruaj numërimin</button>
-                <button type="button" class="btn" id="btn-stock-count-reload">Rifresko listën</button>
+              <div class="form-row">
+                <div style="flex:1;min-width:160px"><label for="stock-count-note">Shënim</label><input id="stock-count-note" placeholder="p.sh. numërim javor"></div>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-stock-count-save">Ruaj numërimin</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-stock-count-reload">Rifresko listën</button>
               </div>
               <p id="stock-count-msg" class="tables-panel-sub"></p>
             </div>
             <div class="card" style="margin-bottom:1rem">
               <div class="card-title">Krahasim harxhimi (javë / muaj)</div>
-              <div class="stoku-form">
+              <div class="form-row" style="margin-bottom:0.5rem">
                 <div><label for="variance-from">Nga</label><input type="date" id="variance-from"></div>
                 <div><label for="variance-to">Deri</label><input type="date" id="variance-to"></div>
-                <button type="button" class="btn" id="btn-variance-load">Shfaq</button>
+                <div style="flex:0"><label>&nbsp;</label><button type="button" class="btn btn-ghost btn-sm" id="btn-variance-load">Shfaq</button></div>
               </div>
               <div style="overflow-x:auto">
-                <table class="dashboard-top-table">
+                <table class="purchases-table">
                   <thead><tr><th>Përbërës</th><th>Duhej</th><th>Harxhoi</th><th>Diferenca</th><th>€</th><th>%</th></tr></thead>
                   <tbody id="variance-table-body"><tr><td colspan="6">Klikoni Shfaq…</td></tr></tbody>
                 </table>
@@ -598,48 +739,110 @@
             </div>
             <div id="stoku-reconcile-panel" class="tables-panel-sub" hidden></div>
             <p id="stoku-summary" class="tables-panel-sub"></p>
-            <p class="tables-panel-sub">Zvarrit kategoritë majtas/djathtas për renditje (si te produktet / Cilësimet).</p>
-            <div id="stoku-cat-filter" class="stoku-cats"></div>
-            <div id="stoku-grid" class="stoku-grid"></div>
+            <p class="field-hint" style="margin:0 0 0.35rem">Zvarrit kategoritë majtas/djathtas për renditje (si te produktet / Cilësimet).</p>
+            <div id="stoku-cat-filter" class="product-cat-filter" role="tablist" aria-label="Filtro stokun sipas kategorisë"></div>
+            <div id="stoku-grid" class="product-grid"></div>
           </div>
         </section>
-        <section id="panel-nderrimet" class="panel">
-          <div class="card">
-            <div class="card-title">Ndërrimet</div>
-            <div class="nderrimet-filters">
-              <div>
-                <label for="nderrimet-period">Periudha</label>
-                <select id="nderrimet-period">
-                  <option value="sot">Sot</option>
-                  <option value="java">Javë</option>
-                  <option value="month" selected>Muaj</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
-              <div>
-                <label for="nderrimet-month">Muaji</label>
-                <input type="month" id="nderrimet-month">
-              </div>
-              <div id="nderrimet-custom-wrap" hidden>
-                <label for="nderrimet-from">Nga</label>
-                <input type="date" id="nderrimet-from">
-                <label for="nderrimet-to">Deri</label>
-                <input type="date" id="nderrimet-to">
-              </div>
-              <button type="button" class="btn btn-primary" id="btn-nderrimet-shfaq">Shfaq</button>
+        <section id="panel-raporte-avancuara" class="panel">
+          <div class="reports-panel-header">
+            <div>
+              <h2 class="reports-panel-title">Raporte të avancuara</h2>
+              <p class="reports-panel-sub">Javore, mujore, krahasime dhe trende — më të detajuara se raportet ditore</p>
+            </div>
+          </div>
+          <div id="adv-reports-msg" class="field-hint" style="margin-bottom:0.5rem"></div>
+          <div class="adv-subtabs" role="tablist">
+            <button type="button" class="adv-subtab active" data-adv-pane="javore">Javore</button>
+            <button type="button" class="adv-subtab" data-adv-pane="mujore">Mujore</button>
+            <button type="button" class="adv-subtab" data-adv-pane="krahasime">Krahasime</button>
+            <button type="button" class="adv-subtab" data-adv-pane="trende">Trende</button>
+            <button type="button" class="adv-subtab" data-adv-pane="qarkullimi">Qarkullimi</button>
+            <button type="button" class="adv-subtab" data-adv-pane="punonjesit">Punonjësit</button>
+            <button type="button" class="adv-subtab" data-adv-pane="nderrimet">Ndërrimet</button>
+          </div>
+          <div class="adv-pane card" data-adv-pane="javore" style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Java (datë brenda javës)</label>
+              <input type="date" id="adv-week-date">
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Shfaq</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-adv-stay="1">Eksporto CSV</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-adv-stay="1">Eksporto PDF</button>
+            </div>
+            <div class="dashboard-kpi-row" id="adv-week-kpi"></div>
+            <table class="adv-table" style="margin-top:0.75rem">
+              <thead><tr><th>Dita</th><th>Data</th><th>Nr. shitjeve</th><th>Totali</th><th>Produkti më i shitur</th></tr></thead>
+              <tbody id="adv-week-body"></tbody>
+            </table>
+          </div>
+          <div class="adv-pane card" data-adv-pane="mujore" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Muaji</label><input type="month" id="adv-month-picker">
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Shfaq</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-adv-stay="1">Eksporto CSV</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-adv-stay="1">Eksporto PDF</button>
+            </div>
+            <div class="dashboard-kpi-row" id="adv-month-kpi"></div>
+            <h3 class="card-title" style="margin:1rem 0 0.35rem">Ndarja javore</h3>
+            <table class="adv-table"><thead><tr><th>Java</th><th>Nr. shitjeve</th><th>Totali</th></tr></thead><tbody id="adv-month-weeks-body"></tbody></table>
+            <h3 class="card-title" style="margin:1rem 0 0.35rem">Kategoritë</h3>
+            <table class="adv-table"><thead><tr><th>Kategoria</th><th>Sasia</th><th>Totali</th><th>Kosto totale</th><th>Fitimi</th><th>Marzhi %</th></tr></thead><tbody id="adv-month-cat-body"></tbody></table>
+            <h3 class="card-title" style="margin:1rem 0 0.35rem">Marzhi i fitimit</h3>
+            <table class="adv-table"><thead><tr><th>Produkti</th><th>Çmimi shitjes</th><th>Kosto</th><th>Marzhi €</th><th>Marzhi %</th></tr></thead><tbody id="adv-month-margin-body"></tbody></table>
+          </div>
+          <div class="adv-pane card" data-adv-pane="krahasime" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Muaji 1</label><input type="month" id="adv-cmp-m1">
+              <label>Muaji 2</label><input type="month" id="adv-cmp-m2">
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Krahaso</button>
+            </div>
+            <table class="adv-table"><thead><tr><th>Metrika</th><th>Muaji 1</th><th>Muaji 2</th><th>Ndryshimi</th></tr></thead><tbody id="adv-cmp-metrics-body"></tbody></table>
+          </div>
+          <div class="adv-pane card" data-adv-pane="trende" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Periudha</label>
+              <select id="adv-trend-months"><option value="3">3 muaj</option><option value="6" selected>6 muaj</option><option value="12">12 muaj</option></select>
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Shfaq</button>
+            </div>
+          </div>
+          <div class="adv-pane card" data-adv-pane="qarkullimi" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Periudha</label>
+              <select id="adv-turnover-period"><option value="month" selected>Ky muaj</option><option value="3months">3 muaj</option><option value="6months">6 muaj</option><option value="12months">12 muaj</option></select>
+              <input type="month" id="adv-turnover-month">
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Shfaq</button>
+            </div>
+            <table class="adv-table"><thead><tr><th>Produkti</th><th>Kategoria</th><th>Shitur</th><th>Stoku</th><th>Qarkullimi</th><th>Ditë stoku</th></tr></thead><tbody id="adv-turnover-body"></tbody></table>
+          </div>
+          <div class="adv-pane card" data-adv-pane="punonjesit" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar">
+              <label>Periudha</label>
+              <select id="adv-emp-period"><option value="sot">Sot</option><option value="java">Javë</option><option value="month" selected>Muaj</option><option value="custom">Custom</option></select>
+              <input type="month" id="adv-emp-month">
+              <button type="button" class="btn btn-primary btn-sm" data-adv-stay="1">Shfaq</button>
+            </div>
+            <table class="adv-table"><thead><tr><th>Punonjësi</th><th>Porosi</th><th>Të ardhurat</th><th>Mesatarja</th><th>Artikuj shitur</th><th>Produkti kryesor</th><th>Zbritje dhënë</th></tr></thead><tbody id="adv-emp-body"></tbody></table>
+          </div>
+          <div class="adv-pane card" data-adv-pane="nderrimet" hidden style="padding:1rem;margin-bottom:0.75rem">
+            <div class="purchases-filter-bar" style="margin-bottom:0.75rem">
+              <label for="nderrimet-period">Periudha</label>
+              <select id="nderrimet-period">
+                <option value="sot">Sot</option>
+                <option value="java">Javë</option>
+                <option value="month" selected>Muaj</option>
+                <option value="custom">Custom</option>
+              </select>
+              <input type="month" id="nderrimet-month" title="Muaji">
+              <span id="nderrimet-custom-wrap" hidden>
+                <label for="nderrimet-from">Nga</label><input type="date" id="nderrimet-from">
+                <label for="nderrimet-to">Deri</label><input type="date" id="nderrimet-to">
+              </span>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-nderrimet-shfaq">Shfaq</button>
             </div>
             <div style="overflow-x:auto">
-              <table class="dashboard-top-table">
-                <thead>
-                  <tr>
-                    <th>Stafi</th><th>Status</th><th>Hapur</th><th>Mbyllur</th><th>Nisja</th>
-                    <th>Cash</th><th>Kartë</th><th>Pritshme</th><th>Numëruar</th><th>Diferenca</th>
-                    <th>Dorëzuar te</th><th>Pranimi</th>
-                  </tr>
-                </thead>
-                <tbody id="nderrimet-body">
-                  <tr><td colspan="12" style="color:#a0a0b8">Nuk ka ndërrime të regjistruara</td></tr>
-                </tbody>
+              <table class="adv-table">
+                <thead><tr><th>Stafi</th><th>Status</th><th>Hapur</th><th>Mbyllur</th><th>Nisja</th><th>Cash</th><th>Kartë</th><th>Pritshme</th><th>Numëruar</th><th>Diferenca</th><th>Dorëzuar te</th><th>Pranimi</th></tr></thead>
+                <tbody id="nderrimet-body"><tr><td colspan="12">Nuk ka ndërrime të regjistruara</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -744,9 +947,8 @@
         if (id === "ditari") ngarkoDitarin();
         if (id === "stoku") ngarkoStoku();
         if (id === "menuja") { ngarkoProduktet(); ngarkoKategorite(); }
-        if (id === "kategorite") ngarkoKategorite();
         if (id === "furnitoret") ngarkoFurnitoret();
-        if (id === "nderrimet") ngarkoNderrimet();
+        if (id === "raporte-avancuara") ngarkoNderrimet();
       });
     });
     function tick() {
@@ -909,10 +1111,6 @@
       });
     }
     document.getElementById("btn-rebuild-register").addEventListener("click", ngarkoPasqyra);
-    document.getElementById("btn-low-stock-goto").addEventListener("click", function () {
-      var btn = document.querySelector('.admin-tab-btn[data-panel="stoku"]');
-      if (btn) btn.click();
-    });
     ngarkoPasqyra();
     function paintFloor(areas) {
       ["tavolinat", "rregullimi-tavolinave"].forEach(function (id) {
@@ -1266,6 +1464,21 @@
         document.getElementById("nderrimet-custom-wrap").hidden = document.getElementById("nderrimet-period").value !== "custom";
       });
       document.getElementById("btn-nderrimet-shfaq").addEventListener("click", ngarkoNderrimet);
+      document.querySelectorAll(".adv-subtab").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var pane = btn.getAttribute("data-adv-pane");
+          document.querySelectorAll(".adv-subtab").forEach(function (b) { b.classList.toggle("active", b === btn); });
+          document.querySelectorAll("#panel-raporte-avancuara .adv-pane").forEach(function (p) {
+            p.hidden = p.getAttribute("data-adv-pane") !== pane;
+          });
+          if (pane === "nderrimet") ngarkoNderrimet();
+        });
+      });
+      document.querySelectorAll("[data-adv-stay]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.getElementById("adv-reports-msg").textContent = "Këto raporte lexohen te programi. Fleta i shfaq, por nuk i llogarit këtu.";
+        });
+      });
     })();
     function euroBorxh(n) {
       var v = Number(n) || 0;
@@ -1334,10 +1547,10 @@
       }
       var html = rows.map(function (c) {
         var route = c.route === "kitchen" ? "kitchen" : "bar";
-        return '<span class="stoku-chip" draggable="true">⋮⋮ ' + esc(c.name) +
-          ' <select class="tag-route"><option value="bar"' + (route === "bar" ? " selected" : "") + '>Banak</option><option value="kitchen"' + (route === "kitchen" ? " selected" : "") + '>Kuzhinë</option></select>' +
-          ' <button type="button" class="btn" data-kat-stop="1">Stop</button>' +
-          ' <button type="button" class="btn" data-kat-del="1">✕</button></span>';
+        var name = esc(c.name);
+        return '<span class="tag" draggable="true"><span class="tag-drag">⋮⋮</span><span class="tag-label">' + name +
+          '</span><select class="tag-route"><option value="bar"' + (route === "bar" ? " selected" : "") + '>Banak</option><option value="kitchen"' + (route === "kitchen" ? " selected" : "") + '>Kuzhinë</option></select>' +
+          '<button type="button" class="tag-stop" data-kat-stop="1">Stop</button><button type="button" class="tag-del" data-kat-del="1">✕</button></span>';
       }).join("");
       [box, copy].forEach(function (el) {
         if (!el) return;
@@ -1384,13 +1597,13 @@
     function paintProduktet() {
       var items = produktetData.items || [];
       var cats = produktetData.categories || [];
-      var bar = document.getElementById("produktet-cats");
+      var bar = document.getElementById("product-cat-filter");
       var tabs = [{ key: "", label: "Të gjitha" }].concat(cats.map(function (c) { return { key: c.name, label: c.name }; }));
       bar.innerHTML = tabs.map(function (t) {
         var on = (produktetCat || "") === t.key;
-        return '<button type="button" class="stoku-cat' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '">' + esc(t.label) + "</button>";
+        return '<button type="button" class="product-cat-tab' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '">' + esc(t.label) + "</button>";
       }).join("");
-      bar.querySelectorAll(".stoku-cat").forEach(function (btn) {
+      bar.querySelectorAll(".product-cat-tab").forEach(function (btn) {
         btn.addEventListener("click", function () {
           produktetCat = btn.getAttribute("data-cat") || null;
           if (!produktetCat) produktetCat = null;
@@ -1404,20 +1617,20 @@
           return '<option value="' + esc(c.name).replace(/"/g, "&quot;") + '">' + esc(c.name) + "</option>";
         }).join("");
       }
-      var showOff = document.getElementById("produktet-inactive").checked;
+      var showOff = document.getElementById("menu-show-inactive").checked;
       var list = items.filter(function (it) {
         if (produktetCat && it.category !== produktetCat) return false;
         if (!showOff && !it.active) return false;
         return true;
       });
-      var grid = document.getElementById("produktet-grid");
+      var grid = document.getElementById("product-grid");
       if (!items.length) {
-        grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte.</p>';
+        grid.innerHTML = '<p class="product-grid-empty">Nuk ka produkte.</p>';
         return;
       }
       if (!list.length) {
         var hidden = !showOff && items.some(function (it) { return !it.active; });
-        grid.innerHTML = '<p class="tables-panel-sub">' + (hidden ? "Nuk ka produkte aktive." : "Nuk ka produkte në këtë kategori.") + "</p>";
+        grid.innerHTML = '<p class="product-grid-empty">' + (hidden ? "Nuk ka produkte aktive." : "Nuk ka produkte në këtë kategori.") + "</p>";
         return;
       }
       var shown = produktetShowAll || list.length <= 100 ? list : list.slice(0, 60);
@@ -1425,12 +1638,10 @@
         var sq = Number(it.stock_quantity);
         if (!Number.isFinite(sq)) sq = 0;
         var stockTxt = sq % 1 ? sq.toFixed(2) : String(Math.round(sq));
-        var badge = it.active ? '<span class="prod-badge prod-on">Aktiv</span>' : '<span class="prod-badge prod-off">Joaktiv</span>';
+        var badge = it.active ? '<span class="badge badge-free">Aktiv</span>' : '<span class="badge badge-occupied">Joaktiv</span>';
         var toggle = it.active ? "Stop" : "Shfaq";
-        return '<article class="stoku-card' + (it.active ? "" : " off") + '"><div class="stoku-name">' + esc(it.name) +
-          '</div><div class="stoku-chip">' + esc(it.category || "—") + '</div><div style="margin-top:0.45rem">' +
-          euro(it.price) + " · " + esc(it.unit || "EA") + '</div><div style="margin-top:0.35rem">Stoku: ' + esc(stockTxt) + " " + badge +
-          '</div><div style="margin-top:0.45rem;display:flex;gap:0.35rem;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-prod-edit="' + esc(it.local_id) + '">Ndrysho</button><button type="button" class="btn" data-prod-stop="' + esc(it.local_id) + '">' + toggle + '</button><button type="button" class="btn" data-prod-del="' + esc(it.local_id) + '">Fshi</button></div></article>';
+        var bits = String(it.name || "").trim().split(/\s+/).slice(0, 2).map(function (w) { return w.slice(0, 1).toUpperCase(); }).join("");
+        return '<div class="product-card' + (it.active ? "" : " product-card-inactive") + '"><div class="product-card-inner"><div class="product-card-header"><div class="product-initial">' + esc(bits || "•") + '</div><div class="product-card-head-text"><div class="product-card-name">' + esc(it.name) + '</div><span class="product-cat-chip">' + esc(it.category || "—") + '</span></div></div><div class="product-card-body"><div class="product-card-price">' + euro(it.price) + " · " + esc(it.unit || "EA") + '</div><div class="product-card-meta"><span class="product-card-stock">Stoku: ' + esc(stockTxt) + "</span>" + badge + '</div></div><div class="product-card-actions"><button type="button" class="btn btn-primary btn-sm" data-prod-edit="' + esc(it.local_id) + '">Ndrysho</button><button type="button" class="btn btn-ghost btn-sm" data-prod-stop="' + esc(it.local_id) + '">' + toggle + '</button><button type="button" class="btn btn-danger btn-sm" data-prod-del="' + esc(it.local_id) + '">Fshi</button></div></div></div>';
       }).join("");
       if (shown.length < list.length) {
         grid.innerHTML += '<button type="button" class="btn" id="produktet-more">Shfaq të gjitha (' + list.length + ")</button>";
@@ -1448,11 +1659,11 @@
           var id = btn.getAttribute("data-prod-edit");
           var item = items.filter(function (it) { return String(it.local_id) === String(id); })[0];
           if (!item) return;
-          var card = btn.closest("article");
+          var card = btn.closest(".product-card");
           var opts = cats.map(function (c) {
             return '<option value="' + esc(c.name).replace(/"/g, "&quot;") + '"' + (c.name === item.category ? " selected" : "") + ">" + esc(c.name) + "</option>";
           }).join("");
-          card.innerHTML = '<div class="stoku-name">Duke redaktuar</div><label>Emri</label><input class="prod-edit-name" value="' + esc(item.name).replace(/"/g, "&quot;") + '"><label>Kategoria</label><select>' + opts + '</select><label>Çmimi (€)</label><input type="number" value="' + esc(item.price) + '"><label>TVSH</label><select><option>18%</option><option>8%</option><option>0%</option></select><label>Barkodi</label><input value="' + esc(item.barcode || "") + '"><label>Stoku</label><input type="number" value="0"><label>Përshkrimi</label><input value="' + esc(item.description || "") + '"><div style="margin-top:0.45rem;display:flex;gap:0.35rem;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-prod-save="1">Ruaje</button><button type="button" class="btn" data-prod-cancel="1">Anulo</button><button type="button" class="btn" data-prod-print="1">Printo etiketë</button></div>';
+          card.innerHTML = '<div class="product-card-inner"><div class="product-card-header"><div class="product-initial">…</div><span class="product-edit-hint">Duke redaktuar</span></div><div class="product-card-edit-fields"><label>Emri</label><input class="menu-in-name" value="' + esc(item.name).replace(/"/g, "&quot;") + '"><label>Kategoria</label><select>' + opts + '</select><label>Çmimi (€)</label><input type="number" value="' + esc(item.price) + '"><label>TVSH</label><select><option>18%</option><option>8%</option><option>0%</option></select><button type="button" class="btn btn-ghost btn-sm">Më shumë ↓</button><label>Barkodi</label><input value="' + esc(item.barcode || "") + '"><label>Stoku</label><input type="number" value="0"><label class="menu-in-desc-label">Përshkrimi</label><textarea class="menu-in-desc" rows="3">' + esc(item.description || "") + '</textarea></div><div class="product-card-actions"><button type="button" class="btn btn-primary btn-sm" data-prod-save="1">Ruaje</button><button type="button" class="btn btn-ghost btn-sm" data-prod-cancel="1">Anulo</button><button type="button" class="btn btn-ghost btn-sm" data-prod-print="1">Printo etiketë</button></div>';
           card.querySelector("[data-prod-save]").addEventListener("click", function () {
             document.getElementById("prod-shto-status").textContent = vetemProgrami;
           });
@@ -1484,7 +1695,7 @@
           document.getElementById("prod-shto-status").textContent = "Nuk u lidh me serverin.";
         });
     }
-    document.getElementById("produktet-inactive").addEventListener("change", function () {
+    document.getElementById("menu-show-inactive").addEventListener("change", function () {
       produktetShowAll = false;
       paintProduktet();
     });
@@ -1517,9 +1728,9 @@
       bar.innerHTML = tabs.map(function (t) {
         var on = (stokuCat || "") === t.key;
         var drag = t.key ? ' draggable="true" title="Zvarrit majtas/djathtas për renditje"' : "";
-        return '<button type="button" class="stoku-cat' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '"' + drag + ">" + esc(t.label) + "</button>";
+        return '<button type="button" class="product-cat-tab' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '"' + drag + ">" + esc(t.label) + "</button>";
       }).join("");
-      bar.querySelectorAll(".stoku-cat").forEach(function (btn) {
+      bar.querySelectorAll(".product-cat-tab").forEach(function (btn) {
         btn.addEventListener("click", function () {
           stokuCat = btn.getAttribute("data-cat") || null;
           if (!stokuCat) stokuCat = null;
@@ -1553,11 +1764,11 @@
       paintStockCount();
       var grid = document.getElementById("stoku-grid");
       if (!items.length) {
-        grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte.</p>';
+        grid.innerHTML = '<p class="product-grid-empty">Nuk ka produkte.</p>';
         return;
       }
       if (!list.length) {
-        grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte në këtë kategori.</p>';
+        grid.innerHTML = '<p class="product-grid-empty">Nuk ka produkte në këtë kategori.</p>';
         return;
       }
       var shown = stokuShowAll || list.length <= 100 ? list : list.slice(0, 60);
@@ -1565,11 +1776,9 @@
         var sq = stokuQty(it);
         var threshold = Number(it.stock_alert_threshold) || 0;
         var isLow = threshold > 0 && sq <= threshold;
-        var badge = sq <= 0 ? ' <span class="stoku-zero">STOKU ZERO</span>' : (isLow ? ' <span class="stoku-low">Stok i ulët</span>' : "");
-        return '<article class="stoku-card' + (it.active ? "" : " off") + (isLow ? " low" : "") + '"><div class="stoku-name">' + esc(it.name) +
-          '</div><div class="stoku-chip">' + esc(it.category || "—") + '</div><div style="margin-top:0.45rem">Stoku: ' + esc(sq) + badge +
-          '</div><div class="stoku-chip">Blerje: ' + euro(0) + " · Shitje: " + euro(it.price) + '</div><div style="margin-top:0.35rem;font-weight:800">' +
-          euro(it.price) + '</div><button type="button" class="btn btn-primary" data-stock-add="' + esc(it.local_id) + '" style="margin-top:0.45rem">+ Shto stok</button></article>';
+        var badge = sq <= 0 ? ' <span class="badge badge-occupied">STOKU ZERO</span>' : (isLow ? ' <span class="badge badge-occupied">Stok i ulët</span>' : "");
+        var bits = String(it.name || "").trim().split(/\s+/).slice(0, 2).map(function (w) { return w.slice(0, 1).toUpperCase(); }).join("");
+        return '<div class="product-card' + (it.active ? "" : " product-card-inactive") + (isLow ? " product-card-low-stock" : "") + '"><div class="product-card-inner"><div class="product-card-header"><div class="product-initial">' + esc(bits || "•") + '</div><div class="product-card-head-text"><div class="product-card-name">' + esc(it.name) + '</div><span class="product-cat-chip">' + esc(it.category || "—") + '</span></div></div><div class="product-card-body"><div class="product-card-meta"><span class="product-card-stock">Stoku: ' + esc(sq) + badge + '</span></div><div class="product-card-meta field-hint">Blerje: ' + euro(0) + " · Shitje: " + euro(it.price) + '</div><div class="product-card-price">' + euro(it.price) + '</div></div><div class="product-card-actions"><button type="button" class="btn btn-primary btn-sm" data-stock-add="' + esc(it.local_id) + '">+ Shto stok</button></div></div></div>';
       }).join("");
       if (shown.length < list.length) {
         grid.innerHTML += '<button type="button" class="btn" id="stoku-more">Shfaq të gjitha (' + list.length + ")</button>";
@@ -1675,6 +1884,58 @@
       var box = document.getElementById("prod-shto-more-box");
       box.hidden = !box.hidden;
       document.getElementById("prod-shto-more").textContent = box.hidden ? "Më shumë ↓" : "Më pak ↑";
+    });
+    document.getElementById("pi-pick-btn").addEventListener("click", function () {
+      document.getElementById("pi-file-input").click();
+    });
+    document.getElementById("pi-drop").addEventListener("click", function () {
+      document.getElementById("pi-file-input").click();
+    });
+    document.getElementById("pi-usb-scan-btn").addEventListener("click", function () {
+      var overlay = document.getElementById("pi-browser-overlay");
+      var msg = document.getElementById("pi-browser-msg");
+      overlay.classList.remove("hidden");
+      overlay.setAttribute("aria-hidden", "false");
+      msg.classList.remove("hidden");
+      msg.textContent = "Skano USB është te programi. Fleta nuk i lexon disqet e kompjuterit.";
+    });
+    document.getElementById("pi-browser-close").addEventListener("click", function () {
+      var overlay = document.getElementById("pi-browser-overlay");
+      overlay.classList.add("hidden");
+      overlay.setAttribute("aria-hidden", "true");
+    });
+    document.getElementById("pi-sample-btn").addEventListener("click", function () {
+      var text = "barcode,name,price,category,stock\n1234567890123,Kapuçino,1.50,Kafe,10\n";
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
+      a.download = "shembull-produkte.csv";
+      a.click();
+    });
+    document.getElementById("pi-file-input").addEventListener("change", function () {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var name = file.name.toLowerCase();
+      if (!name.endsWith(".csv")) {
+        document.getElementById("pi-msg").textContent = "Excel lexohet te programi. Këtu shfaqet vetëm .csv, pa e regjistruar.";
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var lines = String(reader.result || "").split(/\r?\n/).filter(function (l) { return l.trim(); });
+        var body = document.getElementById("pi-preview-body");
+        body.innerHTML = lines.slice(1, 21).map(function (line, i) {
+          var c = line.split(",");
+          return "<tr><td>" + (i + 1) + "</td><td>" + esc(c[0] || "") + "</td><td>" + esc(c[1] || "") + "</td><td>" + esc(c[2] || "") + "</td><td>" + esc(c[3] || "") + "</td><td>" + esc(c[4] || "") + "</td><td>Pamje</td><td>—</td></tr>";
+        }).join("") || '<tr><td colspan="8">Skedari s’ka rreshta.</td></tr>';
+        document.getElementById("pi-summary").textContent = file.name + " · " + Math.max(0, lines.length - 1) + " rreshta. Nuk regjistrohet këtu.";
+        document.getElementById("pi-step-preview").classList.remove("hidden");
+      };
+      reader.readAsText(file);
+    });
+    document.getElementById("pi-confirm-btn").addEventListener("click", function () {
+      var result = document.getElementById("pi-result");
+      result.classList.remove("hidden");
+      result.textContent = "Regjistrimi i produkteve bëhet te programi. Fleta nuk i fut në listë.";
     });
     function ngarkoTavolinat() {
       var token = localStorage.getItem("owner_token") || "";
