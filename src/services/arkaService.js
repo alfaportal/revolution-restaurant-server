@@ -504,12 +504,8 @@ async function completeArkaSale(clientId, staff, body) {
     const id = String(line.product_id || line.id || line.menu_id || "").trim();
     const named = String(line.name || "").trim();
     const product = await findProduct(id, named);
-    if (!product && !named) {
-      const err = new Error("Një produkt nuk është në listë.");
-      err.status = 400;
-      throw err;
-    }
-    if (!product && !own) {
+    if (!product && (!named || !own)) {
+      if (own && !named) continue;
       const err = new Error("Një produkt nuk është në listë.");
       err.status = 400;
       throw err;
@@ -536,14 +532,19 @@ async function completeArkaSale(clientId, staff, body) {
     }
   }
   let items = [...merged.values()];
-  if (!items.length && own) {
-    items = normalizeItems(own.items_json).map(it => ({
-      id: it.menu_id || null,
-      menu_id: it.menu_id || null,
-      name: it.name,
-      quantity: it.quantity,
-      price: it.price,
-    }));
+  const billOnly = lines.every(line => !String(line.product_id || line.id || line.menu_id || "").trim() && !String(line.name || "").trim());
+  if (own && (billOnly || !items.length)) {
+    items = [];
+    for (const it of normalizeItems(own.items_json)) {
+      const product = await findProduct("", it.name);
+      items.push({
+        id: product ? product.id : (it.menu_id || null),
+        menu_id: product ? product.id : (it.menu_id || null),
+        name: product ? product.name : it.name,
+        quantity: it.quantity,
+        price: it.price,
+      });
+    }
   }
   if (!items.length) {
     const err = new Error("Shporta është bosh.");

@@ -1,3 +1,7 @@
+## 2026-11-21 — Pagesa pa numër produkti
+
+`src/services/arkaService.js`: nëse faqja nuk dërgon emrin, pagesa merr faturën që është në tavolinë (Americano, Cappuccino, Cortado).
+
 ## 2026-11-21 — Pagesa e porosisë së pranuar
 
 `src/services/arkaService.js`: porosia nga QR s’ka numër produkti, vetëm emër. Pagesa e mbyll atë porosi, e kërkon produktin me emër. `public/arka.html` dërgon edhe emrin. Nuk u dërgua te faqja e gjallë.
