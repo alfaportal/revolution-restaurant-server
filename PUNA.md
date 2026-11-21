@@ -1,3 +1,7 @@
+## 2026-11-21 — Pagesa e porosisë së pranuar
+
+`src/services/arkaService.js`: porosia nga QR s’ka numër produkti, vetëm emër. Pagesa e mbyll atë porosi, e kërkon produktin me emër. `public/arka.html` dërgon edhe emrin. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Porositë online te fletushka
 
 `public/arka.html` dhe `src/routes/arka.js`: porosia që pret pranim del te fletushka me Prano dhe Refuzo. Numri te «Porosi online» është sa porosi presin. Nuk u dërgua te faqja e gjallë.

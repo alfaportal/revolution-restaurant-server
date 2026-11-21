@@ -147,6 +147,13 @@ function isPendingQrOrder(row) {
   return isKioskWaiterName(row?.waiter_name);
 }
 
+function isAcceptedCustomerOrder(row) {
+  if (!row || isPendingQrOrder(row)) return false;
+  const { WEB_KIOSK, WEB_PUBLIC, isKioskWaiterName } = require("../lib/orderSource");
+  const device = String(row.device_id || "").trim().toUpperCase();
+  return device === WEB_KIOSK || device === WEB_PUBLIC || isKioskWaiterName(row.waiter_name);
+}
+
 async function loadOpenOrders(clientId) {
   const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
   const base = "id, table_number, waiter_name, status, total, items_json, device_id, ordered_at, local_order_id";
@@ -441,7 +448,10 @@ async function completeArkaSale(clientId, staff, body) {
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
-  const ids = [...new Set(lines.map(it => String(it.product_id || it.id || "").trim()).filter(Boolean))];
+  const ownBrowser = onTable.find(r => isBrowserOrderRow(r, clientId, setupId)) || null;
+  const own = ownBrowser || onTable.find(r => isAcceptedCustomerOrder(r)) || null;
+  const keepDevice = !!own && !ownBrowser;
+  const ids = [...new Set(lines.map(it => String(it.product_id || it.id || it.menu_id || "").trim()).filter(Boolean))];
   const uuids = ids.filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
   const locals = ids.filter(id => /^\d+$/.test(id)).map(Number);
   const rows = [];
@@ -468,11 +478,38 @@ async function completeArkaSale(clientId, staff, body) {
     byId.set(String(product.id), product);
     if (product.local_id != null) byId.set(String(product.local_id), product);
   }
+  let catalogByName = null;
+  async function findProduct(id, name) {
+    if (id && byId.has(id)) return byId.get(id);
+    if (!catalogByName) {
+      const { data, error: catErr } = await db
+        .from("pos_menu_items")
+        .select("id, local_id, name, price, stock_quantity, active")
+        .eq("client_id", clientId)
+        .eq("active", true);
+      if (catErr) throw catErr;
+      catalogByName = new Map();
+      for (const product of data || []) {
+        byId.set(String(product.id), product);
+        if (product.local_id != null) byId.set(String(product.local_id), product);
+        const key = String(product.name || "").trim().toLowerCase();
+        if (key && !catalogByName.has(key)) catalogByName.set(key, product);
+      }
+    }
+    if (id && byId.has(id)) return byId.get(id);
+    return catalogByName.get(String(name || "").trim().toLowerCase()) || null;
+  }
   const merged = new Map();
   for (const line of lines) {
-    const id = String(line.product_id || line.id || "").trim();
-    const product = byId.get(id);
-    if (!product || product.active === false) {
+    const id = String(line.product_id || line.id || line.menu_id || "").trim();
+    const named = String(line.name || "").trim();
+    const product = await findProduct(id, named);
+    if (!product && !named) {
+      const err = new Error("Një produkt nuk është në listë.");
+      err.status = 400;
+      throw err;
+    }
+    if (!product && !own) {
       const err = new Error("Një produkt nuk është në listë.");
       err.status = 400;
       throw err;
@@ -483,22 +520,38 @@ async function completeArkaSale(clientId, staff, body) {
       err.status = 400;
       throw err;
     }
-    const prev = merged.get(id);
+    const key = product ? String(product.id) : ("name:" + named.toLowerCase());
+    const linePrice = Number(line.price);
+    const price = Number.isFinite(linePrice) ? linePrice : (Number(product?.price) || 0);
+    const prev = merged.get(key);
     if (prev) prev.quantity += qty;
     else {
-      merged.set(id, {
-        id: product.id,
-        menu_id: product.id,
-        name: product.name,
+      merged.set(key, {
+        id: product ? product.id : null,
+        menu_id: product ? product.id : null,
+        name: product ? product.name : named,
         quantity: qty,
-        price: Number(product.price) || 0,
+        price,
       });
     }
   }
-  const items = [...merged.values()];
+  let items = [...merged.values()];
+  if (!items.length && own) {
+    items = normalizeItems(own.items_json).map(it => ({
+      id: it.menu_id || null,
+      menu_id: it.menu_id || null,
+      name: it.name,
+      quantity: it.quantity,
+      price: it.price,
+    }));
+  }
+  if (!items.length) {
+    const err = new Error("Shporta është bosh.");
+    err.status = 400;
+    throw err;
+  }
   const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
   const now = new Date().toISOString();
-  const own = onTable.find(r => isBrowserOrderRow(r, clientId, setupId)) || null;
   let licenseId = null;
   const { data: lic } = await db
     .from("licenses")
@@ -510,7 +563,7 @@ async function completeArkaSale(clientId, staff, body) {
   const row = {
     client_id: clientId,
     local_order_id: own?.local_order_id || `arka-${crypto.randomUUID()}`,
-    device_id: deviceId,
+    device_id: keepDevice ? String(own.device_id || deviceId) : deviceId,
     table_number: tableNumber,
     waiter_name: staff.name,
     waiter_id: staff.id,
@@ -563,7 +616,7 @@ async function completeArkaSale(clientId, staff, body) {
   }
   if (!keepOpen) {
     for (const it of items) {
-      const product = byId.get(it.id);
+      const product = it.id ? byId.get(String(it.id)) : null;
       if (product?.stock_quantity == null) continue;
       const next = Number(product.stock_quantity) - it.quantity;
       await db

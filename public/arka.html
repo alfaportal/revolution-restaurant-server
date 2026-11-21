@@ -435,7 +435,9 @@
       };
     }
     function payloadItems(list) {
-      return list.map(function (it) { return { product_id: it.id, quantity: it.quantity, price: it.price }; });
+      return list.map(function (it) {
+        return { product_id: it.id, name: it.name, quantity: it.quantity, price: it.price };
+      });
     }
     function paintSent() {
       const box = document.getElementById("sent-lines");
