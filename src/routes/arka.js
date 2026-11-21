@@ -95,6 +95,50 @@ router.post("/:slug/logout-pin", (req, res) => {
   res.json({ ok: true });
 });
 
+router.get("/:slug/online-pending", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const { listPendingOnlineOrders } = require("../services/onlineOrdersService");
+    const orders = await listPendingOnlineOrders(req.kitchenClient.id);
+    res.set("Cache-Control", "no-store");
+    res.json({ ok: true, orders, count: orders.length });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message, orders: [] });
+  }
+});
+
+router.post("/:slug/online-pending/:orderId/accept", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const { acceptBarOrder } = require("../services/kdsService");
+    const order = await acceptBarOrder(req.kitchenClient.id, req.params.orderId, {
+      waiterId: staff.id,
+      waiterName: staff.name,
+    });
+    res.json({ ok: true, order_id: order.id });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.post("/:slug/online-pending/:orderId/refuse", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const { refuseBarOrderWithGrace } = require("../services/kdsService");
+    await refuseBarOrderWithGrace(req.kitchenClient.id, req.params.orderId, {
+      waiterId: staff.id,
+      waiterName: staff.name,
+      reason: String(req.body?.reason || "").trim(),
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
 router.get("/:slug/tables", async (req, res) => {
   try {
     const staff = await requireArkaStaff(req, res);

@@ -56,6 +56,16 @@
     .sheet .panel h2 { letter-spacing: .04em; }
     .sheet li { list-style: none; margin: 0 0 8px; }
     .sheet li button { width: 100%; text-align: left; }
+    .online-pop { position: fixed; right: 18px; top: 92px; z-index: 70; width: min(360px, calc(100vw - 24px)); }
+    .online-pop-card { background: #fff; color: #111827; border: 2px solid #ef4444; border-radius: 14px; padding: 14px 14px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
+    .online-pop-x { position: absolute; right: 8px; top: 6px; border: 0; background: transparent; font-size: 20px; cursor: pointer; }
+    .online-pop-card b { display: block; text-align: center; color: #b91c1c; }
+    .online-pop-card p { margin: 4px 0 8px; text-align: center; color: #64748b; font-size: 13px; }
+    .online-pop-card ul { margin: 0 0 10px; padding: 0; list-style: none; }
+    .online-pop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .online-pop-actions button { border-radius: 8px; padding: 10px; font-weight: 800; cursor: pointer; }
+    #online-pop-yes { background: #1d4ed8; color: #fff; border: 0; }
+    #online-pop-no { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
     .pos-pazar-eye { border: 0; background: transparent; color: inherit; padding: 4px; line-height: 0; cursor: pointer; }
     .waiter-kpi-cash { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; }
     .pos-shift-pazar-box:not([hidden]) { display: flex; flex-direction: column; align-items: flex-end; }
@@ -248,6 +258,18 @@
         </div>
       </div>
       <div class="waiter-zones-scroll" id="floor"></div>
+      <div id="online-pop" class="online-pop hidden">
+        <div class="online-pop-card">
+          <button type="button" class="online-pop-x" id="online-pop-x" aria-label="Mbyll">×</button>
+          <b id="online-pop-title">Porosi e re</b>
+          <p id="online-pop-sub"></p>
+          <ul id="online-pop-items"></ul>
+          <div class="online-pop-actions">
+            <button type="button" id="online-pop-yes">PRANO</button>
+            <button type="button" id="online-pop-no">REFUZO</button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
   <div id="ekrani-porosia">
@@ -562,6 +584,8 @@
         api("/products/" + encodeURIComponent(c.id));
       });
     }
+    let pendingOnline = [];
+    let onlineHiddenId = "";
     let floorHall = "kryesore";
     let floorFilter = "";
     let lastFloor = null;
@@ -615,7 +639,7 @@
       document.getElementById("kpi-re").textContent = String(qrN);
       document.getElementById("kpi-kryesore").textContent = String(kryesoreN);
       document.getElementById("kpi-terrasa").textContent = String(terrasaN);
-      document.getElementById("kpi-online").textContent = String(onlineN);
+      document.getElementById("kpi-online").textContent = String(pendingOnline.length);
       document.getElementById("kpi-arke").textContent = euro(data.cash_total);
       document.getElementById("hdr-pazari").textContent = euro(data.cash_total);
       ["open", "free", "qr", "kryesore", "terrasa", "online"].forEach(function (name) {
@@ -795,7 +819,10 @@
     document.getElementById("kpi-re-wrap").addEventListener("click", function () { setFloorFilter("qr"); });
     document.getElementById("kpi-kryesore-wrap").addEventListener("click", function () { setFloorFilter("kryesore"); });
     document.getElementById("kpi-terrasa-wrap").addEventListener("click", function () { setFloorFilter("terrasa"); });
-    document.getElementById("kpi-online-wrap").addEventListener("click", function () { setFloorFilter("online"); });
+    document.getElementById("kpi-online-wrap").addEventListener("click", function () {
+      onlineHiddenId = "";
+      showOnlinePop();
+    });
     document.getElementById("btn-rifresko-tavolina").addEventListener("click", function () { loadTables(); });
     function allTables() {
       const out = [];
@@ -1319,7 +1346,64 @@
     if (!navigator.onLine) paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
     if (!navigator.onLine) paintCloud(false);
     boot();
+    function showOnlinePop() {
+      const pop = document.getElementById("online-pop");
+      const order = pendingOnline[0];
+      if (!order || onlineHiddenId === order.id) {
+        pop.classList.add("hidden");
+        return;
+      }
+      const items = order.items || [];
+      document.getElementById("online-pop-title").textContent = pendingOnline.length > 1
+        ? ("Porosi të reja (" + pendingOnline.length + ")")
+        : "Porosi e re";
+      const kind = order.source_label || order.customer_label || "Online";
+      const table = Number(order.table_number) > 0 ? (" · T" + order.table_number) : "";
+      document.getElementById("online-pop-sub").textContent = kind + table;
+      function esc(s) {
+        return String(s || "").replace(/[&<>]/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
+        });
+      }
+      document.getElementById("online-pop-items").innerHTML = items.map(function (it) {
+        return "<li>" + esc(it.quantity || 1) + "× " + esc(it.name || "") + "</li>";
+      }).join("") + "<li><b>" + euro(order.total) + "</b></li>";
+      pop.classList.remove("hidden");
+    }
+    async function loadOnlinePending() {
+      if (floor.classList.contains("hidden") || !navigator.onLine) return;
+      const res = await api("/online-pending");
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) return;
+      pendingOnline = data.orders || [];
+      const el = document.getElementById("kpi-online");
+      if (el) el.textContent = String(pendingOnline.length);
+      showOnlinePop();
+    }
+    async function answerOnline(kind) {
+      const order = pendingOnline[0];
+      if (!order) return;
+      const res = await api("/online-pending/" + encodeURIComponent(order.id) + "/" + kind, {
+        method: "POST",
+        body: "{}",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(function () { return {}; });
+        openSheet(kind === "accept" ? "Prano" : "Refuzo", data.gabim || "Nuk u krye.");
+        return;
+      }
+      await loadOnlinePending();
+      loadTables();
+    }
+    document.getElementById("online-pop-x").addEventListener("click", function () {
+      if (pendingOnline[0]) onlineHiddenId = pendingOnline[0].id;
+      document.getElementById("online-pop").classList.add("hidden");
+    });
+    document.getElementById("online-pop-yes").addEventListener("click", function () { answerOnline("accept"); });
+    document.getElementById("online-pop-no").addEventListener("click", function () { answerOnline("refuse"); });
     setInterval(function () { if (!floor.classList.contains("hidden") && navigator.onLine && !syncing) loadTables(); }, 5000);
+    setInterval(function () { loadOnlinePending(); }, 5000);
+    loadOnlinePending();
     setInterval(function () { if (navigator.onLine) syncNow(); }, 20000);
   </script>
   <div id="calc-modal" class="calc-modal hidden" hidden role="dialog" aria-modal="true" aria-labelledby="calc-modal-title">

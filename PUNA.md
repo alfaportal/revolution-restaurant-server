@@ -1,3 +1,7 @@
+## 2026-11-21 — Porositë online te fletushka
+
+`public/arka.html` dhe `src/routes/arka.js`: porosia që pret pranim del te fletushka me Prano dhe Refuzo. Numri te «Porosi online» është sa porosi presin. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — QR nuk zë tavolinën para Prano
 
 `src/services/arkaService.js`: porosia QR që pret «Prano» nuk del më e zënë te fletushka. Pas Prano del. Nuk u dërgua te faqja e gjallë.
