@@ -1,3 +1,7 @@
+## 2026-11-21 — Programi merr tavolinat e fletushkës
+
+`src/services/arkaService.js`: porosia e fletushkës ruhet si `WEB-WAITER` (me `arka-` te numri lokal). Programi i instaluar i merr vetëm këto. Numri i njëjtë me programin e linte tavolinën të lirë.
+
 ## 2026-11-21 — Arka e shfletuesit merr numrin e programit
 
 `src/services/arkaService.js`: porosia e re merr `device_id` nga `license_terminals` ku `terminal_role` është `arka1`. Nëse mungon, mbetet numri i gjeneruar. U provua: del i njëjti numër me programin. Nuk u dërgua te faqja e gjallë.

@@ -45,9 +45,8 @@ async function setupPrimaryDeviceId(clientId) {
   return id;
 }
 
-async function arkaSaleDeviceId(clientId) {
-  const setupId = await setupPrimaryDeviceId(clientId);
-  return setupId || browserRegisterId(clientId);
+async function arkaSaleDeviceId() {
+  return "WEB-WAITER";
 }
 
 function isBrowserOrderRow(row, clientId, setupId) {
@@ -416,7 +415,7 @@ async function completeArkaSale(clientId, staff, body) {
   const keepOpen = body?.keep_open === true;
   const method = keepOpen ? null : paymentMethodFor(body?.payment_type || body?.payment_method);
   const setupId = await setupPrimaryDeviceId(clientId);
-  const deviceId = setupId || browserRegisterId(clientId);
+  const deviceId = await arkaSaleDeviceId();
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
