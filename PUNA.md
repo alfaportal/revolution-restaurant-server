@@ -1,3 +1,7 @@
+## 2026-11-21 — Hyrja e pronarit në telefon
+
+`public/js/owner-guard.js`: telefoni nuk e merr më dritaren si mjete të hapura. Në kompjuter mbetet bllokimi nëse mjetet janë hapur.
+
 ## 2026-11-21 — Emri dhe numri i linkut
 
 `public/arka.html` dhe `src/routes/arkaPages.js`: kur hapet linku, në ekran mbetet «Revolution Arka». Numri i gjatë hiqet nga shiriti. Nuk u dërgua te faqja e gjallë.
