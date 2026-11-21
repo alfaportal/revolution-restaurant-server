@@ -105,9 +105,6 @@
     }
 
     function ownerPanelHref() {
-      var ua = navigator.userAgent || "";
-      var phone = /iPhone|iPod|Android.+Mobile|IEMobile|Windows Phone|BlackBerry|Opera Mini/i.test(ua);
-      if (phone || window.matchMedia("(max-width: 767px)").matches) return "/owner/panel";
       if (localStorage.getItem("owner_portal") === "hotel") return "/owner/panel";
       return "/admin-cloud.html";
     }

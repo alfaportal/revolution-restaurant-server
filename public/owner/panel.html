@@ -14,6 +14,9 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
   <link rel="stylesheet" href="/css/owner.css?v=9">
+  <script>
+    if (localStorage.getItem("owner_portal") !== "hotel") location.replace("/admin-cloud.html");
+  </script>
 </head>
 <body class="owner-panel">
   <div id="pwa-install-banner" class="pwa-install-banner hidden" role="region" aria-label="Instalo aplikacionin">

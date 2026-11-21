@@ -1,3 +1,7 @@
+## 2026-11-21 — Paneli i plotë në telefon
+
+`public/owner/login.html` dhe `public/owner/panel.html`: telefoni hap të njëjtin panel si kompjuteri. Menyja e shkurtër nuk del më.
+
 ## 2026-11-21 — Hyrja e pronarit në telefon
 
 `public/js/owner-guard.js`: telefoni nuk e merr më dritaren si mjete të hapura. Në kompjuter mbetet bllokimi nëse mjetet janë hapur.
