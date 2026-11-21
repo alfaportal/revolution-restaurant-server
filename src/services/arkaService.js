@@ -25,31 +25,61 @@ function isLegacyBrowserDevice(deviceId) {
   return d === "WEB-ARKA" || d.startsWith(ARKA_DEVICE_PREFIX);
 }
 
-function isBrowserOrderRow(row, clientId) {
+async function setupPrimaryDeviceId(clientId) {
+  const db = getSupabase();
+  const { data: licenses, error } = await db
+    .from("licenses")
+    .select("id")
+    .eq("client_id", clientId);
+  if (error || !licenses || !licenses.length) return "";
+  const { data: terminals, error: termErr } = await db
+    .from("license_terminals")
+    .select("device_id, last_seen_at")
+    .in("license_id", licenses.map(row => row.id))
+    .eq("terminal_role", "arka1")
+    .order("last_seen_at", { ascending: false })
+    .limit(1);
+  if (termErr || !terminals || !terminals.length) return "";
+  const id = String(terminals[0].device_id || "").trim().toUpperCase();
+  if (!id || id.startsWith("WEB-")) return "";
+  return id;
+}
+
+async function arkaSaleDeviceId(clientId) {
+  const setupId = await setupPrimaryDeviceId(clientId);
+  return setupId || browserRegisterId(clientId);
+}
+
+function isBrowserOrderRow(row, clientId, setupId) {
   const d = String(row?.device_id || "").trim().toUpperCase();
+  const setup = String(setupId || "").trim().toUpperCase();
+  if (setup && d === setup) return true;
   if (d === browserRegisterId(clientId)) return true;
   if (isLegacyBrowserDevice(d)) return true;
   const local = String(row?.local_order_id || "").toLowerCase();
   return d === "WEB-WAITER" && local.startsWith("arka-");
 }
 
-function isLocalPosDevice(deviceId, clientId) {
+function isLocalPosDevice(deviceId, clientId, setupId) {
   const d = String(deviceId || "").trim().toUpperCase();
   if (!d || d.startsWith("WEB-")) return false;
+  const setup = String(setupId || "").trim().toUpperCase();
+  if (setup && d === setup) return false;
   if (clientId && d === browserRegisterId(clientId)) return false;
   return true;
 }
 
-function classifyTableOrder(deviceId, clientId, localOrderId) {
+function classifyTableOrder(deviceId, clientId, localOrderId, setupId) {
   const d = String(deviceId || "").trim().toUpperCase();
   if (!d) return { occupied: false, editable: true, view_only: false, owner: "free" };
-  if (d === browserRegisterId(clientId) || isLegacyBrowserDevice(d)) {
+  const setup = String(setupId || "").trim().toUpperCase();
+  if ((setup && d === setup) || d === browserRegisterId(clientId) || isLegacyBrowserDevice(d)) {
     return { occupied: true, editable: true, view_only: false, owner: "arka" };
   }
   if (d === "WEB-WAITER" && String(localOrderId || "").toLowerCase().startsWith("arka-")) {
     return { occupied: true, editable: true, view_only: false, owner: "arka" };
   }
-  if (isLocalPosDevice(d, clientId)) return { occupied: true, editable: false, view_only: true, owner: "pos" };
+  if (isLocalPosDevice(d, clientId, setupId)) return { occupied: true, editable: false, view_only: true, owner: "pos" };
   return { occupied: true, editable: false, view_only: true, owner: "other" };
 }
 
@@ -121,11 +151,11 @@ async function loadOpenOrders(clientId) {
   return data || [];
 }
 
-function pickTableFace(rows, clientId) {
+function pickTableFace(rows, clientId, setupId) {
   const list = rows || [];
-  const local = list.find(r => isLocalPosDevice(r.device_id, clientId));
+  const local = list.find(r => isLocalPosDevice(r.device_id, clientId, setupId));
   if (local) return local;
-  const arka = list.find(r => isBrowserOrderRow(r, clientId));
+  const arka = list.find(r => isBrowserOrderRow(r, clientId, setupId));
   if (arka) return arka;
   return list[0] || null;
 }
@@ -179,6 +209,7 @@ async function getArkaTables(clientId) {
     .maybeSingle();
   const areas = await loadAreasForClient(clientId);
   const orders = await loadOpenOrders(clientId);
+  const setupId = await setupPrimaryDeviceId(clientId);
   const floorRows = await loadFloorTables(clientId);
   const byTable = new Map();
   for (const row of orders) {
@@ -189,7 +220,7 @@ async function getArkaTables(clientId) {
   }
   const active = new Map();
   for (const [n, rows] of byTable) {
-    const face = pickTableFace(rows, clientId);
+    const face = pickTableFace(rows, clientId, setupId);
     if (!face) continue;
     active.set(n, {
       waiter_name: face.waiter_name,
@@ -210,7 +241,7 @@ async function getArkaTables(clientId) {
       const extra = active.get(t.number);
       const items = normalizeItems(extra?.items_json);
       const qty = items.reduce((s, it) => s + (Number(it.quantity) || 0), 0);
-      const access = classifyTableOrder(extra?.device_id, clientId, extra?.local_order_id);
+      const access = classifyTableOrder(extra?.device_id, clientId, extra?.local_order_id, setupId);
       return {
         number: t.number,
         area_name: t.area_name,
@@ -384,7 +415,8 @@ async function completeArkaSale(clientId, staff, body) {
   }
   const keepOpen = body?.keep_open === true;
   const method = keepOpen ? null : paymentMethodFor(body?.payment_type || body?.payment_method);
-  const deviceId = browserRegisterId(clientId);
+  const setupId = await setupPrimaryDeviceId(clientId);
+  const deviceId = setupId || browserRegisterId(clientId);
   const db = getSupabase();
   const orders = await loadOpenOrders(clientId);
   const onTable = orders.filter(r => Number(r.table_number) === tableNumber);
@@ -445,7 +477,7 @@ async function completeArkaSale(clientId, staff, body) {
   const items = [...merged.values()];
   const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
   const now = new Date().toISOString();
-  const own = onTable.find(r => isBrowserOrderRow(r, clientId)) || null;
+  const own = onTable.find(r => isBrowserOrderRow(r, clientId, setupId)) || null;
   let licenseId = null;
   const { data: lic } = await db
     .from("licenses")
@@ -535,6 +567,8 @@ module.exports = {
   ARKA_ROLE,
   ARKA_DEVICE_PREFIX,
   browserRegisterId,
+  setupPrimaryDeviceId,
+  arkaSaleDeviceId,
   classifyTableOrder,
   loginArkaWithPin,
   getArkaStaffById,

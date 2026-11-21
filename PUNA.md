@@ -1,3 +1,7 @@
+## 2026-11-21 — Arka e shfletuesit merr numrin e programit
+
+`src/services/arkaService.js`: porosia e re merr `device_id` nga `license_terminals` ku `terminal_role` është `arka1`. Nëse mungon, mbetet numri i gjeneruar. U provua: del i njëjti numër me programin. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — F12 te arka vetëm bllokohet
 
 `public/arka.html`: F12 nuk paguan më. Bllokohet njësoj si Ctrl+Shift+I dhe Ctrl+U. Nuk u dërgua te faqja e gjallë.
