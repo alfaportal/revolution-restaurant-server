@@ -168,6 +168,30 @@ async function queueArkaPrint(clientId, staff, body, businessName) {
   return { id: data.id, device_id: data.device_id, status: data.status };
 }
 
+async function queueArkaText(clientId, staff, text) {
+  const body = String(text || "").trim();
+  if (!body) {
+    const err = new Error("Nuk ka tekst për printim.");
+    err.status = 400;
+    throw err;
+  }
+  const db = getSupabase();
+  const deviceId = arkaDeviceId(staff.id);
+  const { data, error: insErr } = await db
+    .from("print_queue")
+    .insert({
+      business_id: clientId,
+      device_id: deviceId,
+      receipt_data: buildEscPosReceipt(body).toString("base64"),
+      status: "pending",
+      updated_at: UNCLAIMED,
+    })
+    .select("id, device_id, status")
+    .single();
+  if (insErr) throw new Error(insErr.message || "Printimi nuk u radhit.");
+  return { id: data.id, device_id: data.device_id, status: data.status };
+}
+
 async function pollPrintJobs(clientId, deviceId) {
   const db = getSupabase();
   const cutoff = new Date(Date.now() - CLAIM_MS).toISOString();
@@ -243,6 +267,7 @@ async function getPrintJob(clientId, deviceId, jobId) {
 
 module.exports = {
   queueArkaPrint,
+  queueArkaText,
   pollPrintJobs,
   reportPrintStatus,
   getPrintJob,

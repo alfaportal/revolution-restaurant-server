@@ -1,3 +1,15 @@
+## 2026-11-21 — QR nuk zë tavolinën para Prano
+
+`src/services/arkaService.js`: porosia QR që pret «Prano» nuk del më e zënë te fletushka. Pas Prano del. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Raporti Z, lista dhe mbyllja e ndërrimit
+
+`public/arka.html`: lista e porosive del në mes të ekranit. Raporti Z printohet. Mbyll nderrimin kërkon tavolina të mbyllura, pastaj printon mbylljen. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Vija e kuqe, kalkulatori, Cloud dhe ATK
+
+`public/arka.html`: nën emrin e sallës ka vijën e kuqe. Kalkulatori është nën shkronjën K. Djathtas janë Cloud dhe ATK. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Fletushka tregon sallat si programi
 
 `src/services/arkaService.js` dhe `public/arka.html`: Kryesorja del me tavolina 1–16, Terrasa me 1–8. Numri «Lirë» është i sallës që është hapur, jo i 24-ave bashkë. Porosia përdor ende numrin e vërtetë të tavolinës. Nuk u dërgua te faqja e gjallë.

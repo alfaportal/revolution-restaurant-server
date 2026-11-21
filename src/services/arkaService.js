@@ -138,16 +138,29 @@ async function getArkaStaffById(clientId, staffId) {
   return { id: data.id, name: data.name, role: data.role || "waiter" };
 }
 
+function isPendingQrOrder(row) {
+  const { isOrderAccepted } = require("../lib/salesOrderSelect");
+  const { WEB_KIOSK, WEB_PUBLIC, isKioskWaiterName } = require("../lib/orderSource");
+  if (isOrderAccepted(row)) return false;
+  const device = String(row?.device_id || "").trim().toUpperCase();
+  if (device === WEB_KIOSK || device === WEB_PUBLIC) return true;
+  return isKioskWaiterName(row?.waiter_name);
+}
+
 async function loadOpenOrders(clientId) {
-  const db = getSupabase();
-  const { data, error } = await db
-    .from("sales_orders")
-    .select("id, table_number, waiter_name, status, total, items_json, device_id, ordered_at, local_order_id")
-    .eq("client_id", clientId)
-    .in("status", ["ordered", "ready"])
-    .order("ordered_at", { ascending: true });
-  if (error) throw error;
-  return data || [];
+  const { selectWithAcceptanceFallback } = require("../lib/salesOrderSelect");
+  const base = "id, table_number, waiter_name, status, total, items_json, device_id, ordered_at, local_order_id";
+  return selectWithAcceptanceFallback(withAcceptance => {
+    const select = withAcceptance
+      ? `${base}, accepted_by_waiter_id, accepted_by_waiter_name, accepted_at`
+      : base;
+    return getSupabase()
+      .from("sales_orders")
+      .select(select)
+      .eq("client_id", clientId)
+      .in("status", ["ordered", "ready"])
+      .order("ordered_at", { ascending: true });
+  });
 }
 
 function pickTableFace(rows, clientId, setupId) {
@@ -221,6 +234,7 @@ async function getArkaTables(clientId) {
   for (const row of orders) {
     const n = Number(row.table_number);
     if (!n || n < 1) continue;
+    if (isPendingQrOrder(row)) continue;
     if (!byTable.has(n)) byTable.set(n, []);
     byTable.get(n).push(row);
   }

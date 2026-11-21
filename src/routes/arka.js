@@ -15,6 +15,7 @@ const {
 const { fiscalizeArkaSale } = require("../services/fiscalServerService");
 const {
   queueArkaPrint,
+  queueArkaText,
   pollPrintJobs,
   reportPrintStatus,
   getPrintJob,
@@ -165,6 +166,17 @@ router.post("/:slug/print", async (req, res) => {
       req.body || {},
       req.kitchenClient.emri || "",
     );
+    res.json({ ok: true, ...out });
+  } catch (e) {
+    res.status(e.status || 400).json({ ok: false, gabim: e.message });
+  }
+});
+
+router.post("/:slug/print-text", async (req, res) => {
+  try {
+    const staff = await requireArkaStaff(req, res);
+    if (!staff) return;
+    const out = await queueArkaText(req.kitchenClient.id, staff, req.body?.text);
     res.json({ ok: true, ...out });
   } catch (e) {
     res.status(e.status || 400).json({ ok: false, gabim: e.message });

@@ -49,6 +49,13 @@
   <link rel="stylesheet" href="/css/pos-program-truffle.css">
   <link rel="stylesheet" href="/css/pos-program-tables.css">
   <style>
+    #ekrani-tavolina #atk-time-ok { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; font-size: 0.72rem; font-weight: 650; }
+    #ekrani-tavolina #atk-time-ok .atk-time-ok-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; }
+    .sheet { position: fixed; inset: 0; z-index: 80; background: rgba(2, 6, 23, .62); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .sheet .panel { width: min(440px, 100%); max-height: 80vh; overflow: auto; background: #0f172a; color: #f8fafc; border-radius: 16px; padding: 16px; }
+    .sheet .panel h2 { letter-spacing: .04em; }
+    .sheet li { list-style: none; margin: 0 0 8px; }
+    .sheet li button { width: 100%; text-align: left; }
     .pos-pazar-eye { border: 0; background: transparent; color: inherit; padding: 4px; line-height: 0; cursor: pointer; }
     .waiter-kpi-cash { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; }
     .pos-shift-pazar-box:not([hidden]) { display: flex; flex-direction: column; align-items: flex-end; }
@@ -196,6 +203,7 @@
     <aside class="waiter-sidebar">
       <div class="waiter-sidebar-top">
         <div class="waiter-brand" title="Arka">K</div>
+        <button type="button" class="waiter-sync-btn waiter-calc-btn" data-open-calc title="Kalkulatorë" aria-label="Kalkulatorë">🧮</button>
         <button type="button" class="waiter-sync-btn" id="btn-rifresko-tavolina" title="Rifresko tavolinat">↻</button>
       </div>
       <div class="waiter-sidebar-spacer"></div>
@@ -212,6 +220,8 @@
           <span class="waiter-topbar-greeting">Hyrja,</span>
           <strong id="biz">Arka</strong>
         </div>
+        <span class="cloud-status-pill cloud-status-ok" id="cloud-status-pill" title="Cloud">☁ Cloud</span>
+        <span id="atk-time-ok"><span class="atk-time-ok-dot" aria-hidden="true"></span>ATK</span>
         <div class="waiter-topbar-time" id="waiter-clock">--:--</div>
       </header>
       <div class="waiter-kpi-row">
@@ -621,14 +631,15 @@
       (data.areas || []).forEach(function (area) {
         const tables = (area.tables || []).filter(function (t) { return tableMatches(t, area.name); });
         if (!tables.length) return;
+        const hall = hallOf(area.name);
         const zone = document.createElement("section");
         zone.className = "waiter-zone-section";
+        zone.setAttribute("data-zone-kind", hall === "terrasa" ? "terrace" : hall === "online" ? "online" : "dining");
         const head = document.createElement("div");
         head.className = "waiter-zone-head";
         const title = document.createElement("span");
         title.className = "waiter-zone-title";
-        const hall = hallOf(area.name);
-        title.textContent = hall === "terrasa" ? "Terrasa" : hall === "online" ? "Porosi online" : (area.name && area.name.toLowerCase().indexOf("tavolin") !== 0 ? area.name : "Kryesore");
+        title.textContent = (hall === "terrasa" ? "Terrasa" : hall === "online" ? "Porosi online" : (area.name && area.name.toLowerCase().indexOf("tavolin") !== 0 ? area.name : "Kryesore")).toUpperCase();
         head.appendChild(title);
         const map = document.createElement("div");
         map.className = "table-floor-map";
@@ -798,16 +809,51 @@
       if (!free) return openSheet("Klaim e re", "Nuk ka tavolina të lira.");
       openSell(free);
     });
-    document.getElementById("btn-nav-porosi").addEventListener("click", function () {
-      const rows = allTables().filter(function (t) { return t.status === "occupied"; });
-      openSheet("Lista e porosive", rows.length ? "Kliko një porosi." : "Nuk ka porosi të hapura.");
+    function tableLabel(t) {
+      return "Tavolina " + (t.label_number || t.number);
+    }
+    function todayKey() {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Belgrade", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    }
+    function shiftClosedToday() {
+      try { return localStorage.getItem("arka-shift-" + slug) === todayKey(); } catch (e) { return false; }
+    }
+    function markShiftClosed() {
+      try { localStorage.setItem("arka-shift-" + slug, todayKey()); } catch (e) {}
+      const btn = document.getElementById("btn-mbyll-nderrimin");
+      btn.disabled = true;
+      btn.textContent = "Nderrimi u mbyll";
+    }
+    function printPaper(text) {
+      const frame = document.createElement("iframe");
+      frame.setAttribute("title", "Print");
+      frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+      document.body.appendChild(frame);
+      const doc = frame.contentWindow.document;
+      doc.open();
+      doc.write("<!DOCTYPE html><html><head><title>Print</title><style>body{font-family:ui-monospace,monospace;font-size:13px;white-space:pre-wrap;margin:12px}</style></head><body></body></html>");
+      doc.close();
+      doc.body.textContent = text;
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      setTimeout(function () { frame.remove(); }, 1500);
+    }
+    async function sendSlip(text) {
+      printPaper(text);
+      try {
+        await api("/print-text", { method: "POST", body: JSON.stringify({ text: text }) });
+      } catch (e) {}
+    }
+    function fillOrderButtons(rows, emptyNote) {
+      openSheet("Lista e porosive", rows.length ? "Kliko një porosi." : emptyNote);
       const list = document.getElementById("sheet-items");
       rows.forEach(function (t) {
         const li = document.createElement("li");
         const b = document.createElement("button");
         b.type = "button";
         b.className = "btn";
-        b.textContent = "Tavolina " + t.number + " · " + euro(t.total);
+        const who = t.waiter_name ? " · " + t.waiter_name : "";
+        b.textContent = tableLabel(t) + who + " · " + euro(t.total);
         b.addEventListener("click", function () {
           document.getElementById("sheet").classList.add("hidden");
           openSell(t);
@@ -815,18 +861,76 @@
         li.appendChild(b);
         list.appendChild(li);
       });
+    }
+    document.getElementById("btn-nav-porosi").addEventListener("click", function () {
+      const rows = allTables().filter(function (t) { return t.status === "occupied"; });
+      fillOrderButtons(rows, "Nuk ka porosi të hapura.");
     });
     document.getElementById("btn-sidebar-raporti-z").addEventListener("click", async function () {
-      openSheet("Raporti Z", "Po ngarkohet...");
+      const btn = this;
+      const old = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "…";
+      try {
+        const res = await api("/z-report");
+        const data = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+          openSheet("Raporti Z", data.gabim || "Raporti nuk u hap.");
+          return;
+        }
+        const lines = [
+          "RAPORTI Z",
+          data.business || "",
+          "Data " + (data.date || ""),
+          "Shitje " + (data.sales || 0),
+          "Cash " + euro(data.cash),
+          "Karte " + euro(data.card),
+          "Totali " + euro(data.total),
+        ].filter(Boolean);
+        await sendSlip(lines.join("\n"));
+        openSheet("Raporti Z", "Raporti Z u dërgua në printim.\n" + lines.slice(2).join(" · "));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+    document.getElementById("btn-mbyll-nderrimin").addEventListener("click", async function () {
+      if (shiftClosedToday()) {
+        openSheet("Mbyll nderrimin", "Nderrimi është mbyllur.");
+        return;
+      }
+      const openRows = allTables().filter(function (t) { return t.status === "occupied"; });
+      if (openRows.length) {
+        fillOrderButtons(openRows, "");
+        document.getElementById("sheet-title").textContent = "Mbyll nderrimin";
+        document.getElementById("sheet-note").textContent = "Mbyllni fillimisht këto tavolina.";
+        return;
+      }
       const res = await api("/z-report");
       const data = await res.json().catch(function () { return {}; });
-      document.getElementById("sheet-note").textContent = !res.ok
-        ? (data.gabim || "Raporti nuk u hap.")
-        : ("Data " + (data.date || "") + " · Shitje " + (data.sales || 0) + " · Cash " + euro(data.cash) + " · Kartë " + euro(data.card) + " · Totali " + euro(data.total));
+      if (!res.ok) {
+        openSheet("Mbyll nderrimin", data.gabim || "Nuk u lexua pazari.");
+        return;
+      }
+      openSheet("Mbyll nderrimin", "Cash " + euro(data.cash) + " · Kartë " + euro(data.card) + " · Totali " + euro(data.total));
+      const go = document.getElementById("sheet-go");
+      go.textContent = "Mbyll dhe printo";
+      go.classList.remove("hidden");
+      go.onclick = async function () {
+        const lines = [
+          "MBYLLJE NDERRIMI",
+          data.business || "",
+          "Data " + (data.date || ""),
+          "Cash " + euro(data.cash),
+          "Karte " + euro(data.card),
+          "Totali " + euro(data.total),
+        ].filter(Boolean);
+        await sendSlip(lines.join("\n"));
+        markShiftClosed();
+        document.getElementById("sheet").classList.add("hidden");
+      };
     });
-    document.getElementById("btn-mbyll-nderrimin").addEventListener("click", function () {
-      openSheet("Mbyll nderrimin", "Monedha në arkë " + document.getElementById("kpi-arke").textContent);
-    });
+    if (shiftClosedToday()) markShiftClosed();
     function tickClock() {
       const el = document.getElementById("waiter-clock");
       if (!el) return;
@@ -1201,14 +1305,53 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/arka-sw.js", { scope: location.pathname }).catch(function () {});
     }
-    window.addEventListener("online", function () { syncNow(); });
+    function paintCloud(ok) {
+      const el = document.getElementById("cloud-status-pill");
+      if (!el) return;
+      el.classList.toggle("cloud-status-ok", !!ok);
+      el.classList.toggle("cloud-status-bad", !ok);
+    }
+    window.addEventListener("online", function () { paintCloud(true); syncNow(); });
     window.addEventListener("offline", function () {
+      paintCloud(false);
       paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
     });
     if (!navigator.onLine) paintNet("Pa internet — shitjet ruhen lokalisht. Bllokimi i tavolinave nuk punon pa internet.");
+    if (!navigator.onLine) paintCloud(false);
     boot();
     setInterval(function () { if (!floor.classList.contains("hidden") && navigator.onLine && !syncing) loadTables(); }, 5000);
     setInterval(function () { if (navigator.onLine) syncNow(); }, 20000);
   </script>
+  <div id="calc-modal" class="calc-modal hidden" hidden role="dialog" aria-modal="true" aria-labelledby="calc-modal-title">
+    <div class="calc-modal-backdrop" id="calc-modal-backdrop"></div>
+    <div class="calc-modal-card">
+      <div class="calc-modal-head">
+        <h2 id="calc-modal-title">Kalkulatorë</h2>
+        <button type="button" class="calc-modal-close" id="calc-modal-close" aria-label="Mbyll">✕</button>
+      </div>
+      <div class="calc-display" id="calc-display" aria-live="polite">0.00</div>
+      <div class="calc-keys" id="calc-keys">
+        <button type="button" class="calc-key" data-calc="7">7</button>
+        <button type="button" class="calc-key" data-calc="8">8</button>
+        <button type="button" class="calc-key" data-calc="9">9</button>
+        <button type="button" class="calc-key calc-key-op" data-calc="/">÷</button>
+        <button type="button" class="calc-key" data-calc="4">4</button>
+        <button type="button" class="calc-key" data-calc="5">5</button>
+        <button type="button" class="calc-key" data-calc="6">6</button>
+        <button type="button" class="calc-key calc-key-op" data-calc="*">×</button>
+        <button type="button" class="calc-key" data-calc="1">1</button>
+        <button type="button" class="calc-key" data-calc="2">2</button>
+        <button type="button" class="calc-key" data-calc="3">3</button>
+        <button type="button" class="calc-key calc-key-op" data-calc="-">−</button>
+        <button type="button" class="calc-key calc-key-fn" data-calc="C">C</button>
+        <button type="button" class="calc-key" data-calc="0">0</button>
+        <button type="button" class="calc-key" data-calc=".">.</button>
+        <button type="button" class="calc-key calc-key-op" data-calc="+">+</button>
+        <button type="button" class="calc-key calc-key-eq" data-calc="=">=</button>
+      </div>
+    </div>
+  </div>
+  <script src="/js/waiter-calculator.js"></script>
+  <script>if (typeof initWaiterCalculator === "function") initWaiterCalculator();</script>
 </body>
 </html>
