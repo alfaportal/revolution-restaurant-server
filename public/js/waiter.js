@@ -5,7 +5,14 @@
       : { slug: "", role: "" };
   const slug = parsed.slug || "";
   const urlParams = new URLSearchParams(window.location.search);
-  const kitchenKey = urlParams.get("key") || "";
+  const keyStore = slug ? "hyrje-kod:" + slug : "";
+  let kitchenKey = urlParams.get("key") || "";
+  if (keyStore) {
+    try {
+      if (kitchenKey) localStorage.setItem(keyStore, kitchenKey);
+      else kitchenKey = localStorage.getItem(keyStore) || "";
+    } catch (e) {}
+  }
   let waiterToken = urlParams.get("w") || "";
   const returnUrl = urlParams.get("return") || "";
   const kasaSession = urlParams.get("kasa_session") || "";

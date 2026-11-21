@@ -41,11 +41,6 @@
       event.stopPropagation();
       ndal();
     }, true);
-    setInterval(function () {
-      const dw = Math.abs((window.outerWidth || 0) - (window.innerWidth || 0));
-      const dh = Math.abs((window.outerHeight || 0) - (window.innerHeight || 0));
-      if (dw > 160 || dh > 320) ndal();
-    }, 1500);
   })();
   </script>
   <link rel="stylesheet" href="/css/pos-program-style.css">
@@ -1373,7 +1368,7 @@
       await api("/logout-pin", { method: "POST", body: "{}" });
       showPin();
     });
-    document.getElementById("pwa-manifest").href = location.pathname + "/manifest.json";
+    document.getElementById("pwa-manifest").href = location.pathname + "/manifest.json" + (key ? "?key=" + encodeURIComponent(key) : "");
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/arka-sw.js", { scope: location.pathname }).catch(function () {});
     }

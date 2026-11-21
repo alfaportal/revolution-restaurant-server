@@ -4,7 +4,14 @@
       ? parseProductPath(window.location.pathname)
       : { slug: "", role: "" };
   const slug = parsed.slug || "";
-  const kitchenKey = new URLSearchParams(window.location.search).get("key") || "";
+  const keyStore = slug ? "hyrje-kod:" + slug : "";
+  let kitchenKey = new URLSearchParams(window.location.search).get("key") || "";
+  if (keyStore) {
+    try {
+      if (kitchenKey) localStorage.setItem(keyStore, kitchenKey);
+      else kitchenKey = localStorage.getItem(keyStore) || "";
+    } catch (e) {}
+  }
 
   const titleEl = document.getElementById("bar-title");
   const errorEl = document.getElementById("error-box");

@@ -32,14 +32,4 @@
     },
     true,
   );
-
-  setInterval(function () {
-    const ow = window.outerWidth || 0;
-    const oh = window.outerHeight || 0;
-    if (!ow || !oh) return;
-    if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) return;
-    const dw = Math.abs(ow - (window.innerWidth || 0));
-    const dh = Math.abs(oh - (window.innerHeight || 0));
-    if (dw > 160 || dh > 320) ndal();
-  }, 1500);
 })();

@@ -5,7 +5,14 @@
       : { slug: "", role: "" };
   const slug = parsed.slug || "";
   const urlParams = new URLSearchParams(window.location.search);
-  const kitchenKey = urlParams.get("key") || "";
+  const keyStore = slug ? "hyrje-kod:" + slug : "";
+  let kitchenKey = urlParams.get("key") || "";
+  if (keyStore) {
+    try {
+      if (kitchenKey) localStorage.setItem(keyStore, kitchenKey);
+      else kitchenKey = localStorage.getItem(keyStore) || "";
+    } catch (e) {}
+  }
   const waiterToken = String(urlParams.get("w") || "").trim();
   const waiterMode = !!waiterToken;
 

@@ -1,3 +1,31 @@
+## 2026-11-21 — Ndaluar te telefoni dhe kompjuteri
+
+`public/js/owner-guard.js` dhe `public/arka.html`: u hoq kontrolli që e mbyllte panelin kur dritarja nuk ishte e plotë. `public/js/waiter.js`, `kitchen.js`, `bar.js`: telefoni e mban kodin e hyrjes pasi linku hapet një herë. `src/routes/arkaPages.js`: ikona e arkës e merr linkun me kod. Nuk u dërgua te faqja e gjallë. Ekrani i gjallë ende shfaq «Ndaluar».
+
+## 2026-11-21 — Skeda Produktet
+
+`public/admin-cloud.html`: skeda Produktet, vetëm lexim. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: `GET /api/admin-cloud/produktet`. 128 produkte, 18 kategori në listë, 19 te kategoritë, të gjitha aktive, TVSH A, pa barkod. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Skeda Stoku
+
+`public/admin-cloud.html`: skeda Stoku me kategoritë, kartelat dhe përbërësit. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: `GET /api/admin-cloud/stoku`. 128 produkte, 18 kategori, asnjë sasi e ndjekur, 0 përbërës. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Skeda Ndërrimet
+
+`public/admin-cloud.html`: skeda Ndërrimet me të njëjtat kolona dhe filtra si te Raportet e avancuara. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: `GET /api/admin-cloud/nderrimet`. Tabela e ndërrimeve nuk ekziston në cloud, përgjigjja është listë bosh. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Ditari si te programi
+
+`public/admin-cloud.html`: shifrat lart, butonat, parapamja, ndërrimet, veprimet dhe refuzimet. Java është 7 ditët e fundit. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: totali, cash, kartë, tavolinat, shpenzimet, veprimet, parapamja dhe refuzimet. Ndërrimet nuk vijnë nga programi, lista del bosh. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Ditari, emri i arkës
+
+`src/services/adminCloudService.js`: arka pa emër nuk del më me numër makine, del «Arka». Nëse data «deri» është para «nga», këmbehen. `public/admin-cloud.html`: tavolina bosh del «—».
+
+## 2026-11-21 — Ditari te paneli
+
+`src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: lexim i ri `GET /api/admin-cloud/ditari` për shitjet e mbyllura dhe të anuluara. `public/admin-cloud.html`: skeda Ditari me kolonat, filtrat Sot/javë/muaj, datën, orën, arkën dhe totalin. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Paneli i plotë në telefon
 
 `public/owner/login.html` dhe `public/owner/panel.html`: telefoni hap të njëjtin panel si kompjuteri. Menyja e shkurtër nuk del më.
