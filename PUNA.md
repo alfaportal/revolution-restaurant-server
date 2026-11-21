@@ -1,3 +1,7 @@
+## 2026-11-21 — Fletushka tregon sallat si programi
+
+`src/services/arkaService.js` dhe `public/arka.html`: Kryesorja del me tavolina 1–16, Terrasa me 1–8. Numri «Lirë» është i sallës që është hapur, jo i 24-ave bashkë. Porosia përdor ende numrin e vërtetë të tavolinës. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Programi merr tavolinat e fletushkës
 
 `src/services/arkaService.js`: porosia e fletushkës ruhet si `WEB-WAITER` (me `arka-` te numri lokal). Programi i instaluar i merr vetëm këto. Numri i njëjtë me programin e linte tavolinën të lirë.

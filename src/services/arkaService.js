@@ -194,9 +194,16 @@ function floorAreas(rows) {
       area_name: name,
       layout_x: Number(row.layout_x),
       layout_y: Number(row.layout_y),
+      sort_order: Number(row.sort_order) || 0,
     });
   }
-  return [...byZone.values()].sort((a, b) => a.sort - b.sort);
+  return [...byZone.values()].sort((a, b) => a.sort - b.sort).map(zone => {
+    zone.tables.sort((a, b) => (a.sort_order - b.sort_order) || (a.number - b.number));
+    zone.tables.forEach((table, index) => {
+      table.label_number = index + 1;
+    });
+    return zone;
+  });
 }
 
 async function getArkaTables(clientId) {
@@ -243,6 +250,7 @@ async function getArkaTables(clientId) {
       const access = classifyTableOrder(extra?.device_id, clientId, extra?.local_order_id, setupId);
       return {
         number: t.number,
+        label_number: t.label_number || (area.tables.indexOf(t) + 1),
         area_name: t.area_name,
         layout_x: t.layout_x == null ? -1 : Number(t.layout_x),
         layout_y: t.layout_y == null ? -1 : Number(t.layout_y),
