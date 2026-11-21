@@ -160,6 +160,9 @@
     .stoku-chip { display: inline-block; margin-top: 0.2rem; font-size: 0.75rem; color: #a0a0b8; }
     .stoku-zero { color: #fca5a5; font-weight: 800; }
     .stoku-low { color: #fdba74; font-weight: 800; }
+    .stoku-form { display:flex; flex-wrap:wrap; gap:0.6rem; align-items:flex-end; margin:0.6rem 0; }
+    .stoku-form label { display:block; font-size:0.8rem; margin-bottom:0.25rem; }
+    .stoku-form input, .stoku-form select { padding:0.45rem 0.55rem; border:1px solid #3a3a55; border-radius:8px; background:#252538; color:#e8e8ef; font-family:inherit; }
     .prod-badge { display: inline-block; border-radius: 999px; padding: 0.1rem 0.45rem; font-size: 0.75rem; font-weight: 700; }
     .prod-on { background: #14532d; color: #bbf7d0; }
     .prod-off { background: #7f1d1d; color: #fecaca; }
@@ -190,6 +193,7 @@
       <button type="button" class="admin-tab-btn active" data-panel="pasqyra">Pasqyra</button>
       <button type="button" class="admin-tab-btn" data-panel="importo-produkte">Importo Produkte</button>
       <button type="button" class="admin-tab-btn" data-panel="menuja">Produktet</button>
+      <button type="button" class="admin-tab-btn" data-panel="kategorite">Kategoritë</button>
       <button type="button" class="admin-tab-btn" data-panel="blerjet">Blerjet</button>
       <button type="button" class="admin-tab-btn" data-panel="stoku">Stoku</button>
       <button type="button" class="admin-tab-btn" data-panel="receta-perberesit">Receptat</button>
@@ -408,7 +412,7 @@
           </div>
           <div class="card" id="refused-orders-card">
             <div class="card-title">Porosi të Refuzuara</div>
-            <p class="tables-panel-sub">Lista e refuzimeve nga kamarierët (arsyeja, artikujt).</p>
+            <p class="tables-panel-sub">Lista e refuzimeve nga kamarierët (arsyeja, artikujt). Përdoret edhe nga AI për vlerësimin e kamarierëve.</p>
             <div id="refuse-stats" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem"></div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:0.75rem">
               <div>
@@ -433,44 +437,169 @@
             </div>
           </div>
         </section>
-        <section id="panel-menuja" class="panel">
-          <div class="card">
-            <div class="card-title">Menuja dhe produktet</div>
-            <p class="tables-panel-sub">Vetëm lexim. Ndryshimi, shtimi dhe fshirja bëhen te programi.</p>
-            <div id="produktet-cats-list" class="stoku-cats"></div>
+        <section id="panel-furnitoret" class="panel">
+          <div>
+            <div class="card-title" style="font-size:1.35rem">Regjistri i furnitorëve</div>
+            <p class="tables-panel-sub">Emri, kontakti, NUI, TVSH · borxhi = blerë minus paguar. Pagesat këtu nuk hyjnë te librat ATK.</p>
           </div>
           <div class="card" style="margin-top:1rem">
-            <div class="card-title">Produktet</div>
-            <div id="produktet-cats" class="stoku-cats"></div>
-            <label style="display:inline-flex;align-items:center;gap:0.4rem;margin:0.35rem 0;font-size:0.9rem">
-              <input type="checkbox" id="produktet-inactive"> Shfaq të çaktivizuarat
-            </label>
-            <p class="tables-panel-sub" id="produktet-summary"></p>
-            <div id="produktet-grid" class="stoku-grid"></div>
-          </div>
-        </section>
-        <section id="panel-stoku" class="panel">
-          <div class="card" id="stoku-low" hidden style="border-left:4px solid #b45309;margin-bottom:1rem">
-            <div class="card-title">Stok i ulët</div>
-            <ul id="stoku-low-list" style="margin:0.4rem 0 0 1.1rem;padding:0"></ul>
+            <form id="forma-furnitor" class="stoku-form">
+              <div style="flex:1.2;min-width:140px"><label for="sup-name">Emri *</label><input id="sup-name" placeholder="p.sh. Metro"></div>
+              <div style="flex:0.8;min-width:110px"><label for="sup-phone">Telefoni</label><input id="sup-phone" placeholder="044…"></div>
+              <div style="flex:1;min-width:140px"><label for="sup-email">Email</label><input id="sup-email" type="email" placeholder="info@…"></div>
+              <div style="flex:1.2;min-width:160px"><label for="sup-address">Adresa</label><input id="sup-address"></div>
+              <div style="flex:0.7;min-width:110px"><label for="sup-nui">NUI</label><input id="sup-nui"></div>
+              <div style="flex:0.7;min-width:110px"><label for="sup-vat">Nr. TVSH</label><input id="sup-vat"></div>
+              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Ruaj furnitorin</button></div>
+            </form>
+            <p id="sup-msg" class="tables-panel-sub"></p>
           </div>
           <div class="card">
-            <div class="card-title">Përbërësit (stoku — vetëm lexim)</div>
+            <div class="card-title">Lista me bilancin</div>
             <div style="overflow-x:auto">
               <table class="dashboard-top-table">
                 <thead>
-                  <tr><th>Emri</th><th>Njësia</th><th>Stoku</th><th>Kosto/njësi</th><th>Min</th></tr>
+                  <tr><th>Furnitori</th><th>Telefoni</th><th>NUI</th><th>Blerë</th><th>Paguar</th><th>Borxhi</th><th></th></tr>
                 </thead>
-                <tbody id="stoku-ingredients">
-                  <tr><td colspan="5" style="color:#a0a0b8">Duke ngarkuar…</td></tr>
+                <tbody id="furnitoret-body">
+                  <tr><td colspan="7" style="color:#a0a0b8">Duke ngarkuar…</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
+          <div class="card" id="sup-pay-card" hidden>
+            <div class="card-title" id="sup-pay-title">Pagesë ndaj furnitorit</div>
+            <div class="stoku-form">
+              <div><label for="sup-pay-amount">Shuma €</label><input type="number" id="sup-pay-amount" min="0.01" step="0.01"></div>
+              <div><label for="sup-pay-date">Data</label><input type="date" id="sup-pay-date"></div>
+              <div style="flex:1"><label for="sup-pay-note">Shënim</label><input id="sup-pay-note" placeholder="opsionale"></div>
+              <div><label>&nbsp;</label><button type="button" class="btn btn-primary" id="btn-sup-pay">Regjistro pagesën</button></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="dashboard-top-table">
+                <thead><tr><th>Data</th><th>Shuma</th><th>Shënim</th></tr></thead>
+                <tbody id="sup-pay-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section id="panel-kategorite" class="panel">
+          <div class="card">
+            <div class="card-title">Kategoritë e menusë</div>
+            <p class="tables-panel-sub"><strong>Stop</strong> i fsheh nga menuja · <strong>✕</strong> i fshin · <strong>Zvarrit</strong> (⋮⋮) për renditje · <strong>Pije / Ushqim</strong> vendos banak ose kuzhinë për printimin e porosive.</p>
+            <form id="forma-kategori" class="stoku-form">
+              <div style="flex:1;min-width:180px"><label for="kat-emri">Emri i kategorisë së re</label><input id="kat-emri" placeholder="p.sh. Specialitete" required></div>
+              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Shto kategori</button></div>
+            </form>
+            <div class="stoku-form">
+              <span>Porositë shkojnë te:</span>
+              <label><input type="radio" name="kat-route" value="bar" checked> Pije (banak)</label>
+              <label><input type="radio" name="kat-route" value="kitchen"> Ushqim (kuzhinë)</label>
+            </div>
+            <p id="kat-msg" class="tables-panel-sub"></p>
+            <div id="lista-kategorive" class="stoku-cats"></div>
+          </div>
+        </section>
+        <section id="panel-menuja" class="panel">
+          <div>
+            <div class="card-title" style="font-size:1.35rem">Menuja dhe produktet</div>
+            <p class="tables-panel-sub">Kategoritë, artikujt dhe import me AI (Pako 4)</p>
+          </div>
           <div class="card" style="margin-top:1rem">
-            <div class="card-title">Stoku</div>
-            <p class="tables-panel-sub" id="stoku-summary"></p>
-            <div id="stoku-cats" class="stoku-cats"></div>
+            <div class="card-title">Kategoritë e menusë</div>
+            <p class="tables-panel-sub"><strong>Stop</strong> i fsheh nga menuja · <strong>✕</strong> i fshin · <strong>Zvarrit</strong> (⋮⋮) për renditje · <strong>Pije / Ushqim</strong> vendos banak ose kuzhinë për printimin e porosive.</p>
+            <div id="lista-kategorive-menu" class="stoku-cats"></div>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <div class="card-title">Produktet</div>
+            <form id="forma-produkt-shto" class="stoku-form">
+              <div><label for="prod-shto-barcode">Barkod</label><input id="prod-shto-barcode" placeholder="Skano ose shkruaj"></div>
+              <div><label for="prod-shto-emri">Emri i produktit</label><input id="prod-shto-emri" placeholder="p.sh. Cappuccino" required></div>
+              <div><label for="prod-shto-kat">Kategoria</label><select id="prod-shto-kat" required></select></div>
+              <div><label for="prod-shto-cmim">Çmimi (€)</label><input id="prod-shto-cmim" type="number" min="0" step="0.0001" placeholder="2.50" required></div>
+              <div><label for="prod-shto-vat">TVSH</label><select id="prod-shto-vat"><option value="18">18%</option><option value="8">8%</option><option value="0">0%</option></select></div>
+              <div><label for="prod-shto-unit">Njësia ATK</label><select id="prod-shto-unit"><option value="EA">EA — Copë</option></select></div>
+              <div><label for="prod-shto-atk-cat">Kategoria ATK</label><select id="prod-shto-atk-cat"><option value="TT">TT — Të tjera</option></select></div>
+              <div><label for="prod-shto-kosto">Çmimi i blerjes</label><input id="prod-shto-kosto" type="number" min="0" step="0.01" placeholder="0.00"></div>
+              <div><label>&nbsp;</label><button type="button" class="btn" id="prod-shto-more">Më shumë ↓</button></div>
+              <div id="prod-shto-more-box" hidden style="flex-basis:100%">
+                <label for="prod-shto-skadence">Skadenca</label><input type="date" id="prod-shto-skadence">
+                <label for="prod-shto-desc">Përshkrimi</label><input id="prod-shto-desc" maxlength="2000">
+              </div>
+              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Ruaje</button> <button type="button" class="btn" id="prod-shto-cancel">Anulo</button></div>
+            </form>
+            <p id="prod-shto-status" class="tables-panel-sub"></p>
+            <div id="produktet-cats" class="stoku-cats"></div>
+            <label style="display:inline-flex;align-items:center;gap:0.4rem;margin:0.35rem 0;font-size:0.9rem">
+              <input type="checkbox" id="produktet-inactive"> Shfaq të çaktivizuarat
+            </label>
+            <p class="tables-panel-sub"><strong>Të gjitha</strong> — shfaq krejt produktet. Zgjidh një kategori (p.sh. Alkool) për të <strong>zvarritur</strong> (⋮⋮) renditjen. <strong>Ndrysho</strong> / <strong>Stop</strong> / <strong>Fshi</strong>.</p>
+            <div id="produktet-grid" class="stoku-grid"></div>
+          </div>
+        </section>
+        <section id="panel-stoku" class="panel">
+          <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+            <div>
+              <div class="card-title" style="font-size:1.35rem">Stoku</div>
+              <p class="tables-panel-sub">Shitja zbret stokun · «+ Shto stok» rrit stokun dhe regjistron blerje (Blerjet + Kontabilisti) · stoku 0 → alarm.</p>
+            </div>
+            <button type="button" class="btn" id="btn-stoku-reconcile">Verifiko stokun</button>
+          </div>
+          <div class="card" id="low-stock-banner" hidden style="border-left:4px solid #b45309;margin:1rem 0">
+            <div class="card-title">Stok i ulët</div>
+            <ul id="low-stock-list" style="margin:0.4rem 0 0 1.1rem;padding:0"></ul>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <div class="card-title">Shto artikull me barcode (stok + blerje)</div>
+            <form id="forma-stoku-barcode" class="stoku-form">
+              <div><label for="stoku-barcode">Barcode</label><input id="stoku-barcode" placeholder="Skano ose shkruaj!"><small id="stoku-barcode-status" class="tables-panel-sub"></small></div>
+              <div><label for="stoku-emri">Emri</label><input id="stoku-emri" placeholder="Emri i artikullit" required></div>
+              <div><label for="stoku-kat">Kategoria</label><select id="stoku-kat" required></select></div>
+              <div><label for="stoku-sasia">SASIA (copa)</label><input id="stoku-sasia" type="number" min="1" step="1" value="1" required></div>
+              <div><label for="stoku-cmim">Çmimi (€)</label><input id="stoku-cmim" type="number" step="0.01" min="0" value="0.00" required></div>
+              <div><label for="stoku-tvsh">TVSH</label><select id="stoku-tvsh"><option value="18" selected>18%</option><option value="8">8%</option><option value="0">0%</option></select></div>
+              <div><label>&nbsp;</label><button type="submit" class="btn btn-primary">Shto</button></div>
+            </form>
+            <p class="tables-panel-sub">Skanimi rrit stokun dhe regjistron faturë «Blerje barcode» → Blerjet + Kontabilisti.</p>
+            <div class="card" style="margin:1rem 0">
+              <div class="card-title">Përbërësit (stoku — vetëm lexim)</div>
+              <p class="tables-panel-sub">Recetat: tab-i Receptat. Blerjet e përbërësve: Blerjet.</p>
+              <div style="overflow-x:auto">
+                <table class="dashboard-top-table">
+                  <thead><tr><th>Emri</th><th>Njësia</th><th>Stoku</th><th>Kosto/njësi</th><th>Min</th></tr></thead>
+                  <tbody id="ingredients-table-body"><tr><td colspan="5">Hapni tab-in Stoku…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-title">Numërim stoku &amp; humbje (përbërës + copë)</div>
+              <p class="tables-panel-sub">Fut sasinë reale — programi tregon diferencën (sasi + €) dhe e regjistron me operator/kohë.</p>
+              <div id="stock-count-lines" style="max-height:220px;overflow:auto;margin-bottom:0.5rem"></div>
+              <div class="stoku-form">
+                <div style="flex:1"><label for="stock-count-note">Shënim</label><input id="stock-count-note" placeholder="p.sh. numërim javor"></div>
+                <button type="button" class="btn btn-primary" id="btn-stock-count-save">Ruaj numërimin</button>
+                <button type="button" class="btn" id="btn-stock-count-reload">Rifresko listën</button>
+              </div>
+              <p id="stock-count-msg" class="tables-panel-sub"></p>
+            </div>
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-title">Krahasim harxhimi (javë / muaj)</div>
+              <div class="stoku-form">
+                <div><label for="variance-from">Nga</label><input type="date" id="variance-from"></div>
+                <div><label for="variance-to">Deri</label><input type="date" id="variance-to"></div>
+                <button type="button" class="btn" id="btn-variance-load">Shfaq</button>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="dashboard-top-table">
+                  <thead><tr><th>Përbërës</th><th>Duhej</th><th>Harxhoi</th><th>Diferenca</th><th>€</th><th>%</th></tr></thead>
+                  <tbody id="variance-table-body"><tr><td colspan="6">Klikoni Shfaq…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="stoku-reconcile-panel" class="tables-panel-sub" hidden></div>
+            <p id="stoku-summary" class="tables-panel-sub"></p>
+            <p class="tables-panel-sub">Zvarrit kategoritë majtas/djathtas për renditje (si te produktet / Cilësimet).</p>
+            <div id="stoku-cat-filter" class="stoku-cats"></div>
             <div id="stoku-grid" class="stoku-grid"></div>
           </div>
         </section>
@@ -567,6 +696,24 @@
       <iframe id="ditari-preview-frame" class="ditari-preview-frame" title="Raport ditari"></iframe>
     </div>
   </div>
+  <div id="modal-stock-add" class="table-modal" hidden>
+    <div class="table-modal-backdrop" id="stock-add-backdrop"></div>
+    <div class="table-modal-content">
+      <h2 id="stock-add-title">Shto stok</h2>
+      <p class="tables-panel-sub" id="stock-add-sub">Rrit stokun për këtë produkt dhe krijon faturë blerjeje «Shtesë manuale (Stoku)» — shfaqet te Blerjet dhe Kontabilisti.</p>
+      <div class="stoku-form">
+        <div><label for="stock-add-qty">Sa copë shtohen në stok?</label><input type="number" id="stock-add-qty" min="0.001" step="0.001" value="1"></div>
+        <div><label for="stock-add-cost">Sa e ble copën? — kosto / blerje (€)</label><input type="number" id="stock-add-cost" min="0" step="0.01" placeholder="p.sh. 0.35"></div>
+        <div><label for="stock-add-sell">Sa e shet copën? — çmimi në menu (€)</label><input type="number" id="stock-add-sell" min="0" step="0.0001" placeholder="p.sh. 1.50"></div>
+      </div>
+      <p class="tables-panel-sub">Kosto shkon te fatura e blerjes dhe Kontabilisti; çmimi i shitjes përditësohet në menu/kamarier.</p>
+      <p id="stock-add-msg" class="tables-panel-sub"></p>
+      <div style="display:flex;gap:0.5rem">
+        <button type="button" class="btn" id="stock-add-cancel">Anulo</button>
+        <button type="button" class="btn btn-primary" id="stock-add-save">Regjistro stok + blerje</button>
+      </div>
+    </div>
+  </div>
   <script>
     var tabs = document.querySelectorAll(".admin-tab-btn");
     var box = document.getElementById("panels");
@@ -596,7 +743,9 @@
         if (id === "tavolinat" || id === "rregullimi-tavolinave") ngarkoTavolinat();
         if (id === "ditari") ngarkoDitarin();
         if (id === "stoku") ngarkoStoku();
-        if (id === "menuja") ngarkoProduktet();
+        if (id === "menuja") { ngarkoProduktet(); ngarkoKategorite(); }
+        if (id === "kategorite") ngarkoKategorite();
+        if (id === "furnitoret") ngarkoFurnitoret();
         if (id === "nderrimet") ngarkoNderrimet();
       });
     });
@@ -1118,15 +1267,123 @@
       });
       document.getElementById("btn-nderrimet-shfaq").addEventListener("click", ngarkoNderrimet);
     })();
+    function euroBorxh(n) {
+      var v = Number(n) || 0;
+      var t = v.toFixed(2) + " €";
+      return v > 0.004 ? '<span class="stoku-zero">' + t + "</span>" : t;
+    }
+    var vetemProgrami = "Kjo pjesë është në fletë si te programi. Ruajtja bëhet te programi, sepse këto të dhëna nuk shkruhen nga fleta.";
+    function ngarkoFurnitoret() {
+      var token = localStorage.getItem("owner_token") || "";
+      if (!token) return;
+      var body = document.getElementById("furnitoret-body");
+      fetch("/api/admin-cloud/furnitoret", { headers: { Authorization: "Bearer " + token } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || data.ok === false) {
+            body.innerHTML = '<tr><td colspan="7">' + esc((data && data.gabim) || "Nuk u lexuan furnitorët.") + "</td></tr>";
+            return;
+          }
+          var rows = data.suppliers || [];
+          if (!rows.length) {
+            body.innerHTML = '<tr><td colspan="7">Nuk ka furnitorë. Shtoni nga forma ose nga fatura e blerjes.</td></tr>';
+            return;
+          }
+          body.innerHTML = rows.map(function (s, i) {
+            return "<tr><td>" + esc(s.name) + "</td><td>" + esc(s.phone || "") + "</td><td>" + esc(s.nui || "") +
+              "</td><td>" + euro(s.purchased) + "</td><td>" + euro(s.paid) + "</td><td>" + euroBorxh(s.balance) +
+              '</td><td><button type="button" class="btn" data-sup-edit="' + i + '">Ndrysho</button> <button type="button" class="btn" data-sup-pay="' + i + '">Pagesë</button> <button type="button" class="btn" data-sup-delete="' + i + '">Fshi</button></td></tr>';
+          }).join("");
+          body.querySelectorAll("[data-sup-edit]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var s = rows[Number(btn.getAttribute("data-sup-edit"))] || {};
+              document.getElementById("sup-name").value = s.name || "";
+              document.getElementById("sup-phone").value = s.phone || "";
+              document.getElementById("sup-email").value = s.email || "";
+              document.getElementById("sup-address").value = s.address || "";
+              document.getElementById("sup-nui").value = s.nui || "";
+              document.getElementById("sup-vat").value = s.vat_number || "";
+            });
+          });
+          body.querySelectorAll("[data-sup-pay]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var s = rows[Number(btn.getAttribute("data-sup-pay"))] || {};
+              document.getElementById("sup-pay-card").hidden = false;
+              document.getElementById("sup-pay-title").textContent = "Pagesë — " + (s.name || "") + " (borxh " + euro(s.balance) + ")";
+              document.getElementById("sup-pay-list").innerHTML = '<tr><td colspan="3">Nuk ka pagesa.</td></tr>';
+            });
+          });
+          body.querySelectorAll("[data-sup-delete]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              document.getElementById("sup-msg").textContent = vetemProgrami;
+            });
+          });
+        })
+        .catch(function () {
+          body.innerHTML = '<tr><td colspan="7">Nuk u lidh me serverin.</td></tr>';
+        });
+    }
+    function paintKategorite(rows) {
+      var box = document.getElementById("lista-kategorive");
+      var copy = document.getElementById("lista-kategorive-menu");
+      if (!rows.length) {
+        var empty = '<p class="tables-panel-sub">Nuk ka kategori.</p>';
+        if (box) box.innerHTML = empty;
+        if (copy) copy.innerHTML = empty;
+        return;
+      }
+      var html = rows.map(function (c) {
+        var route = c.route === "kitchen" ? "kitchen" : "bar";
+        return '<span class="stoku-chip" draggable="true">⋮⋮ ' + esc(c.name) +
+          ' <select class="tag-route"><option value="bar"' + (route === "bar" ? " selected" : "") + '>Banak</option><option value="kitchen"' + (route === "kitchen" ? " selected" : "") + '>Kuzhinë</option></select>' +
+          ' <button type="button" class="btn" data-kat-stop="1">Stop</button>' +
+          ' <button type="button" class="btn" data-kat-del="1">✕</button></span>';
+      }).join("");
+      [box, copy].forEach(function (el) {
+        if (!el) return;
+        el.innerHTML = html;
+        el.querySelectorAll(".tag-route, [data-kat-stop], [data-kat-del]").forEach(function (node) {
+          node.addEventListener("change", function () {
+            var msg = document.getElementById("kat-msg");
+            if (msg) msg.textContent = vetemProgrami;
+          });
+          node.addEventListener("click", function (e) {
+            if (node.tagName === "SELECT") return;
+            e.preventDefault();
+            var msg = document.getElementById("kat-msg");
+            if (msg) msg.textContent = vetemProgrami;
+          });
+        });
+      });
+    }
+    function ngarkoKategorite() {
+      var token = localStorage.getItem("owner_token") || "";
+      if (!token) return;
+      fetch("/api/admin-cloud/kategorite", { headers: { Authorization: "Bearer " + token } })
+        .then(function (r) { return r.json(); })
+        .then(function (body) {
+          if (!body || body.ok === false) {
+            document.getElementById("lista-kategorive").innerHTML = '<p class="tables-panel-sub">' + esc((body && body.gabim) || "Nuk u lexuan kategoritë.") + "</p>";
+            return;
+          }
+          paintKategorite(body.categories || []);
+          var sel = document.getElementById("prod-shto-kat");
+          if (sel) {
+            sel.innerHTML = (body.categories || []).map(function (c) {
+              return '<option value="' + esc(c.name).replace(/"/g, "&quot;") + '">' + esc(c.name) + "</option>";
+            }).join("");
+          }
+        })
+        .catch(function () {
+          document.getElementById("lista-kategorive").innerHTML = '<p class="tables-panel-sub">Nuk u lidh me serverin.</p>';
+        });
+    }
     var produktetData = { items: [], categories: [] };
     var produktetCat = null;
     var produktetShowAll = false;
     function paintProduktet() {
       var items = produktetData.items || [];
       var cats = produktetData.categories || [];
-      document.getElementById("produktet-cats-list").innerHTML = cats.map(function (c) {
-        return '<span class="stoku-chip">' + esc(c.name) + (c.route_label ? " · " + esc(c.route_label) : "") + "</span>";
-      }).join("") || '<span class="stoku-chip">Nuk ka kategori</span>';
       var bar = document.getElementById("produktet-cats");
       var tabs = [{ key: "", label: "Të gjitha" }].concat(cats.map(function (c) { return { key: c.name, label: c.name }; }));
       bar.innerHTML = tabs.map(function (t) {
@@ -1141,41 +1398,70 @@
           paintProduktet();
         });
       });
+      var sel = document.getElementById("prod-shto-kat");
+      if (sel && !sel.options.length) {
+        sel.innerHTML = cats.map(function (c) {
+          return '<option value="' + esc(c.name).replace(/"/g, "&quot;") + '">' + esc(c.name) + "</option>";
+        }).join("");
+      }
       var showOff = document.getElementById("produktet-inactive").checked;
       var list = items.filter(function (it) {
         if (produktetCat && it.category !== produktetCat) return false;
         if (!showOff && !it.active) return false;
         return true;
       });
-      document.getElementById("produktet-summary").textContent =
-        list.length + " produkte në këtë pamje · " + (produktetData.active_count || 0) + " aktive · " + (produktetData.inactive_count || 0) + " joaktive.";
       var grid = document.getElementById("produktet-grid");
       if (!items.length) {
         grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte.</p>';
         return;
       }
       if (!list.length) {
-        grid.innerHTML = '<p class="tables-panel-sub">' + (showOff ? "Nuk ka produkte në këtë kategori." : "Nuk ka produkte aktive.") + "</p>";
+        var hidden = !showOff && items.some(function (it) { return !it.active; });
+        grid.innerHTML = '<p class="tables-panel-sub">' + (hidden ? "Nuk ka produkte aktive." : "Nuk ka produkte në këtë kategori.") + "</p>";
         return;
       }
       var shown = produktetShowAll || list.length <= 100 ? list : list.slice(0, 60);
       grid.innerHTML = shown.map(function (it) {
-        var qty = it.track_stock ? String(it.stock_quantity == null ? 0 : it.stock_quantity) : "—";
-        var badge = it.active
-          ? '<span class="prod-badge prod-on">Aktiv</span>'
-          : '<span class="prod-badge prod-off">Joaktiv</span>';
+        var sq = Number(it.stock_quantity);
+        if (!Number.isFinite(sq)) sq = 0;
+        var stockTxt = sq % 1 ? sq.toFixed(2) : String(Math.round(sq));
+        var badge = it.active ? '<span class="prod-badge prod-on">Aktiv</span>' : '<span class="prod-badge prod-off">Joaktiv</span>';
+        var toggle = it.active ? "Stop" : "Shfaq";
         return '<article class="stoku-card' + (it.active ? "" : " off") + '"><div class="stoku-name">' + esc(it.name) +
           '</div><div class="stoku-chip">' + esc(it.category || "—") + '</div><div style="margin-top:0.45rem">' +
-          euro(it.price) + " · " + esc(it.unit || "EA") + '</div><div class="stoku-chip">TVSH ' + esc(it.vat) +
-          "</div><div style=\"margin-top:0.35rem\">Stoku: " + esc(qty) + " " + badge + "</div></article>";
+          euro(it.price) + " · " + esc(it.unit || "EA") + '</div><div style="margin-top:0.35rem">Stoku: ' + esc(stockTxt) + " " + badge +
+          '</div><div style="margin-top:0.45rem;display:flex;gap:0.35rem;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-prod-edit="' + esc(it.local_id) + '">Ndrysho</button><button type="button" class="btn" data-prod-stop="' + esc(it.local_id) + '">' + toggle + '</button><button type="button" class="btn" data-prod-del="' + esc(it.local_id) + '">Fshi</button></div></article>';
       }).join("");
       if (shown.length < list.length) {
-        grid.innerHTML += '<button type="button" class="stoku-cat" id="produktet-more">Shfaq të gjitha (' + list.length + ")</button>";
+        grid.innerHTML += '<button type="button" class="btn" id="produktet-more">Shfaq të gjitha (' + list.length + ")</button>";
         document.getElementById("produktet-more").addEventListener("click", function () {
           produktetShowAll = true;
           paintProduktet();
         });
       }
+      grid.querySelectorAll("[data-prod-edit], [data-prod-stop], [data-prod-del]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!btn.hasAttribute("data-prod-edit")) {
+            document.getElementById("prod-shto-status").textContent = vetemProgrami;
+            return;
+          }
+          var id = btn.getAttribute("data-prod-edit");
+          var item = items.filter(function (it) { return String(it.local_id) === String(id); })[0];
+          if (!item) return;
+          var card = btn.closest("article");
+          var opts = cats.map(function (c) {
+            return '<option value="' + esc(c.name).replace(/"/g, "&quot;") + '"' + (c.name === item.category ? " selected" : "") + ">" + esc(c.name) + "</option>";
+          }).join("");
+          card.innerHTML = '<div class="stoku-name">Duke redaktuar</div><label>Emri</label><input class="prod-edit-name" value="' + esc(item.name).replace(/"/g, "&quot;") + '"><label>Kategoria</label><select>' + opts + '</select><label>Çmimi (€)</label><input type="number" value="' + esc(item.price) + '"><label>TVSH</label><select><option>18%</option><option>8%</option><option>0%</option></select><label>Barkodi</label><input value="' + esc(item.barcode || "") + '"><label>Stoku</label><input type="number" value="0"><label>Përshkrimi</label><input value="' + esc(item.description || "") + '"><div style="margin-top:0.45rem;display:flex;gap:0.35rem;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-prod-save="1">Ruaje</button><button type="button" class="btn" data-prod-cancel="1">Anulo</button><button type="button" class="btn" data-prod-print="1">Printo etiketë</button></div>';
+          card.querySelector("[data-prod-save]").addEventListener("click", function () {
+            document.getElementById("prod-shto-status").textContent = vetemProgrami;
+          });
+          card.querySelector("[data-prod-print]").addEventListener("click", function () {
+            document.getElementById("prod-shto-status").textContent = vetemProgrami;
+          });
+          card.querySelector("[data-prod-cancel]").addEventListener("click", function () { paintProduktet(); });
+        });
+      });
     }
     function ngarkoProduktet() {
       var token = localStorage.getItem("owner_token") || "";
@@ -1188,82 +1474,131 @@
         .then(function (r) { return r.json(); })
         .then(function (body) {
           if (!body || body.ok === false) {
-            document.getElementById("produktet-summary").textContent = (body && body.gabim) || "Nuk u lexuan produktet.";
+            document.getElementById("prod-shto-status").textContent = (body && body.gabim) || "Nuk u lexuan produktet.";
             return;
           }
           produktetData = body;
           paintProduktet();
         })
         .catch(function () {
-          document.getElementById("produktet-summary").textContent = "Nuk u lidh me serverin.";
+          document.getElementById("prod-shto-status").textContent = "Nuk u lidh me serverin.";
         });
     }
     document.getElementById("produktet-inactive").addEventListener("change", function () {
       produktetShowAll = false;
       paintProduktet();
     });
-    var stokuData = { items: [], categories: [] };
+    var stokuData = { items: [], categories: [], ingredients: [] };
     var stokuCat = null;
+    var stokuShowAll = false;
+    var stokuPaLibrat = "Kjo pjesë është në fletë si te programi. Ruajtja e blerjes, e numërimit dhe e krahasimit bëhet te programi, sepse ato libra nuk janë dërguar këtu.";
+    function stokuQty(it) {
+      var n = Number(it.stock_quantity);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function paintStockCount() {
+      var host = document.getElementById("stock-count-lines");
+      var rows = stokuData.ingredients || [];
+      if (!rows.length) {
+        host.innerHTML = '<p class="tables-panel-sub">Nuk ka rreshta — shtoni përbërës ose produkte pa recetë.</p>';
+        return;
+      }
+      host.innerHTML = rows.map(function (t, i) {
+        return '<div class="stoku-form"><span style="min-width:140px">' + esc(t.name) + " <small>(" + esc(t.unit) + ')</small></span><span class="tables-panel-sub">Sist: ' + esc(t.quantity) + '</span><input type="number" step="any" class="stock-count-qty" data-sc-i="' + i + '" value="' + esc(t.quantity) + '" aria-label="Sasia e numëruar"></div>';
+      }).join("");
+    }
     function paintStoku() {
       var items = stokuData.items || [];
       var cats = stokuData.categories || [];
-      var bar = document.getElementById("stoku-cats");
+      var sel = document.getElementById("stoku-kat");
+      sel.innerHTML = cats.map(function (c) { return '<option value="' + esc(c).replace(/"/g, "&quot;") + '">' + esc(c) + "</option>"; }).join("");
+      var bar = document.getElementById("stoku-cat-filter");
       var tabs = [{ key: "", label: "Krejt" }].concat(cats.map(function (c) { return { key: c, label: c }; }));
       bar.innerHTML = tabs.map(function (t) {
         var on = (stokuCat || "") === t.key;
-        return '<button type="button" class="stoku-cat' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '">' + esc(t.label) + "</button>";
+        var drag = t.key ? ' draggable="true" title="Zvarrit majtas/djathtas për renditje"' : "";
+        return '<button type="button" class="stoku-cat' + (on ? " active" : "") + '" data-cat="' + esc(t.key).replace(/"/g, "&quot;") + '"' + drag + ">" + esc(t.label) + "</button>";
       }).join("");
       bar.querySelectorAll(".stoku-cat").forEach(function (btn) {
         btn.addEventListener("click", function () {
           stokuCat = btn.getAttribute("data-cat") || null;
           if (!stokuCat) stokuCat = null;
+          stokuShowAll = false;
           paintStoku();
         });
       });
       var list = stokuCat ? items.filter(function (it) { return it.category === stokuCat; }) : items.slice();
-      var tracked = list.filter(function (it) { return it.track_stock; });
-      var withStock = tracked.filter(function (it) { return Number(it.stock_quantity) > 0; }).length;
-      var zero = tracked.length - withStock;
-      var untracked = list.length - tracked.length;
-      document.getElementById("stoku-summary").textContent =
-        "Në këtë pamje: " + withStock + " me stok · " + zero + " me stok zero · " + untracked + " pa ndjekje.";
-      var low = (stokuData.low || []).filter(function (it) { return !stokuCat || it.category === stokuCat; });
-      var lowBox = document.getElementById("stoku-low");
+      var withStock = list.filter(function (it) { return stokuQty(it) > 0; }).length;
+      var zero = list.length - withStock;
+      var summary = document.getElementById("stoku-summary");
+      summary.textContent = list.length
+        ? ("Në këtë pamje: " + withStock + " me stok · " + zero + " me stok zero. Blerja rrit vetëm produktet e faturës — jo krejt kategorinë.")
+        : "";
+      var low = list.filter(function (it) {
+        var threshold = Number(it.stock_alert_threshold) || 0;
+        return threshold > 0 && stokuQty(it) <= threshold;
+      });
+      var lowBox = document.getElementById("low-stock-banner");
       lowBox.hidden = !low.length;
-      document.getElementById("stoku-low-list").innerHTML = low.map(function (it) {
-        return "<li>" + esc(it.name) + " — stoku: " + esc(it.stock_quantity) + "</li>";
+      document.getElementById("low-stock-list").innerHTML = low.map(function (it) {
+        return "<li>" + esc(it.name) + " — stoku: " + esc(stokuQty(it)) + "</li>";
       }).join("");
+      var body = document.getElementById("ingredients-table-body");
+      var ings = stokuData.ingredients || [];
+      body.innerHTML = ings.length
+        ? ings.map(function (r) {
+          return "<tr><td>" + esc(r.name) + "</td><td>" + esc(r.unit) + "</td><td>" + esc(r.quantity) + "</td><td>" + euro(r.cost_per_unit) + "</td><td>" + esc(r.min_quantity) + "</td></tr>";
+        }).join("")
+        : '<tr><td colspan="5">Nuk ka përbërës të regjistruar</td></tr>';
+      paintStockCount();
       var grid = document.getElementById("stoku-grid");
+      if (!items.length) {
+        grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte.</p>';
+        return;
+      }
       if (!list.length) {
         grid.innerHTML = '<p class="tables-panel-sub">Nuk ka produkte në këtë kategori.</p>';
         return;
       }
-      grid.innerHTML = list.map(function (it) {
-        var qty = it.track_stock ? String(it.stock_quantity == null ? 0 : it.stock_quantity) : "—";
-        var badge = "";
-        if (it.track_stock && Number(it.stock_quantity) <= 0) badge = ' <span class="stoku-zero">STOKU ZERO</span>';
-        else if (it.stock_status === "low") badge = ' <span class="stoku-low">Stok i ulët</span>';
-        else if (!it.track_stock) badge = ' <span class="stoku-chip">Pa ndjekje</span>';
-        var cls = "stoku-card" + (it.active ? "" : " off") + (it.stock_status === "low" || it.stock_status === "out" ? " low" : "");
-        return '<article class="' + cls + '"><div class="stoku-name">' + esc(it.name) + '</div><div class="stoku-chip">' +
-          esc(it.category || "—") + '</div><div style="margin-top:0.45rem">Stoku: ' + esc(qty) + badge +
-          '</div><div class="stoku-chip">Shitje: ' + euro(it.price) + "</div></article>";
+      var shown = stokuShowAll || list.length <= 100 ? list : list.slice(0, 60);
+      grid.innerHTML = shown.map(function (it) {
+        var sq = stokuQty(it);
+        var threshold = Number(it.stock_alert_threshold) || 0;
+        var isLow = threshold > 0 && sq <= threshold;
+        var badge = sq <= 0 ? ' <span class="stoku-zero">STOKU ZERO</span>' : (isLow ? ' <span class="stoku-low">Stok i ulët</span>' : "");
+        return '<article class="stoku-card' + (it.active ? "" : " off") + (isLow ? " low" : "") + '"><div class="stoku-name">' + esc(it.name) +
+          '</div><div class="stoku-chip">' + esc(it.category || "—") + '</div><div style="margin-top:0.45rem">Stoku: ' + esc(sq) + badge +
+          '</div><div class="stoku-chip">Blerje: ' + euro(0) + " · Shitje: " + euro(it.price) + '</div><div style="margin-top:0.35rem;font-weight:800">' +
+          euro(it.price) + '</div><button type="button" class="btn btn-primary" data-stock-add="' + esc(it.local_id) + '" style="margin-top:0.45rem">+ Shto stok</button></article>';
       }).join("");
-    }
-    function paintIngredients(rows) {
-      var body = document.getElementById("stoku-ingredients");
-      if (!rows.length) {
-        body.innerHTML = '<tr><td colspan="5" style="color:#a0a0b8">Nuk ka përbërës të regjistruar</td></tr>';
-        return;
+      if (shown.length < list.length) {
+        grid.innerHTML += '<button type="button" class="btn" id="stoku-more">Shfaq të gjitha (' + list.length + ")</button>";
+        document.getElementById("stoku-more").addEventListener("click", function () {
+          stokuShowAll = true;
+          paintStoku();
+        });
       }
-      body.innerHTML = rows.map(function (r) {
-        return "<tr><td>" + esc(r.name) + "</td><td>" + esc(r.unit) + "</td><td>" + esc(r.quantity) +
-          "</td><td>" + euro(r.cost_per_unit) + "</td><td>" + esc(r.min_quantity) + "</td></tr>";
-      }).join("");
+      grid.querySelectorAll("[data-stock-add]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var id = btn.getAttribute("data-stock-add");
+          var item = (stokuData.items || []).filter(function (it) { return String(it.local_id) === String(id); })[0];
+          if (!item) return;
+          document.getElementById("stock-add-title").textContent = "Shto stok — " + item.name;
+          document.getElementById("stock-add-qty").value = "1";
+          document.getElementById("stock-add-cost").value = "";
+          document.getElementById("stock-add-sell").value = Number(item.price) > 0 ? Number(item.price).toFixed(2) : "";
+          document.getElementById("stock-add-msg").textContent = "";
+          document.getElementById("modal-stock-add").hidden = false;
+        });
+      });
     }
     function ngarkoStoku() {
       var token = localStorage.getItem("owner_token") || "";
       if (!token) return;
+      var today = new Date();
+      var ymd = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+      if (!document.getElementById("variance-from").value) document.getElementById("variance-from").value = ymd;
+      if (!document.getElementById("variance-to").value) document.getElementById("variance-to").value = ymd;
       fetch("/api/admin-cloud/stoku", { headers: { Authorization: "Bearer " + token } })
         .then(function (r) { return r.json(); })
         .then(function (body) {
@@ -1272,13 +1607,75 @@
             return;
           }
           stokuData = body;
-          paintIngredients(body.ingredients || []);
           paintStoku();
         })
         .catch(function () {
           document.getElementById("stoku-summary").textContent = "Nuk u lidh me serverin.";
         });
     }
+    document.getElementById("forma-stoku-barcode").addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.getElementById("stoku-barcode-status").textContent = stokuPaLibrat;
+    });
+    document.getElementById("btn-stoku-reconcile").addEventListener("click", function () {
+      var panel = document.getElementById("stoku-reconcile-panel");
+      panel.hidden = false;
+      panel.textContent = stokuPaLibrat;
+    });
+    document.getElementById("btn-stock-count-save").addEventListener("click", function () {
+      document.getElementById("stock-count-msg").textContent = stokuPaLibrat;
+    });
+    document.getElementById("btn-stock-count-reload").addEventListener("click", function () { ngarkoStoku(); });
+    document.getElementById("btn-variance-load").addEventListener("click", function () {
+      document.getElementById("variance-table-body").innerHTML = '<tr><td colspan="6">' + esc(stokuPaLibrat) + "</td></tr>";
+    });
+    document.getElementById("stock-add-cancel").addEventListener("click", function () {
+      document.getElementById("modal-stock-add").hidden = true;
+    });
+    document.getElementById("stock-add-backdrop").addEventListener("click", function () {
+      document.getElementById("modal-stock-add").hidden = true;
+    });
+    document.getElementById("stock-add-save").addEventListener("click", function () {
+      var qty = Number(document.getElementById("stock-add-qty").value);
+      var msg = document.getElementById("stock-add-msg");
+      if (!Number.isFinite(qty) || qty <= 0) {
+        msg.textContent = "Sasia duhet të jetë më e madhe se 0.";
+        return;
+      }
+      if (!String(document.getElementById("stock-add-cost").value || "").trim()) {
+        msg.textContent = "Shkruani sa e ble copën (kosto €).";
+        return;
+      }
+      msg.textContent = stokuPaLibrat;
+    });
+    document.getElementById("forma-furnitor").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!document.getElementById("sup-name").value.trim()) {
+        document.getElementById("sup-msg").textContent = "Emri i furnitorit mungon";
+        return;
+      }
+      document.getElementById("sup-msg").textContent = vetemProgrami;
+    });
+    document.getElementById("btn-sup-pay").addEventListener("click", function () {
+      document.getElementById("sup-msg").textContent = vetemProgrami;
+    });
+    document.getElementById("forma-kategori").addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.getElementById("kat-msg").textContent = vetemProgrami;
+    });
+    document.getElementById("forma-produkt-shto").addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.getElementById("prod-shto-status").textContent = vetemProgrami;
+    });
+    document.getElementById("prod-shto-cancel").addEventListener("click", function () {
+      document.getElementById("forma-produkt-shto").reset();
+      document.getElementById("prod-shto-status").textContent = "";
+    });
+    document.getElementById("prod-shto-more").addEventListener("click", function () {
+      var box = document.getElementById("prod-shto-more-box");
+      box.hidden = !box.hidden;
+      document.getElementById("prod-shto-more").textContent = box.hidden ? "Më shumë ↓" : "Më pak ↑";
+    });
     function ngarkoTavolinat() {
       var token = localStorage.getItem("owner_token") || "";
       if (!token) return;

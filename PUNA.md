@@ -1,3 +1,19 @@
+## 2026-11-21 — Krahasim i skedave me programin
+
+`public/admin-cloud.html`: Ditari mori fjalinë e refuzimeve. Furnitorët morën formën, emailin, adresën, TVSH, Ndrysho, Pagesë, Fshi dhe kartën e pagesës. Kategoritë morën Stop, fshirjen, Banak/Kuzhinë dhe formën. Produktet morën formën, njësinë, TVSH, stokun, Ndrysho, Stop dhe Fshi. Ruajtja e këtyre butonave mbetet te programi. Nuk u dërgua te faqja e gjallë. Ekrani nuk u hap.
+
+## 2026-11-21 — Stoku si te programi
+
+`public/admin-cloud.html`: skeda Stoku tani ka verifikimin, barkodin, përbërësit, numërimin, krahasimin, kategoritë dhe kartelat me «+ Shto stok». Ruajtja e blerjes, numërimit dhe krahasimit nuk bëhet këtu, se librat nuk janë në cloud. Përbërësit në cloud: 0. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Skeda Furnitorët
+
+`public/admin-cloud.html`: skeda Furnitorët, vetëm lexim. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: `GET /api/admin-cloud/furnitoret`. Nuk ka tabelë furnitorësh në cloud. Përgjigjja: 0 furnitorë. Nuk u dërgua te faqja e gjallë.
+
+## 2026-11-21 — Skeda Kategoritë
+
+`public/admin-cloud.html`: skeda Kategoritë, vetëm lexim. `src/services/adminCloudService.js` dhe `src/routes/adminCloud.js`: `GET /api/admin-cloud/kategorite`. 19 kategori, 7 pije, 12 ushqim, 1 pa produkte. Nuk ka fushë aktive. Nuk u dërgua te faqja e gjallë.
+
 ## 2026-11-21 — Ndaluar te telefoni dhe kompjuteri
 
 `public/js/owner-guard.js` dhe `public/arka.html`: u hoq kontrolli që e mbyllte panelin kur dritarja nuk ishte e plotë. `public/js/waiter.js`, `kitchen.js`, `bar.js`: telefoni e mban kodin e hyrjes pasi linku hapet një herë. `src/routes/arkaPages.js`: ikona e arkës e merr linkun me kod. Nuk u dërgua te faqja e gjallë. Ekrani i gjallë ende shfaq «Ndaluar».

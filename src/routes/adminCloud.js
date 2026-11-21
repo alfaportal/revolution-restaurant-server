@@ -2,7 +2,7 @@
 
 const express = require("express");
 const { authOwner, ownerOnly } = require("../middleware/auth");
-const { getPasqyra, getDitari, buildDitariPreviewHtml, listNderrimet, getStoku, getProduktet } = require("../services/adminCloudService");
+const { getPasqyra, getDitari, buildDitariPreviewHtml, listNderrimet, getStoku, getProduktet, getKategorite, listFurnitoret } = require("../services/adminCloudService");
 
 const router = express.Router();
 
@@ -45,6 +45,24 @@ router.get("/refused-orders", async (req, res) => {
 router.get("/ditari", async (req, res) => {
   try {
     const data = await getDitari(req.user.client_id, req.query);
+    res.json({ ok: true, ...data });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message || "Gabim" });
+  }
+});
+
+router.get("/furnitoret", async (req, res) => {
+  try {
+    const data = await listFurnitoret(req.user.client_id);
+    res.json({ ok: true, ...data });
+  } catch (e) {
+    res.status(500).json({ ok: false, gabim: e.message || "Gabim" });
+  }
+});
+
+router.get("/kategorite", async (req, res) => {
+  try {
+    const data = await getKategorite(req.user.client_id);
     res.json({ ok: true, ...data });
   } catch (e) {
     res.status(500).json({ ok: false, gabim: e.message || "Gabim" });

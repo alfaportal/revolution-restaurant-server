@@ -786,4 +786,80 @@ async function getProduktet(clientId) {
   };
 }
 
-module.exports = { getPasqyra, getDitari, buildDitariPreviewHtml, listNderrimet, getStoku, getProduktet };
+async function listFurnitoret(clientId) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("suppliers")
+    .select("name, phone, email, address, nui, vat_number, note")
+    .eq("client_id", clientId)
+    .limit(500);
+  if (error) {
+    const msg = String(error.message || "");
+    if (error.code === "PGRST205" || msg.includes("Could not find the table")) {
+      return { suppliers: [], count: 0, read_only: true };
+    }
+    throw error;
+  }
+  const suppliers = (data || []).map((row) => ({
+    name: String(row.name || "").trim(),
+    phone: String(row.phone || "").trim(),
+    email: String(row.email || "").trim(),
+    address: String(row.address || "").trim(),
+    nui: String(row.nui || "").trim(),
+    vat_number: String(row.vat_number || "").trim(),
+    note: String(row.note || "").trim(),
+    purchased: 0,
+    paid: 0,
+    balance: 0,
+  })).filter((row) => row.name);
+  suppliers.sort((a, b) => a.name.localeCompare(b.name, "sq"));
+  return { suppliers, count: suppliers.length, read_only: true };
+}
+
+module.exports = { getPasqyra, getDitari, buildDitariPreviewHtml, listNderrimet, getStoku, getProduktet, getKategorite, listFurnitoret };
+
+async function getKategorite(clientId) {
+  const db = getSupabase();
+  const [catsRes, itemsRes] = await Promise.all([
+    db
+      .from("pos_categories")
+      .select("name, sort_order, route")
+      .eq("client_id", clientId)
+      .order("sort_order"),
+    db
+      .from("pos_menu_items")
+      .select("category, active")
+      .eq("client_id", clientId),
+  ]);
+  if (catsRes.error) throw catsRes.error;
+  const counts = new Map();
+  for (const row of itemsRes.error ? [] : (itemsRes.data || [])) {
+    const name = String(row.category || "").trim();
+    if (!name) continue;
+    const cur = counts.get(name) || { products: 0, active_products: 0 };
+    cur.products += 1;
+    if (row.active !== false) cur.active_products += 1;
+    counts.set(name, cur);
+  }
+  const categories = (catsRes.data || [])
+    .map((row) => {
+      const name = String(row.name || "").trim();
+      const route = row.route === "kitchen" ? "kitchen" : "bar";
+      const count = counts.get(name) || { products: 0, active_products: 0 };
+      return {
+        name,
+        sort_order: Number(row.sort_order) || 0,
+        route,
+        route_label: route === "kitchen" ? "Ushqim (kuzhinë)" : "Pije (banak)",
+        products: count.products,
+        active_products: count.active_products,
+      };
+    })
+    .filter((row) => row.name)
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "sq"));
+  return {
+    read_only: true,
+    categories,
+    count: categories.length,
+  };
+}
